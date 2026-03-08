@@ -80,7 +80,7 @@ input,select,textarea{font-family:'Nunito',sans-serif;outline:none;}
 #sidebar nav{flex:1;padding:8px 0;}
 #sidebar nav .ns{padding:9px 16px 3px;font-size:.68rem;font-weight:800;color:rgba(255,255,255,.38);letter-spacing:1px;text-transform:uppercase;}
 #sidebar nav a{display:flex;align-items:center;gap:9px;padding:9px 16px;color:rgba(255,255,255,.75);font-size:.88rem;font-weight:700;border-left:3px solid transparent;transition:.15s;cursor:pointer;}
-#sidebar nav a:hover,#sidebar nav a.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:#fff;}
+#sidebar nav a:hover{background:rgba(255,255,255,.1);color:#fff;} #sidebar nav a.active{background:#1d4ed8;color:#fff;border-left:3px solid #93c5fd;border-radius:0 20px 20px 0;margin-right:12px;font-weight:900;box-shadow:0 2px 10px rgba(0,0,0,.3);}
 #sidebar nav a .ico{font-size:.95rem;width:19px;text-align:center;}
 #sidebar .ubox{padding:13px 16px;border-top:1px solid rgba(255,255,255,.12);}
 #sidebar .ubox .uname{font-weight:800;font-size:.9rem;}
@@ -246,8 +246,6 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="ns">Finance</div>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
-      <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
@@ -1356,12 +1354,20 @@ function renderDashboard() {
   const open=allWorks.filter(w=>w.status==='open').length;
   const overdue=allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000).length;
   const udhari=allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid').length;
+  const cashLedger=allLedger.filter(l=>l.bank==='Cash');
+  const cashOpening=cashLedger.filter(l=>l.type==='opening').reduce((s,l)=>s+(l.amount||0),0);
+  const cashIn=cashLedger.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
+  const cashOut=cashLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
+  const cashBalance=cashOpening+cashIn-cashOut;
+  const pendingDue=allWorks.filter(w=>w.remainingBalance>0&&w.status!=='done').reduce((s,w)=>s+(w.remainingBalance||0),0);
   document.getElementById('dashStats').innerHTML=`
     <div class="sc"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${open}</div></div>
     <div class="sc red"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
     <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${udhari}</div></div>
+    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">💵 Cash in Hand</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
+    ${pendingDue>0?`<div class="sc red"><div class="sl">Pending Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
   `;
   // Recent works
   // Pinboard snippet on dashboard
@@ -1374,7 +1380,7 @@ function renderDashboard() {
 
   document.getElementById('recentList').innerHTML=allWorks.slice(0,6).map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);cursor:pointer;gap:6px;">
-      <div><div style="font-weight:700;font-size:.88rem;">${esc(w.clientName)}</div>
+      <div><div style="font-weight:700;font-size:.88rem;">${esc(w.ownerName||w.clientName)}</div>
       <div style="font-size:.75rem;color:var(--gray);">${esc(w.vehicle)} · ${wtLabel(w.workType)}</div></div>
       <span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span>
     </div>`).join('')||'<div class="nd">No works yet</div>';
@@ -1410,15 +1416,10 @@ function renderDashboard() {
 // NEW WORK
 // ============================================================
 function workTypeChange(){document.getElementById('othersField').style.display=document.getElementById('w_type').value==='Others'?'block':'none';}
-function payModeChange(){const m=document.getElementById('w_payMode').value;document.getElementById('upiBankField').style.display=m==='UPI'?'block':'none';document.getElementById('extraBalField').style.display=m==='ExcessPaid'?'block':'none';}
+// payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
-function initNewWorkDate() {
-  const el = document.getElementById('w_date');
-  if(el && !el.value) el.value = new Date().toISOString().split('T')[0];
-}
-
-function initNewWorkDate(){const el=document.getElementById("w_date");if(el&&!el.value)el.value=new Date().toISOString().split("T")[0];}
+function initNewWorkDate(){const el=document.getElementById('w_date');if(el)el.value=new Date().toISOString().split('T')[0];}
 
 // ── New Work helpers ──────────────────────────────────────────
 function addVehicleRow() {
@@ -1478,9 +1479,14 @@ function calcRemaining() {
   const wv = parseFloat(document.getElementById('w_workValue').value)||0;
   const received = parseFloat(document.getElementById('w_amount').value)||0;
   const div = document.getElementById('remainingBal');
-  if(wv>0 && received<wv) {
+  if(wv>0 && received>wv) {
     div.style.display='block';
-    div.textContent = `⚠️ Remaining Balance: ₹${(wv-received).toLocaleString('en-IN')} still to be collected`;
+    div.style.background='var(--gl)'; div.style.color='var(--g)';
+    div.textContent = `✅ Excess Paid: ${inr(received-wv)} extra received from client`;
+  } else if(wv>0 && received<wv) {
+    div.style.display='block';
+    div.style.background='var(--rl)'; div.style.color='var(--r)';
+    div.textContent = `⚠️ Remaining Balance: ${inr(wv-received)} still to be collected`;
   } else { div.style.display='none'; }
 }
 
@@ -1631,7 +1637,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Phone</span><span class="value">'+w.phone+'</span></div>'
     +'<div class="row"><span class="label">Work Type</span><span class="value">'+(w.workType||'').replace(/-/g,' ')+'</span></div>'
     +'<div class="row"><span class="label">Date</span><span class="value">'+w.date+'</span></div>'
-    +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+(w.totalPaid||w.amount||0).toLocaleString('en-IN')+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+w.remainingBalance.toLocaleString('en-IN')+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="'+w.receiptPhoto+'" target="_blank" style="color:#2563eb;text-decoration:underline;">📄 Download / View</a></span></div>':'')
+    +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+inr(w.totalPaid||w.amount||0)+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+inr(w.remainingBalance)+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="'+w.receiptPhoto+'" target="_blank" style="color:#2563eb;text-decoration:underline;">📄 Download / View</a></span></div>':'')
     +'<div class="row"><span class="label">Payment</span><span class="value">'+w.payMode+'</span></div>'
     +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':'In Progress')+'</span></div>'
     +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+w.expiryDate+'</span></div>':'')
@@ -1676,7 +1682,7 @@ function renderWorkTable(){
     <td><strong>${esc(w.ownerName||w.clientName)}</strong>${w.clientName&&w.clientName!==w.ownerName?`<br/><span style='font-size:.7rem;color:var(--gray);'>Client: ${esc(w.clientName)}</span>`:''}<br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
     <td style="font-weight:700;">${esc(w.vehicles||w.vehicle)}${w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:''}</td>
     <td>${wtBadge(w)}</td>
-    <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ₹${w.remainingBalance.toLocaleString('en-IN')}</span>`:''}</td>
+    <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ${inr(w.remainingBalance)}</span>`:''}</td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
     <td style="font-size:.77rem;color:var(--gray);">${esc(w.date)}<br/>${esc(w.time)}</td>
@@ -1729,7 +1735,7 @@ function renderDateWise(){
     <div class="sc"><div class="sl">Works</div><div class="sv">${list.length}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${list.length-done}</div></div>
-    <div class="sc yellow"><div class="sl">Total Collected</div><div class="sv">₹${totalAmt.toLocaleString('en-IN')}</div></div>
+    <div class="sc yellow"><div class="sl">Total Collected</div><div class="sv">${inr(totalAmt)}</div></div>
   `;
   const tbody=document.getElementById('dateTableBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="10" class="nd">No works for this period</td></tr>';return;}
@@ -1884,7 +1890,7 @@ function searchClientHistory(){
     <div class="sc"><div class="sl">Total Works</div><div class="sv">${list.length}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${list.filter(w=>w.status==='done').length}</div></div>
     <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${list.filter(w=>w.payMode==='Unpaid').length}</div></div>
-    <div class="sc yellow"><div class="sl">Total Paid</div><div class="sv">₹${totalAmt.toLocaleString('en-IN')}</div></div>
+    <div class="sc yellow"><div class="sl">Total Paid</div><div class="sv">${inr(totalAmt)}</div></div>
   </div>
   <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
     ${list.map(w=>`<tr>
@@ -1904,8 +1910,8 @@ function viewWork(key){
   const w=allWorks.find(x=>x._key===key);
   if(!w)return;
   let payInfo='';
-  try{const modes=JSON.parse(w.payModes||'[]');payInfo=modes.map(m=>`<div class="di"><div class="dl">${esc(m.mode)}${m.bank?' ('+esc(m.bank)+')':''}${m.employee?' — '+esc(m.employee)+' ':''}</div><div class="dv">₹${(m.amount||0).toLocaleString('en-IN')}</div></div>`).join('');
-  }catch(e){payInfo=`<div class="di"><div class="dl">${esc(w.payMode||'—')}</div><div class="dv">₹${(w.amount||0).toLocaleString('en-IN')}</div></div>`;}
+  try{const modes=JSON.parse(w.payModes||'[]');payInfo=modes.map(m=>`<div class="di"><div class="dl">${esc(m.mode)}${m.bank?' ('+esc(m.bank)+')':''}${m.employee?' — '+esc(m.employee)+' ':''}</div><div class="dv">${inr(m.amount||0)}</div></div>`).join('');
+  }catch(e){payInfo=`<div class="di"><div class="dl">${esc(w.payMode||'—')}</div><div class="dv">${inr(w.amount||0)}</div></div>`;}
   document.getElementById('workDetailBody').innerHTML=`
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
       <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')">🖨️ Print Receipt</button>
@@ -1920,17 +1926,17 @@ function viewWork(key){
     <div class="di"><div class="dl">Vehicle(s)</div><div class="dv">${esc(w.vehicles||w.vehicle)}</div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
     <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div></div>
-    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?'₹'+w.workValue.toLocaleString('en-IN'):'—'}</div></div>
-    <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">₹${(w.totalPaid||w.amount||0).toLocaleString('en-IN')}</div></div>
-    ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">₹${w.remainingBalance.toLocaleString('en-IN')}</div></div>`:''}
+    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}</div></div>
+    <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
+    ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
     ${payInfo}
     <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
     ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
     <div class="di"><div class="dl">Date</div><div class="dv">${esc(w.date)} ${esc(w.time)}</div></div>
     <div class="di"><div class="dl">Taken By</div><div class="dv">${esc(w.takenBy)}</div></div>
     ${w.status!=='open'?`<div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div><div class="di"><div class="dl">Completed Date</div><div class="dv">${esc(w.completedDate)}</div></div>`:''}
-    ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">₹${w.receiptAmount.toLocaleString('en-IN')} from ${esc(w.closingBank)}</div></div>`:''}
-    ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">₹${w.miscExpense.toLocaleString('en-IN')} — ${esc(w.miscReason)}</div></div>`:''}
+    ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">${inr(w.receiptAmount)} from ${esc(w.closingBank)}</div></div>`:''}
+    ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
     ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
     ${w.closeNotes?`<div class="di"><div class="dl">Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
     ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="window.open('${w.receiptPhoto}','_blank')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
@@ -2150,17 +2156,17 @@ function renderLedger(){
   const debits=entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
   const opening=entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('ledgerSummary').innerHTML=`
-    <div class="sc"><div class="sl">Opening Balance</div><div class="sv">₹${opening.toLocaleString('en-IN')}</div></div>
-    <div class="sc green"><div class="sl">Total Credits</div><div class="sv">₹${credits.toLocaleString('en-IN')}</div></div>
-    <div class="sc red"><div class="sl">Total Debits</div><div class="sv">₹${debits.toLocaleString('en-IN')}</div></div>
-    <div class="sc"><div class="sl">Closing Balance</div><div class="sv">₹${(opening+credits-debits).toLocaleString('en-IN')}</div></div>
+    <div class="sc"><div class="sl">Opening Balance</div><div class="sv">${inr(opening)}</div></div>
+    <div class="sc green"><div class="sl">Total Credits</div><div class="sv">${inr(credits)}</div></div>
+    <div class="sc red"><div class="sl">Total Debits</div><div class="sv">${inr(debits)}</div></div>
+    <div class="sc"><div class="sl">Closing Balance</div><div class="sv">${inr(opening+credits-debits)}</div></div>
   `;
   const tbody=document.getElementById('ledgerBody');
   if(!entries.length){tbody.innerHTML=`<tr><td colspan="6" class="nd">No entries for ${currentLedgerBank}</td></tr>`;return;}
   tbody.innerHTML=entries.map(e=>`<tr>
     <td style="font-size:.8rem;">${esc(e.date)}${e.autoEntry?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
     <td><span class="badge ${e.type==='credit'?'bg':e.type==='debit'?'br':'bgr'}">${e.type==='opening'?'Opening':e.type==='credit'?'↑ Credit':'↓ Debit'}</span></td>
-    <td style="font-weight:800;color:${e.type==='credit'?'var(--g)':e.type==='debit'?'var(--r)':'#374151'};">₹${(e.amount||0).toLocaleString('en-IN')}</td>
+    <td style="font-weight:800;color:${e.type==='credit'?'var(--g)':e.type==='debit'?'var(--r)':'#374151'};">${inr(e.amount||0)}</td>
     <td style="font-size:.78rem;color:var(--gray);">${esc(e.workRef||'—')}</td>
     <td style="font-size:.82rem;">${esc(e.description||'—')}</td>
     <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
@@ -2185,6 +2191,19 @@ async function saveLedgerEntry(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+
+// Indian number formatting (1,35,000 style)
+function inr(n){
+  if(n===undefined||n===null||isNaN(n)) return '₹0';
+  const neg = n<0; const num = Math.abs(Math.round(Number(n)));
+  const s = String(num);
+  let result='';
+  if(s.length<=3) result=s;
+  else{ result=s.slice(-3); let rem=s.slice(0,-3);
+    while(rem.length>2){result=rem.slice(-2)+','+result;rem=rem.slice(0,-2);}
+    if(rem.length) result=rem+','+result; }
+  return (neg?'-':'')+'₹'+result;
+}
 
 // ============================================================
 // BANK RECONCILIATION
@@ -2392,8 +2411,8 @@ function runReconciliation() {
     <div class="sc orange"><div class="sl">Bank Only</div><div class="sv">${recoUnmatchedBank.length}</div></div>
     <div class="sc red"><div class="sl">Ledger Only</div><div class="sv">${recoUnmatchedLedger.length}</div></div>
     <div class="sc ${isBalanced?'green':'red'}"><div class="sl">Balance Match</div><div class="sv">${isBalanced?'✅ YES':'❌ NO'}</div></div>
-    <div class="sc"><div class="sl">Bank Closing</div><div class="sv">Rs.${bankClosing.toLocaleString('en-IN')}</div></div>
-    <div class="sc"><div class="sl">Ledger Closing</div><div class="sv">Rs.${ledgerClosing.toLocaleString('en-IN')}</div></div>
+    <div class="sc"><div class="sl">Bank Closing</div><div class="sv">Rs.${inr(bankClosing)}</div></div>
+    <div class="sc"><div class="sl">Ledger Closing</div><div class="sv">Rs.${inr(ledgerClosing)}</div></div>
   `;
 
   document.getElementById('recoResults').style.display='block';
@@ -2416,7 +2435,7 @@ function renderRecoBody() {
       ${recoMatched.map(m=>`<tr style="background:var(--gl);">
         <td style="font-size:.78rem;">${esc(m.bank.dateStr)}</td>
         <td style="font-size:.78rem;">${esc(m.bank.description.substring(0,40))}</td>
-        <td style="font-weight:800;color:var(--g);">Rs.${((m.bank.credit||m.bank.debit)||0).toLocaleString('en-IN')}</td>
+        <td style="font-weight:800;color:var(--g);">Rs.${inr(((m.bank.credit||m.bank.debit)||0))}</td>
         <td><span class="badge ${m.ledger.type==='credit'?'bg':'br'}">${m.ledger.type}</span></td>
         <td style="font-size:.78rem;">${esc(m.ledger.description||'—')}</td>
         <td style="font-size:.78rem;">${esc(m.ledger.date||'—')}</td>
@@ -2429,8 +2448,8 @@ function renderRecoBody() {
       ${recoUnmatchedBank.map(t=>`<tr style="background:#fff8f8;">
         <td style="font-size:.78rem;">${esc(t.dateStr)}</td>
         <td style="font-size:.78rem;">${esc(t.description.substring(0,50))}</td>
-        <td style="color:var(--g);font-weight:800;">${t.credit?'Rs.'+t.credit.toLocaleString('en-IN'):'—'}</td>
-        <td style="color:var(--r);font-weight:800;">${t.debit?'Rs.'+t.debit.toLocaleString('en-IN'):'—'}</td>
+        <td style="color:var(--g);font-weight:800;">${t.credit?'Rs.'+inr(t.credit):'—'}</td>
+        <td style="color:var(--r);font-weight:800;">${t.debit?'Rs.'+inr(t.debit):'—'}</td>
         <td><button class="btn btn-sm btn-primary" onclick="recoAddToLedger(${t.credit||0},${t.debit||0},'${esc(t.dateStr)}','${esc(t.description.replace(/'/g,''))}')">+ Add to Ledger</button></td>
       </tr>`).join('')}
     </tbody></table>`;
@@ -2442,7 +2461,7 @@ function renderRecoBody() {
         <td style="font-size:.78rem;">${esc(l.date||'—')}</td>
         <td style="font-size:.78rem;">${esc(l.description||'—')}</td>
         <td><span class="badge ${l.type==='credit'?'bg':'br'}">${l.type}</span></td>
-        <td style="font-weight:800;color:${l.type==='credit'?'var(--g)':'var(--r)'};">Rs.${(l.amount||0).toLocaleString('en-IN')}</td>
+        <td style="font-weight:800;color:${l.type==='credit'?'var(--g)':'var(--r)'};">Rs.${inr((l.amount||0))}</td>
         <td style="font-size:.78rem;">${esc(l.workRef||'—')}</td>
       </tr>`).join('')}
     </tbody></table>`;
@@ -2469,8 +2488,8 @@ function printReceipt(key) {
   let payInfo = '';
   try {
     const modes = JSON.parse(w.payModes||'[]');
-    payInfo = modes.map(m=>`${m.mode}${m.bank?' ('+m.bank+')':''}${m.employee?' — '+m.employee+' ':''}: ₹${(m.amount||0).toLocaleString('en-IN')}`).join('<br>');
-  } catch(e){ payInfo = `${w.payMode||'—'}: ₹${(w.amount||0).toLocaleString('en-IN')}`; }
+    payInfo = modes.map(m=>`${m.mode}${m.bank?' ('+m.bank+')':''}${m.employee?' — '+m.employee+' ':''}: ${inr(m.amount||0)}`).join('<br>');
+  } catch(e){ payInfo = `${w.payMode||'—'}: ${inr(w.amount||0)}`; }
   const win = window.open('','_blank','width=400,height=600');
   win.document.write(`<!DOCTYPE html><html><head><title>Receipt #${w.workNum}</title>
   <style>body{font-family:Arial,sans-serif;padding:20px;max-width:380px;margin:auto;font-size:13px;}
@@ -2491,13 +2510,13 @@ function printReceipt(key) {
     <tr><td>Phone</td><td>${esc(w.phone)}</td></tr>
     <tr><td>Work Type</td><td>${esc(wtLabel(w.workType))}</td></tr>
     ${w.workType==='Transfer'?`<tr><td>From</td><td>${esc(w.transferFrom)}</td></tr><tr><td>To</td><td>${esc(w.transferTo)}</td></tr>`:''}
-    ${w.workValue?`<tr><td>Work Value</td><td>₹${w.workValue.toLocaleString('en-IN')}</td></tr>`:''}
-    <tr><td>Amount Paid</td><td class="total">₹${(w.totalPaid||w.amount||0).toLocaleString('en-IN')}</td></tr>
-    ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:red;font-weight:bold;">₹${w.remainingBalance.toLocaleString('en-IN')}</td></tr>`:''}
+    ${w.workValue?`<tr><td>Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
+    <tr><td>Amount Paid</td><td class="total">${inr(w.totalPaid||w.amount||0)}</td></tr>
+    ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:red;font-weight:bold;">${inr(w.remainingBalance)}</td></tr>`:''}
     <tr><td>Payment Mode</td><td>${payInfo}</td></tr>
     <tr><td>Status</td><td>${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial':'🔵 Open'}</td></tr>
     ${w.partialDesc?`<tr><td>Done</td><td>${esc(w.partialDesc)}</td></tr>`:''}
-    ${w.miscExpense>0?`<tr><td>Misc Expense</td><td>₹${w.miscExpense.toLocaleString('en-IN')} — ${esc(w.miscReason)}</td></tr>`:''}
+    ${w.miscExpense>0?`<tr><td>Misc Expense</td><td>${inr(w.miscExpense)} — ${esc(w.miscReason)}</td></tr>`:''}
     ${w.notes?`<tr><td>Notes</td><td>${esc(w.notes)}</td></tr>`:''}
     <tr><td>Client ID</td><td>${esc(w.clientId||'—')}</td></tr>
     <tr><td>Taken By</td><td>${esc(w.takenBy)}</td></tr>
@@ -2522,7 +2541,7 @@ function renderCombinedBalance() {
     const debits = entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
     const bal = opening+credits-debits;
     grandTotal += bal;
-    html += `<div class="sc ${bal<0?'red':''}"><div class="sl">${bank==='Cash'?'💵':''} ${bank}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">₹${bal.toLocaleString('en-IN')}</div></div>`;
+    html += `<div class="sc ${bal<0?'red':''}"><div class="sl">${bank==='Cash'?'💵':''} ${bank}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">${inr(bal)}</div></div>`;
   });
 
   // Employee held amounts
@@ -2536,7 +2555,7 @@ function renderCombinedBalance() {
   let empHtml = '';
   Object.entries(empMap).forEach(([name,amt])=>{
     empTotal += amt;
-    empHtml += `<div class="sc orange"><div class="sl">👤 ${esc(name)}</div><div class="sv" style="color:#d97706;">₹${amt.toLocaleString('en-IN')}</div></div>`;
+    empHtml += `<div class="sc orange"><div class="sl">👤 ${esc(name)}</div><div class="sv" style="color:#d97706;">${inr(amt)}</div></div>`;
   });
 
   html += '</div>';
@@ -2550,11 +2569,11 @@ function renderCombinedBalance() {
 
   html += `<div style="background:var(--pl);border-radius:var(--rads);padding:14px;margin-top:4px;">
     <div style="font-weight:900;font-size:1rem;margin-bottom:12px;">📊 Grand Summary</div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total in Banks + Cash</span><span style="font-weight:800;color:var(--g);">₹${grandTotal.toLocaleString('en-IN')}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>With Employees</span><span style="font-weight:800;color:#d97706;">₹${empTotal.toLocaleString('en-IN')}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Pending Client Payments</span><span style="font-weight:800;color:var(--r);">₹${pendingBal.toLocaleString('en-IN')}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total Misc Expenses</span><span style="font-weight:800;color:var(--r);">₹${miscExp.toLocaleString('en-IN')}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:1rem;font-weight:900;"><span>Net Total (Banks+Emp)</span><span style="color:var(--g);">₹${(grandTotal+empTotal).toLocaleString('en-IN')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total in Banks + Cash</span><span style="font-weight:800;color:var(--g);">${inr(grandTotal)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>With Employees</span><span style="font-weight:800;color:#d97706;">${inr(empTotal)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Pending Client Payments</span><span style="font-weight:800;color:var(--r);">${inr(pendingBal)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total Misc Expenses</span><span style="font-weight:800;color:var(--r);">${inr(miscExp)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:1rem;font-weight:900;"><span>Net Total (Banks+Emp)</span><span style="color:var(--g);">${inr(grandTotal+empTotal)}</span></div>
   </div>`;
 
   document.getElementById('combinedBalBody').innerHTML = html;
@@ -2648,7 +2667,7 @@ async function renderOspHistory() {
       <td style="font-size:.78rem;">#${s.workNum} — ${esc(s.ownerName)}</td>
       <td style="font-size:.78rem;">${esc(s.vehicle)}</td>
       <td style="font-size:.82rem;">${esc(s.reason)}</td>
-      <td style="font-weight:800;color:var(--r);">₹${(s.amount||0).toLocaleString('en-IN')}</td>
+      <td style="font-weight:800;color:var(--r);">${inr(s.amount||0)}</td>
       <td style="font-size:.78rem;">${esc(s.by)}</td>
     </tr>`).join('')}
   </tbody></table>`;
@@ -2664,7 +2683,7 @@ function renderSummary(){
   const works=allWorks.filter(w=>w.date===selDate);
   const completed=works.filter(w=>w.status==='done');
   const open=works.filter(w=>w.status==='open');
-  const totalCollected=works.reduce((s,w)=>s+(w.amount||0),0);
+  const totalCollected=works.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
   const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
   const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   const ledgerEntries=allLedger.filter(l=>l.date===selDate);
@@ -2674,9 +2693,9 @@ function renderSummary(){
       <div class="sc"><div class="sl">Total Works</div><div class="sv">${works.length}</div></div>
       <div class="sc green"><div class="sl">Completed</div><div class="sv">${completed.length}</div></div>
       <div class="sc"><div class="sl">Open</div><div class="sv">${open.length}</div></div>
-      <div class="sc yellow"><div class="sl">Collected (₹)</div><div class="sv">₹${totalCollected.toLocaleString('en-IN')}</div></div>
-      <div class="sc red"><div class="sl">Spent (₹)</div><div class="sv">₹${totalSpent.toLocaleString('en-IN')}</div></div>
-      <div class="sc green"><div class="sl">Net (₹)</div><div class="sv">₹${(totalCollected-totalSpent).toLocaleString('en-IN')}</div></div>
+      <div class="sc yellow"><div class="sl">Collected (₹)</div><div class="sv">${inr(totalCollected)}</div></div>
+      <div class="sc red"><div class="sl">Spent (₹)</div><div class="sv">${inr(totalSpent)}</div></div>
+      <div class="sc green"><div class="sl">Net (₹)</div><div class="sv">${inr(totalCollected-totalSpent)}</div></div>
     </div>
     ${works.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Works on ${selDate}</div>
@@ -2686,7 +2705,7 @@ function renderSummary(){
     ${ledgerEntries.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Bank Ledger Entries on ${selDate}</div>
       <div class="ox"><table class="wt"><thead><tr><th>Bank</th><th>Type</th><th>Amount</th><th>Description</th></tr></thead>
-      <tbody>${ledgerEntries.map(e=>`<tr><td>${esc(e.bank)}</td><td><span class="badge ${e.type==='credit'?'bg':'br'}">${e.type==='credit'?'↑ Credit':'↓ Debit'}</span></td><td style="font-weight:800;">₹${(e.amount||0).toLocaleString('en-IN')}</td><td>${esc(e.description)}</td></tr>`).join('')}</tbody>
+      <tbody>${ledgerEntries.map(e=>`<tr><td>${esc(e.bank)}</td><td><span class="badge ${e.type==='credit'?'bg':'br'}">${e.type==='credit'?'↑ Credit':'↓ Debit'}</span></td><td style="font-weight:800;">${inr(e.amount||0)}</td><td>${esc(e.description)}</td></tr>`).join('')}</tbody>
       </table></div></div>`:''}
   `;
 }
@@ -2716,7 +2735,7 @@ function renderPerformance(){
       <td><span class="badge bg">${d.completed}</span></td>
       <td><span class="badge br">${d.taken-d.completed}</span></td>
       <td><strong>${d.taken?Math.round(d.completed/d.taken*100):0}%</strong></td>
-      <td style="font-weight:800;color:var(--g);">₹${d.amount.toLocaleString('en-IN')}</td>
+      <td style="font-weight:800;color:var(--g);">${inr(d.amount)}</td>
     </tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -2748,7 +2767,7 @@ function renderSalary(){
   if(!allSalary.length){tbody.innerHTML='<tr><td colspan="6" class="nd">No salary records yet</td></tr>';return;}
   tbody.innerHTML=allSalary.map(s=>`<tr>
     <td><strong>${esc(s.staffName)}</strong></td>
-    <td style="font-weight:800;color:var(--g);">₹${(s.amount||0).toLocaleString('en-IN')}</td>
+    <td style="font-weight:800;color:var(--g);">${inr(s.amount||0)}</td>
     <td><span class="badge ${s.mode==='Cash'?'by':'bb'}">${s.mode==='Cash'?'💵 Cash':'📱 UPI'}</span></td>
     <td style="font-size:.82rem;">${esc(s.bank||'—')}</td>
     <td style="font-size:.82rem;">${esc(s.paidBy)}</td>
@@ -3162,53 +3181,50 @@ async function saveCashEntry() {
     renderCashTracker();
   } catch(e){toast('Error: '+e.message,'error');}
 }
-function renderCashTracker() {
-  const entries = allCash;
-  const opening = entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
-  const cashIn = entries.filter(e=>e.type==='in').reduce((s,e)=>s+(e.amount||0),0);
-  const cashOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+(e.amount||0),0);
-  // Also add auto-entries from works (cash payments)
-  const workCashIn = allWorks.filter(w=>w.payMode==='Cash'&&w.amount>0).reduce((s,w)=>s+(w.amount||0),0);
-  const workCashOut = allWorks.filter(w=>w.status==='done'&&w.closingBank==='Cash'&&w.receiptAmount>0).reduce((s,w)=>s+(w.receiptAmount||0),0);
-  const balance = opening + cashIn + workCashIn - cashOut - workCashOut;
-  document.getElementById('cashStats').innerHTML=`
-    <div class="sc"><div class="sl">Opening</div><div class="sv">₹${opening.toLocaleString('en-IN')}</div></div>
-    <div class="sc green"><div class="sl">Total In</div><div class="sv">₹${(cashIn+workCashIn).toLocaleString('en-IN')}</div></div>
-    <div class="sc red"><div class="sl">Total Out</div><div class="sv">₹${(cashOut+workCashOut).toLocaleString('en-IN')}</div></div>
-    <div class="sc"><div class="sl">Balance in Hand</div><div class="sv" style="color:${balance>=0?'var(--g)':'var(--r)'};">₹${balance.toLocaleString('en-IN')}</div></div>
+function renderCashTracker(){
+  // Auto-build cash tracker from Cash ledger entries
+  const cashEntries = allLedger.filter(l=>l.bank==='Cash').sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  // Also include manual cash entries from allCash
+  const manualEntries = allCash ? (Array.isArray(allCash)?allCash:Object.entries(allCash).map(([k,v])=>({...v,_key:k}))) : [];
+  
+  let balance = 0;
+  const rows = [];
+  
+  // Opening balance from ledger opening entries
+  const opening = allLedger.filter(l=>l.bank==='Cash'&&l.type==='opening').reduce((s,l)=>s+(l.amount||0),0);
+  balance = opening;
+  
+  // All cash credits and debits from ledger
+  const txns = allLedger.filter(l=>l.bank==='Cash'&&l.type!=='opening').sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  txns.forEach(e=>{
+    if(e.type==='credit') balance+=e.amount||0;
+    else if(e.type==='debit') balance-=e.amount||0;
+    rows.push({date:e.date,type:e.type,amount:e.amount||0,desc:e.description||'—',balance,by:e.by||'—',auto:e.autoEntry});
+  });
+
+  const totalIn = txns.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
+  const totalOut = txns.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
+
+  document.getElementById('cashSummary')?.remove&&null;
+  const el = document.getElementById('cashTrackerBody')||document.getElementById('cashBody');
+  const sumEl = document.getElementById('cashSummaryRow');
+  if(sumEl) sumEl.innerHTML=`
+    <div class="sc green"><div class="sl">Total IN</div><div class="sv">${inr(totalIn+opening)}</div></div>
+    <div class="sc red"><div class="sl">Total OUT</div><div class="sv">${inr(totalOut)}</div></div>
+    <div class="sc ${balance<0?'red':''}"><div class="sl">Cash in Hand</div><div class="sv" style="color:${balance<0?'var(--r)':'var(--g)'};">${inr(balance)}</div></div>
   `;
-  const tbody = document.getElementById('cashBody');
-  // Build combined list: manual entries + auto work cash
-  const workCashInRows = allWorks.filter(w=>w.payMode==='Cash'&&(w.amount||0)>0).map(w=>({
-    type:'in', amount:w.amount, date:w.date, timestamp:w.timestamp,
-    description:`Work #${w.workNum} — ${w.clientName} (${wtLabel(w.workType)})`,
-    by:w.takenBy, auto:true
-  }));
-  const workCashOutRows = allWorks.filter(w=>w.status==='done'&&w.closingBank==='Cash'&&(w.receiptAmount||0)>0).map(w=>({
-    type:'out', amount:w.receiptAmount, date:w.completedDate, timestamp:w.completedTimestamp||w.timestamp,
-    description:`Receipt paid: Work #${w.workNum} — ${w.clientName}`,
-    by:w.completedBy, auto:true
-  }));
-  const allCashRows = [...entries.map(e=>({...e,auto:false})), ...workCashInRows, ...workCashOutRows];
-  if(!allCashRows.length){tbody.innerHTML='<tr><td colspan="6" class="nd">No cash entries yet</td></tr>';return;}
-  let running = opening;
-  const sorted = [...allCashRows].sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
-  tbody.innerHTML = sorted.map(e=>{
-    if(e.type==='in') running+=e.amount;
-    else if(e.type==='out') running-=e.amount;
-    return `<tr>
-      <td style="font-size:.8rem;">${esc(e.date)}${e.auto?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
-      <td><span class="badge ${e.type==='in'?'bg':e.type==='out'?'br':'bgr'}">${e.type==='opening'?'Opening':e.type==='in'?'↑ In':'↓ Out'}</span></td>
-      <td style="font-weight:800;color:${e.type==='in'?'var(--g)':e.type==='out'?'var(--r)':'#374151'};">₹${(e.amount||0).toLocaleString('en-IN')}</td>
-      <td style="font-size:.85rem;">${esc(e.description)}</td>
-      <td style="font-weight:700;">₹${running.toLocaleString('en-IN')}</td>
-      <td style="font-size:.78rem;">${esc(e.by)}</td>
-    </tr>`;}).join('');
+  if(!el){return;}
+  if(!rows.length){el.innerHTML='<tr><td colspan="6" class="nd">No cash transactions yet. Add ledger entries for Cash account.</td></tr>';return;}
+  el.innerHTML=rows.slice().reverse().map(r=>`<tr>
+    <td style="font-size:.78rem;">${esc(r.date)}</td>
+    <td><span class="badge ${r.type==='credit'?'bg':'br'}">${r.type==='credit'?'↑ IN':'↓ OUT'}</span></td>
+    <td style="font-size:.82rem;">${esc(r.desc)}${r.auto?'<span class="badge bgr" style="font-size:.6rem;margin-left:4px;">auto</span>':''}</td>
+    <td style="font-weight:800;color:${r.type==='credit'?'var(--g)':'var(--r)'};">${inr(r.amount)}</td>
+    <td style="font-weight:800;color:${r.balance<0?'var(--r)':'#374151'};">${inr(r.balance)}</td>
+    <td style="font-size:.78rem;">${esc(r.by)}</td>
+  </tr>`).join('');
 }
 
-// ============================================================
-// MONTHLY P&L
-// ============================================================
 function renderPnL() {
   initPnLSelectors();
   const now = new Date();
@@ -3223,7 +3239,8 @@ function renderPnL() {
   const totalCollected = monthWorks.reduce((s,w)=>s+(w.payMode!=='Unpaid'?w.amount||0:0),0);
   const totalSpent = monthWorks.filter(w=>w.status==='done').reduce((s,w)=>s+(w.receiptAmount||0),0);
   const totalSalary = monthSalary.reduce((s,x)=>s+(x.amount||0),0);
-  const netProfit = totalCollected - totalSpent - totalSalary;
+  const totalMiscPnL = monthWorks.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>{ const ld=new Date(l.timestamp); return l.ospEntry&&ld.getMonth()===selMonth&&ld.getFullYear()===selYear; }).reduce((s,l)=>s+(l.amount||0),0);
+  const netProfit = totalCollected - totalSpent - totalSalary - totalMiscPnL;
 
   // Work type breakdown
   const byType = {};
@@ -3246,10 +3263,10 @@ function renderPnL() {
   document.getElementById('pnlBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Monthly P&L — ${mLabel}</h2></div>
     <div class="stats-row">
-      <div class="sc green"><div class="sl">Total Collected</div><div class="sv">₹${totalCollected.toLocaleString('en-IN')}</div></div>
-      <div class="sc red"><div class="sl">Total Spent</div><div class="sv">₹${totalSpent.toLocaleString('en-IN')}</div></div>
-      <div class="sc orange"><div class="sl">Salary Paid</div><div class="sv">₹${totalSalary.toLocaleString('en-IN')}</div></div>
-      <div class="sc ${netProfit>=0?'green':'red'}"><div class="sl">Net Profit</div><div class="sv" style="color:${netProfit>=0?'var(--g)':'var(--r)'};">₹${netProfit.toLocaleString('en-IN')}</div></div>
+      <div class="sc green"><div class="sl">Total Collected</div><div class="sv">${inr(totalCollected)}</div></div>
+      <div class="sc red"><div class="sl">Total Spent</div><div class="sv">${inr(totalSpent)}</div></div>
+      <div class="sc orange"><div class="sl">Salary Paid</div><div class="sv">${inr(totalSalary)}</div></div>
+      <div class="sc ${netProfit>=0?'green':'red'}"><div class="sl">Net Profit</div><div class="sv" style="color:${netProfit>=0?'var(--g)':'var(--r)'};">${inr(netProfit)}</div></div>
       <div class="sc"><div class="sl">Works Done</div><div class="sv">${monthWorks.filter(w=>w.status==='done').length}</div></div>
       <div class="sc"><div class="sl">Total Works</div><div class="sv">${monthWorks.length}</div></div>
     </div>
@@ -3259,7 +3276,7 @@ function renderPnL() {
         ${typeRows.length===0?'<div class="nd">No works this month</div>':typeRows.map(([t,d])=>`
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);">
             <div><div style="font-weight:700;font-size:.88rem;">${wtLabel(t)}</div><div style="font-size:.74rem;color:var(--gray);">${d.count} work${d.count===1?'':'s'}</div></div>
-            <div style="font-weight:800;color:var(--g);">₹${d.amount.toLocaleString('en-IN')}</div>
+            <div style="font-weight:800;color:var(--g);">${inr(d.amount)}</div>
           </div>`).join('')}
       </div>
       <div class="card">
@@ -3268,8 +3285,8 @@ function renderPnL() {
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);">
             <div style="font-weight:700;">${b}</div>
             <div style="text-align:right;">
-              <div style="font-size:.78rem;color:var(--g);">↑ ₹${d.credits.toLocaleString('en-IN')}</div>
-              <div style="font-size:.78rem;color:var(--r);">↓ ₹${d.debits.toLocaleString('en-IN')}</div>
+              <div style="font-size:.78rem;color:var(--g);">↑ ${inr(d.credits)}</div>
+              <div style="font-size:.78rem;color:var(--r);">↓ ${inr(d.debits)}</div>
             </div>
           </div>`).join('')}
       </div>
@@ -3277,7 +3294,7 @@ function renderPnL() {
     ${monthSalary.length?`<div class="card" style="margin-top:4px;">
       <div class="card-title">👥 Salary Payments This Month</div>
       <div class="ox"><table class="wt"><thead><tr><th>Staff</th><th>Amount</th><th>Mode</th><th>Paid By</th><th>Date</th></tr></thead>
-      <tbody>${monthSalary.map(s=>`<tr><td><strong>${esc(s.staffName)}</strong></td><td style="font-weight:800;color:var(--r);">₹${(s.amount||0).toLocaleString('en-IN')}</td><td>${esc(s.mode)}</td><td>${esc(s.paidBy)}</td><td>${esc(s.date)}</td></tr>`).join('')}</tbody>
+      <tbody>${monthSalary.map(s=>`<tr><td><strong>${esc(s.staffName)}</strong></td><td style="font-weight:800;color:var(--r);">${inr(s.amount||0)}</td><td>${esc(s.mode)}</td><td>${esc(s.paidBy)}</td><td>${esc(s.date)}</td></tr>`).join('')}</tbody>
       </table></div></div>`:''}
   `;
 }
@@ -3472,7 +3489,7 @@ function viewWorkHistory(key) {
   const w = allWorks.find(x=>x._key===key); if(!w) return;
   const events = [];
   events.push({icon:'📥',text:`Work taken by <strong>${esc(w.takenBy)}</strong>`,sub:w.date+' · '+w.time,color:'var(--p)'});
-  if(w.paidLaterDate) events.push({icon:'💰',text:`Payment received later by <strong>${esc(w.paidLaterBy||'—')}</strong> — ${w.payMode} ${w.bank?'('+w.bank+')':''} ₹${(w.amount||0).toLocaleString('en-IN')}`,sub:w.paidLaterDate+' · '+(w.paidLaterTime||''),color:'var(--g)'});
+  if(w.paidLaterDate) events.push({icon:'💰',text:`Payment received later by <strong>${esc(w.paidLaterBy||'—')}</strong> — ${w.payMode} ${w.bank?'('+w.bank+')':''} ${inr(w.amount||0)}`,sub:w.paidLaterDate+' · '+(w.paidLaterTime||''),color:'var(--g)'});
   if(w.status==='done') events.push({icon:'✅',text:`Work completed by <strong>${esc(w.completedBy)}</strong>`,sub:w.completedDate+' · '+w.completedTime,color:'var(--g)'});
   document.getElementById('workHistoryBody').innerHTML=`
     <div style="margin-bottom:16px;"><span class="wnum">#${w.workNum}</span> &nbsp;<span class="uid-tag">${esc(w.uid)}</span><br/><span style="font-weight:700;">${esc(w.clientName)}</span> — ${esc(w.vehicle)}</div>
