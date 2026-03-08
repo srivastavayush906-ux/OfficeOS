@@ -246,7 +246,6 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="ns">Finance</div>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
       <div class="ns">Office</div>
       <a onclick="showPage('staff')" id="nav-staff"><span class="ico">👥</span> Staff & Salary</a>
@@ -529,51 +528,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       </div>
     </div>
 
-    <!-- BANK RECONCILIATION -->
-    <div class="page" id="page-reconcile">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">🔍 Bank Reconciliation</div>
-        </div>
-        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Upload your bank statement (CSV or Excel) and we will match it against your ledger entries automatically.</p>
-        <div class="tab-row" style="margin-bottom:16px;">
-          <button class="tb active" onclick="recoSelectBank('HDFC',this)">HDFC</button>
-          <button class="tb" onclick="recoSelectBank('SBI',this)">SBI</button>
-          <button class="tb" onclick="recoSelectBank('Kotak',this)">Kotak</button>
-          <button class="tb" onclick="recoSelectBank('ICICI',this)">ICICI</button>
-        </div>
-        <div style="border:2px dashed var(--grayb);border-radius:var(--rads);padding:24px;text-align:center;margin-bottom:16px;background:var(--graylite);">
-          <div style="font-size:2rem;margin-bottom:8px;">📄</div>
-          <div style="font-weight:700;margin-bottom:4px;">Upload Bank Statement</div>
-          <div style="font-size:.8rem;color:var(--gray);margin-bottom:12px;">CSV or Excel (.xlsx) file — download from your bank internet banking</div>
-          <input type="file" id="recoFile" accept=".csv,.xlsx,.xls" onchange="handleRecoUpload(this)" style="display:none;"/>
-          <button class="btn btn-primary" onclick="document.getElementById('recoFile').click()">📂 Choose File</button>
-          <div id="recoFileName" style="margin-top:8px;font-size:.8rem;color:var(--gray);"></div>
-        </div>
-        <div id="recoMapping" style="display:none;background:var(--pl);border-radius:var(--rads);padding:14px;margin-bottom:16px;">
-          <div style="font-weight:800;margin-bottom:10px;font-size:.88rem;">Map your statement columns:</div>
-          <div class="g2">
-            <div class="field"><label>Date column</label><select id="recoColDate"></select></div>
-            <div class="field"><label>Description column</label><select id="recoColDesc"></select></div>
-            <div class="field"><label>Credit (money IN)</label><select id="recoColCredit"></select></div>
-            <div class="field"><label>Debit (money OUT)</label><select id="recoColDebit"></select></div>
-          </div>
-          <div class="field"><label>Opening Balance in statement (Rs.)</label><input type="number" id="recoOpeningBal" placeholder="e.g. 45000"/></div>
-          <button class="btn btn-primary" onclick="runReconciliation()">🔍 Run Reconciliation</button>
-        </div>
-        <div id="recoResults" style="display:none;">
-          <div class="stats-row" id="recoStats" style="margin-bottom:16px;"></div>
-          <div class="tab-row" style="margin-bottom:12px;">
-            <button class="tb active" onclick="recoTab('matched',this)">Matched</button>
-            <button class="tb" onclick="recoTab('unmatched_bank',this)">Bank Only</button>
-            <button class="tb" onclick="recoTab('unmatched_ledger',this)">Ledger Only</button>
-          </div>
-          <div id="recoBody"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DAILY SUMMARY -->
+        <!-- DAILY SUMMARY -->
     <div class="page" id="page-dailySummary">
       <div class="card">
         <div class="sh">
