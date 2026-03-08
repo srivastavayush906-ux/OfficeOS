@@ -2668,8 +2668,6 @@ function renderSummary(){
   const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
   const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   const ledgerEntries=allLedger.filter(l=>l.date===selDate);
-  const miscExpenses=works.reduce((s,w)=>s+(w.miscExpense||0),0);
-  const ospExpenses=allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   document.getElementById('summaryBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Daily Report — ${selDate}</h2><p>Generated on ${new Date().toLocaleDateString('en-IN')}</p></div>
     <div class="stats-row">
