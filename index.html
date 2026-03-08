@@ -2666,7 +2666,6 @@ function renderSummary(){
   const open=works.filter(w=>w.status==='open');
   const totalCollected=works.reduce((s,w)=>s+(w.amount||0),0);
   const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
-  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0);
   const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   const ledgerEntries=allLedger.filter(l=>l.date===selDate);
   const miscExpenses=works.reduce((s,w)=>s+(w.miscExpense||0),0);
