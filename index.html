@@ -246,6 +246,10 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="ns">Finance</div>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
+      <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
+      <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
       <div class="ns">Office</div>
       <a onclick="showPage('staff')" id="nav-staff"><span class="ico">👥</span> Staff & Salary</a>
@@ -296,9 +300,22 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="card">
         <div class="card-title">➕ Add New Work</div>
         <div class="g2">
-          <div class="field"><label>Client / Owner Name *</label><input type="text" id="w_name" placeholder="Full name of client"/></div>
-          <div class="field"><label>Vehicle Number *</label><input type="text" id="w_vehicle" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;"/></div>
-          <div class="field"><label>Client Phone Number *</label><input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10"/></div>
+          <div class="field"><label>Owner Name *</label><input type="text" id="w_name" placeholder="Vehicle owner's name"/></div>
+          <div class="field"><label>Client Name (if different from owner)</label><input type="text" id="w_clientName" placeholder="Person who came to office (optional)"/></div>
+        </div>
+        <!-- Multiple Vehicles -->
+        <div class="field">
+          <label>Vehicle Number(s) *</label>
+          <div id="vehicleList">
+            <div class="vehicle-row" style="display:flex;gap:8px;margin-bottom:6px;">
+              <input type="text" class="vehicle-input" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;flex:1;"/>
+              <button class="btn btn-sm btn-outline" onclick="addVehicleRow()" title="Add another vehicle">＋</button>
+            </div>
+          </div>
+          <div class="hint">Click ＋ to add multiple vehicles under this work</div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Phone Number *</label><input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10"/></div>
           <div class="field">
             <label>Work Type *</label>
             <select id="w_type" onchange="workTypeChange()">
@@ -318,34 +335,40 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
             </select>
           </div>
           <div class="field" id="othersField" style="display:none;"><label>Specify Work *</label><input type="text" id="w_othersSpec" placeholder="Describe the work"/></div>
-          <div class="field">
-            <label>Payment Received Mode *</label>
-            <select id="w_payMode" onchange="payModeChange()">
-              <option value="">— Select Mode —</option>
-              <option value="Cash">💵 Cash</option>
-              <option value="UPI">📱 UPI / Online</option>
-              <option value="Unpaid">⏳ Unpaid (Udhari)</option>
-              <option value="ExcessPaid">➕ Excessive Paid</option>
-            </select>
-          </div>
-          <div class="field" id="upiBankField" style="display:none;">
-            <label>UPI Bank Received In *</label>
-            <select id="w_bank">
-              <option value="">— Select Bank —</option>
-              <option value="HDFC">HDFC Bank</option>
-              <option value="SBI">SBI</option>
-              <option value="Kotak">Kotak Mahindra Bank</option>
-              <option value="ICICI">ICICI Bank</option>
-            </select>
-          </div>
-          <div class="field" id="extraBalField" style="display:none;">
-            <label>Extra Balance Amount (₹) *</label>
-            <input type="number" id="w_extraBal" placeholder="Extra amount paid by client" min="0"/>
-          </div>
-          <div class="field"><label>Amount Received from Client (₹)</label><input type="number" id="w_amount" placeholder="Total money taken" min="0"/></div>
+          <!-- Transfer From/To -->
+          <div class="field" id="transferFromField" style="display:none;"><label>Transfer From (Current Owner) *</label><input type="text" id="w_transferFrom" placeholder="Current owner name"/></div>
+          <div class="field" id="transferToField" style="display:none;"><label>Transfer To (New Owner) *</label><input type="text" id="w_transferTo" placeholder="New owner name"/></div>
         </div>
         <div class="g2">
-          <div class="field"><label>Work Date</label><input type="date" id="w_date"/><div class="hint">Defaults to today — change only if entering a past work</div></div>
+          <div class="field"><label>Work Value (₹)</label><input type="number" id="w_workValue" placeholder="Total charge for this work" min="0" onchange="calcRemaining()"/><div class="hint">Total amount this work costs the client</div></div>
+          <div class="field"><label>Amount Received from Client (₹)</label><input type="number" id="w_amount" placeholder="Amount paid now" min="0" onchange="calcRemaining()"/></div>
+        </div>
+        <div id="remainingBal" style="display:none;background:var(--rl);border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:800;color:var(--r);font-size:.88rem;"></div>
+        <!-- Payment Modes — multiple allowed -->
+        <div class="field">
+          <label>Payment Mode(s) *</label>
+          <div id="payModeList">
+            <div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+              <select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;">
+                <option value="">— Select Mode —</option>
+                <option value="Cash">💵 Cash</option>
+                <option value="UPI">📱 UPI / Online</option>
+                <option value="Employee">👤 Employee (Taken by staff)</option>
+                <option value="Unpaid">⏳ Unpaid (Udhari)</option>
+                <option value="ExcessPaid">➕ Excess Paid</option>
+              </select>
+              <select class="pay-bank-sel" style="display:none;flex:1;">
+                <option value="">— Bank —</option>
+                <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+                <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+                <option value="Canara">Canara</option>
+              </select>
+              <select class="pay-emp-sel" style="display:none;flex:1;"></select>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;"/>
+              <button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button>
+            </div>
+          </div>
+          <div class="hint">Click ＋ to split payment across multiple modes</div>
         </div>
         <div class="field"><label>Work Date</label><input type="date" id="w_date"/><div class="hint">Defaults to today — change only if entering a past work</div></div>
         <div class="field"><label>Notes / Remarks (optional)</label><textarea id="w_notes" placeholder="Any extra details…"></textarea></div>
@@ -465,10 +488,49 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
           <button class="tb" onclick="filterLedger('SBI',this)">SBI</button>
           <button class="tb" onclick="filterLedger('Kotak',this)">Kotak</button>
           <button class="tb" onclick="filterLedger('ICICI',this)">ICICI</button>
+          <button class="tb" onclick="filterLedger('Canara',this)">Canara</button>
           <button class="tb" onclick="filterLedger('Cash',this)">Cash</button>
+          <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
+          <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
         </div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
         <div class="ox"><table class="wt"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount (₹)</th><th>Linked Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- COMBINED BALANCE -->
+    <div class="page" id="page-combinedBalance">
+      <div class="card">
+        <div class="sh"><div class="card-title" style="margin:0;">💰 Combined Balance Overview</div>
+          <button class="btn btn-sm btn-outline" onclick="renderCombinedBalance()">🔄 Refresh</button>
+        </div>
+        <div id="combinedBalBody"><div class="nd">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- OFFICE INSIDE SPEND -->
+    <div class="page" id="page-officeSpend">
+      <div class="card">
+        <div class="card-title">🧾 Office Inside Spend</div>
+        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Enter vehicle number to find linked open work and record an expense against it. Always deducted from Cash.</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input type="text" id="ospVehicle" placeholder="Enter vehicle number e.g. UP32AB1234" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+          <button class="btn btn-primary" onclick="searchOspWork()">🔍 Search</button>
+        </div>
+        <div id="ospSearchResult" style="margin-bottom:16px;"></div>
+        <div id="ospEntryForm" style="display:none;background:var(--pl);border-radius:var(--rads);padding:14px;">
+          <div style="font-weight:800;margin-bottom:10px;" id="ospWorkLabel"></div>
+          <div class="g2">
+            <div class="field"><label>Amount (₹) *</label><input type="number" id="ospAmount" placeholder="e.g. 150" min="0"/></div>
+            <div class="field"><label>Reason *</label><input type="text" id="ospReason" placeholder="e.g. Petrol, Stamp fee, Photocopy"/></div>
+          </div>
+          <div class="field"><label>Date</label><input type="date" id="ospDate"/></div>
+          <button class="btn btn-primary" onclick="saveOspSpend()">💾 Save Expense</button>
+        </div>
+        <div style="margin-top:20px;">
+          <div style="font-weight:800;font-size:.88rem;margin-bottom:10px;">Recent Office Spends</div>
+          <div id="ospHistory"><div class="nd">No spends recorded yet</div></div>
+        </div>
       </div>
     </div>
 
@@ -486,6 +548,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
           <button class="tb" onclick="recoSelectBank('SBI',this)">SBI</button>
           <button class="tb" onclick="recoSelectBank('Kotak',this)">Kotak</button>
           <button class="tb" onclick="recoSelectBank('ICICI',this)">ICICI</button>
+          <button class="tb" onclick="recoSelectBank('Canara',this)">Canara</button>
         </div>
 
         <!-- Upload area -->
@@ -701,7 +764,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="field" id="ew_bankField" style="display:none;"><label>UPI Bank</label>
         <select id="ew_bank">
           <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-          <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+          <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
         </select>
       </div>
       <div class="field"><label>Amount (₹)</label><input type="number" id="ew_amount" min="0"/></div>
@@ -716,16 +779,34 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
 
 <!-- CLOSE WORK -->
 <div class="mo" id="closeWorkModal">
-  <div class="md">
+  <div class="md" style="max-width:560px;">
     <button class="md-close" onclick="closeModal('closeWorkModal')">×</button>
-    <div class="md-title">✅ Mark Work as Complete</div>
+    <div class="md-title" id="closeWorkTitle">✅ Complete Work</div>
+    <!-- Completion type -->
     <div class="field">
-      <label>Upload Receipt Photo *</label>
-      <input type="file" id="receiptPhoto" accept="image/*" onchange="previewReceiptPhoto(this)"/>
-      <div class="hint">📸 Photos are auto-compressed automatically to save Firebase storage</div>
-      <div id="receiptPreviewBox" style="display:none;margin-top:10px;">
-        <img id="receiptPreviewImg" style="max-width:100%;max-height:180px;border-radius:var(--rads);border:2px solid var(--grayb);display:block;margin-bottom:6px;"/>
-        <div id="receiptSizeInfo" style="font-size:.78rem;color:var(--gray);font-weight:700;"></div>
+      <label>Completion Type *</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-success" id="completeFullBtn" onclick="setCompleteType('full')" style="flex:1;">✅ Full Completion</button>
+        <button class="btn btn-outline" id="completePartialBtn" onclick="setCompleteType('partial')" style="flex:1;">⏳ Partial Completion</button>
+      </div>
+    </div>
+    <div class="field" id="partialDescField" style="display:none;">
+      <label>What was completed? *</label>
+      <input type="text" id="partialDesc" placeholder="e.g. Insurance done, Fitness pending"/>
+    </div>
+    <!-- Multiple documents -->
+    <div class="field">
+      <label>Add Documents (optional)</label>
+      <div id="docUploadList">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+          <input type="file" id="receiptPhoto" accept="image/*,application/pdf" onchange="previewReceiptPhoto(this)" style="flex:1;"/>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="addDocUpload()" style="margin-top:4px;">＋ Add Another Document</button>
+      <div class="hint">📸 Photos auto-compressed. Multiple documents allowed.</div>
+      <div id="receiptPreviewBox" style="display:none;margin-top:8px;">
+        <img id="receiptPreviewImg" style="max-width:100%;max-height:140px;border-radius:var(--rads);border:2px solid var(--grayb);display:block;margin-bottom:4px;"/>
+        <div id="receiptSizeInfo" style="font-size:.75rem;color:var(--gray);font-weight:700;"></div>
       </div>
     </div>
     <div class="field" id="expiryField" style="display:none;"><label>Paper Expiry Date *</label><input type="date" id="expiryDate"/><div class="hint">Required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div></div>
@@ -737,13 +818,22 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
         <option value="SBI">SBI</option>
         <option value="Kotak">Kotak Mahindra Bank</option>
         <option value="ICICI">ICICI Bank</option>
+        <option value="Canara">Canara Bank</option>
       </select>
     </div>
-    <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent" min="0"/></div>
-    <div class="field"><label>Completion Notes (optional)</label><textarea id="closeNotes" placeholder="Any remarks about this work completion…"></textarea></div>
+    <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent to do this work" min="0"/></div>
+    <!-- Miscellaneous expense -->
+    <div style="background:var(--graylite);border-radius:var(--rads);padding:12px;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:.82rem;margin-bottom:8px;">➕ Miscellaneous Expense (optional)</div>
+      <div class="g2">
+        <div class="field" style="margin:0;"><label>Amount (₹)</label><input type="number" id="miscAmount" placeholder="e.g. 200" min="0"/></div>
+        <div class="field" style="margin:0;"><label>Reason</label><input type="text" id="miscReason" placeholder="e.g. Petrol, Stamp fee"/></div>
+      </div>
+    </div>
+    <div class="field"><label>Completion Notes (optional)</label><textarea id="closeNotes" placeholder="Any remarks…"></textarea></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('closeWorkModal')">Cancel</button>
-      <button class="btn btn-success" onclick="completeWork()">✅ Mark Complete</button>
+      <button class="btn btn-success" onclick="completeWork()">✅ Submit</button>
     </div>
   </div>
 </div>
@@ -755,7 +845,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
     <div class="md-title">🏦 Manual Ledger Entry</div>
     <div class="g2">
       <div class="field"><label>Bank / Account *</label>
-        <select id="l_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Cash">Cash</option></select>
+        <select id="l_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option><option value="Cash">Cash</option></select>
       </div>
       <div class="field"><label>Entry Type *</label>
         <select id="l_type"><option value="credit">↑ Credit (Money In)</option><option value="debit">↓ Debit (Money Out)</option><option value="opening">Opening Balance</option></select>
@@ -784,7 +874,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
         <select id="s_mode" onchange="salModeChange()"><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Transfer</option></select>
       </div>
       <div class="field" id="salBankField"><label>Bank Account *</label>
-        <select id="s_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option></select>
+        <select id="s_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select>
       </div>
     </div>
     <div class="md-foot">
@@ -979,6 +1069,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
         <option value="SBI">SBI</option>
         <option value="Kotak">Kotak Mahindra Bank</option>
         <option value="ICICI">ICICI Bank</option>
+        <option value="Canara">Canara Bank</option>
       </select>
     </div>
     <div class="field">
@@ -1200,6 +1291,7 @@ async function loadAllData() {
   allStaff = s ? Object.entries(s).map(([k,v])=>({...v,_key:k})) : [];
   allLedger = l ? Object.entries(l).map(([k,v])=>({...v,_key:k})) : [];
   allLedger.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  // officeSpend loaded on demand
   allSalary = sal ? Object.entries(sal).map(([k,v])=>({...v,_key:k})) : [];
   allSalary.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   const [fu,ca,at] = await Promise.all([dbGet('followups'),dbGet('cash'),dbGet('attendance')]);
@@ -1237,7 +1329,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend'};
 
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1247,7 +1339,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page==='newWork') initNewWorkDate();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -1328,89 +1420,181 @@ function initNewWorkDate() {
 
 function initNewWorkDate(){const el=document.getElementById("w_date");if(el&&!el.value)el.value=new Date().toISOString().split("T")[0];}
 
-async function submitWork() {
-  const name=document.getElementById('w_name').value.trim();
-  const vehicle=document.getElementById('w_vehicle').value.trim().toUpperCase();
-  const phone=document.getElementById('w_phone').value.trim();
-  const type=document.getElementById('w_type').value;
-  const payMode=document.getElementById('w_payMode').value;
-  const amount=document.getElementById('w_amount').value;
-  const notes=document.getElementById('w_notes').value.trim();
-  const othersSpec=document.getElementById('w_othersSpec').value.trim();
-  const bank=document.getElementById('w_bank').value;
-  const extraBal=document.getElementById('w_extraBal').value;
+// ── New Work helpers ──────────────────────────────────────────
+function addVehicleRow() {
+  const list = document.getElementById('vehicleList');
+  const row = document.createElement('div');
+  row.className = 'vehicle-row';
+  row.style = 'display:flex;gap:8px;margin-bottom:6px;';
+  row.innerHTML = '<input type="text" class="vehicle-input" placeholder="e.g. UP33 CD 5678" style="text-transform:uppercase;flex:1;"/><button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>';
+  list.appendChild(row);
+}
 
-  if(!name){toast('Enter client name','error');return;}
-  if(!vehicle){toast('Enter vehicle number','error');return;}
+function addPayRow() {
+  const list = document.getElementById('payModeList');
+  const row = document.createElement('div');
+  row.className = 'pay-row';
+  row.style = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  const empOpts = allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+  row.innerHTML = `<select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;">
+    <option value="">— Mode —</option>
+    <option value="Cash">💵 Cash</option>
+    <option value="UPI">📱 UPI / Online</option>
+    <option value="Employee">👤 Employee</option>
+    <option value="Unpaid">⏳ Unpaid</option>
+    <option value="ExcessPaid">➕ Excess Paid</option>
+  </select>
+  <select class="pay-bank-sel" style="display:none;flex:1;">
+    <option value="">— Bank —</option>
+    <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+    <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
+  </select>
+  <select class="pay-emp-sel" style="display:none;flex:1;">${empOpts}</select>
+  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" onchange="calcRemaining()"/>
+  <button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function payRowChange(sel) {
+  const row = sel.closest('.pay-row');
+  const bankSel = row.querySelector('.pay-bank-sel');
+  const empSel = row.querySelector('.pay-emp-sel');
+  bankSel.style.display = sel.value==='UPI' ? 'block' : 'none';
+  // populate employee select
+  if(sel.value==='Employee') {
+    empSel.innerHTML = allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+    empSel.style.display = 'block';
+  } else { empSel.style.display='none'; }
+}
+
+function workTypeChange() {
+  const t = document.getElementById('w_type').value;
+  document.getElementById('othersField').style.display = t==='Others'?'block':'none';
+  document.getElementById('transferFromField').style.display = t==='Transfer'?'block':'none';
+  document.getElementById('transferToField').style.display = t==='Transfer'?'block':'none';
+}
+
+function calcRemaining() {
+  const wv = parseFloat(document.getElementById('w_workValue').value)||0;
+  const paid = [...document.querySelectorAll('.pay-amt-inp')].reduce((s,i)=>s+(parseFloat(i.value)||0),0);
+  const div = document.getElementById('remainingBal');
+  if(wv>0 && paid<wv) {
+    div.style.display='block';
+    div.textContent = `⚠️ Remaining Balance: ₹${(wv-paid).toLocaleString('en-IN')} still to be collected`;
+  } else { div.style.display='none'; }
+}
+
+function addDocUpload() {
+  const list = document.getElementById('docUploadList');
+  const row = document.createElement('div');
+  row.style = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  row.innerHTML = '<input type="file" accept="image/*" style="flex:1;"/><button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>';
+  list.appendChild(row);
+}
+
+let closeWorkType = 'full';
+function setCompleteType(type) {
+  closeWorkType = type;
+  document.getElementById('completeFullBtn').className = type==='full'?'btn btn-success':'btn btn-outline';
+  document.getElementById('completePartialBtn').className = type==='partial'?'btn btn-success':'btn btn-outline';
+  document.getElementById('partialDescField').style.display = type==='partial'?'block':'none';
+  document.getElementById('closeWorkTitle').textContent = type==='full'?'✅ Mark Work Complete':'⏳ Mark Partial Completion';
+}
+
+async function submitWork() {
+  const ownerName = document.getElementById('w_name').value.trim();
+  const clientName = document.getElementById('w_clientName').value.trim();
+  const vehicles = [...document.querySelectorAll('.vehicle-input')].map(i=>i.value.trim().toUpperCase()).filter(Boolean);
+  const phone = document.getElementById('w_phone').value.trim();
+  const type = document.getElementById('w_type').value;
+  const othersSpec = document.getElementById('w_othersSpec').value.trim();
+  const workValue = parseFloat(document.getElementById('w_workValue').value)||0;
+  const notes = document.getElementById('w_notes').value.trim();
+  const dateVal = document.getElementById('w_date').value;
+  const transferFrom = document.getElementById('w_transferFrom')?.value.trim()||'';
+  const transferTo = document.getElementById('w_transferTo')?.value.trim()||'';
+
+  // Collect payment rows
+  const payRows = [...document.querySelectorAll('.pay-row')].map(row=>({
+    mode: row.querySelector('.pay-mode-sel').value,
+    bank: row.querySelector('.pay-bank-sel').value,
+    employee: row.querySelector('.pay-emp-sel').value,
+    amount: parseFloat(row.querySelector('.pay-amt-inp').value)||0
+  })).filter(r=>r.mode);
+
+  if(!ownerName){toast('Enter owner name','error');return;}
+  if(!vehicles.length){toast('Enter at least one vehicle number','error');return;}
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
   if(!type){toast('Select work type','error');return;}
   if(type==='Others'&&!othersSpec){toast('Specify the work','error');return;}
-  if(!payMode){toast('Select payment mode','error');return;}
-  if(payMode==='UPI'&&!bank){toast('Select UPI bank','error');return;}
-  if(payMode==='ExcessPaid'&&!extraBal){toast('Enter extra balance amount','error');return;}
+  if(!payRows.length){toast('Select at least one payment mode','error');return;}
+  if(payRows.some(r=>r.mode==='UPI'&&!r.bank)){toast('Select bank for UPI payment','error');return;}
 
-  const workNum=allWorks.length>0?Math.max(...allWorks.map(w=>w.workNum||0))+1:1;
-  // Get or create permanent Client ID for this phone number
+  const totalPaid = payRows.reduce((s,r)=>s+r.amount,0);
+  const remaining = workValue>0 ? Math.max(0,workValue-totalPaid) : 0;
+
+  const workNum = allWorks.length>0?Math.max(...allWorks.map(w=>w.workNum||0))+1:1;
   const clientId = await getOrCreateClientId(phone);
+  const now = new Date();
+  const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
 
-  const now=new Date();
-  const workData={
-    workNum,clientId,clientName:name,vehicle,phone,
-    workType:type,othersSpecify:type==='Others'?othersSpec:'',
-    payMode,bank:payMode==='UPI'?bank:'',
-    extraBalance:payMode==='ExcessPaid'?Number(extraBal):0,
-    amount:amount?Number(amount):0,notes,
-    status:'open',takenBy:currentUser.name,takenByKey:currentUser.key,
-    date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime(),
-    completedBy:'',completedDate:'',completedTime:'',completedTimestamp:0,
-    receiptPhoto:'',expiryDate:'',closingBank:'',receiptAmount:0,closeNotes:''
+  const workData = {
+    workNum, clientId,
+    ownerName, clientName: clientName||ownerName,
+    vehicle: vehicles[0], vehicles: vehicles.join(', '),
+    phone, workType: type,
+    othersSpecify: type==='Others'?othersSpec:'',
+    transferFrom: type==='Transfer'?transferFrom:'',
+    transferTo: type==='Transfer'?transferTo:'',
+    workValue, totalPaid, remainingBalance: remaining,
+    payModes: JSON.stringify(payRows),
+    payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
+    amount: totalPaid, notes,
+    status:'open', takenBy:currentUser.name, takenByKey:currentUser.key,
+    date: dateStr, time: now.toLocaleTimeString('en-IN'), timestamp: now.getTime(),
+    completedBy:'', completedDate:'', closingBank:'', receiptAmount:0, closeNotes:'',
+    receiptPhoto:'', expiryDate:'', miscExpense:0, miscReason:'', partialDesc:''
   };
 
   try {
-    const ref = await dbPush('works',workData);
-    // AUTO LEDGER CREDIT if payment received
-    if(payMode!=='Unpaid'&&amount&&Number(amount)>0) {
-      const ledgerBank = payMode==='Cash'?'Cash':(payMode==='UPI'?bank:'Cash');
-      if(ledgerBank) {
+    await dbPush('works', workData);
+    // AUTO LEDGER for each payment row
+    for(const pr of payRows) {
+      if(pr.mode==='Unpaid'||pr.amount<=0) continue;
+      const ledBank = pr.mode==='Cash'?'Cash':pr.mode==='UPI'?pr.bank:pr.mode==='Employee'?'Cash':'Cash';
+      if(ledBank) {
         await dbPush('ledger',{
-          bank:ledgerBank,type:'credit',amount:Number(amount),
-          date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),
-          workRef:`#${workNum} — ${name} / ${vehicle}`,
-          description:`Payment received: ${wtLabel(type)}`,
-          by:currentUser.name,autoEntry:true
+          bank:ledBank, type:'credit', amount:pr.amount,
+          date:dateStr, timestamp:now.getTime(),
+          workRef:`#${workNum} — ${ownerName} / ${vehicles[0]}`,
+          description:`${pr.mode==='Employee'?'[Employee: '+pr.employee+'] ':''}Payment received: ${wtLabel(type)}`,
+          by:currentUser.name, autoEntry:true,
+          employeeName: pr.mode==='Employee'?pr.employee:''
         });
       }
     }
     toast(`✅ Work #${workNum} saved! Client ID: ${clientId}`,'success');
-    ['w_name','w_vehicle','w_phone','w_othersSpec','w_amount','w_notes','w_extraBal'].forEach(id=>document.getElementById(id).value='');
+    // Reset form
+    document.getElementById('w_name').value='';
+    document.getElementById('w_clientName').value='';
+    document.getElementById('w_phone').value='';
+    document.getElementById('w_workValue').value='';
+    document.getElementById('w_notes').value='';
+    document.getElementById('w_type').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
-    ['w_type','w_payMode','w_bank'].forEach(id=>document.getElementById(id).value='');
-    ['upiBankField','extraBalField','othersField'].forEach(id=>document.getElementById(id).style.display='none');
-    document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('vehicleList').innerHTML=`<div class="vehicle-row" style="display:flex;gap:8px;margin-bottom:6px;"><input type="text" class="vehicle-input" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;flex:1;"/><button class="btn btn-sm btn-outline" onclick="addVehicleRow()" title="Add another vehicle">＋</button></div>`;
+    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;"/><button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button></div>`;
+    document.getElementById('remainingBal').style.display='none';
+    ['othersField','transferFromField','transferToField'].forEach(id=>document.getElementById(id).style.display='none');
     await loadAllData();
     renderDashboard();
-    // Show WhatsApp popup after saving
-    showWhatsAppPopup(name, phone, clientId, type);
+    showWhatsAppPopup(ownerName, phone, clientId, type);
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
 
 // Delete work (owner only)
-async function deleteWork(key) {
-  if(currentUser.role !== 'owner') { toast('Only owner can delete works','error'); return; }
-  const w = allWorks.find(x=>x._key===key);
-  if(!w) return;
-  if(!confirm(`Delete Work #${w.workNum} for ${w.clientName}? This cannot be undone.`)) return;
-  try {
-    await dbSet('works/'+key, null);
-    toast('Work deleted','success');
-    await loadAllData();
-    renderDashboard();
-    renderWorkTable();
-  } catch(e) { toast('Error: '+e.message,'error'); }
-}
 
-// Delete work (owner only)
 async function deleteWork(key) {
   if(!currentUser || currentUser.role !== 'owner') { toast('Only owner can delete works','error'); return; }
   const w = allWorks.find(x=>x._key===key);
@@ -1447,7 +1631,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Phone</span><span class="value">'+w.phone+'</span></div>'
     +'<div class="row"><span class="label">Work Type</span><span class="value">'+(w.workType||'').replace(/-/g,' ')+'</span></div>'
     +'<div class="row"><span class="label">Date</span><span class="value">'+w.date+'</span></div>'
-    +'<div class="row"><span class="label">Amount</span><span class="value">&#8377;'+(w.amount||0).toLocaleString('en-IN')+'</span></div>'
+    +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+(w.totalPaid||w.amount||0).toLocaleString('en-IN')+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+w.remainingBalance.toLocaleString('en-IN')+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="'+w.receiptPhoto+'" target="_blank" style="color:#2563eb;text-decoration:underline;">📄 Download / View</a></span></div>':'')
     +'<div class="row"><span class="label">Payment</span><span class="value">'+w.payMode+'</span></div>'
     +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':'In Progress')+'</span></div>'
     +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+w.expiryDate+'</span></div>':'')
@@ -1463,11 +1647,12 @@ function showWhatsAppPopup(name, phone, uid, workType) {
   document.getElementById("wa_phone").textContent = phone;
   document.getElementById("wa_uid").textContent = uid;
   document.getElementById("wa_workType").textContent = wtLabel(workType);
-  const msg = "Hello "+name+"! Your work ("+wtLabel(workType)+") has been registered.\n\nYour Client ID: *"+uid+"*\n\nUse this ID on our website to track ALL your works with us anytime.\n- Office Team";
+  const siteUrl = "https://srivastavayush906-ux.github.io/OfficeOS";
+  const msg = "Hello "+name+"! Your work ("+wtLabel(workType)+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\n- Office Team";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
 }
-function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.clientName,w.phone,w.uid,w.workType); }
+function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.ownerName||w.clientName,w.phone,w.clientId||w.uid,w.workType); }
 // ============================================================
 // ALL WORKS TABLE
 // ============================================================
@@ -1476,7 +1661,7 @@ function renderWorkTable(){
   const fType=document.getElementById('filterType').value;
   const fStatus=document.getElementById('filterStatus').value;
   let list=allWorks;
-  if(search) list=list.filter(w=>w.clientName?.toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
+  if(search) list=list.filter(w=>(w.clientName||'').toLowerCase().includes(search)||(w.ownerName||'').toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||(w.vehicles||'').toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
   if(fType) list=list.filter(w=>w.workType===fType);
   if(fStatus) list=list.filter(w=>w.status===fStatus);
   const fFrom=document.getElementById('filterFrom')?.value;
@@ -1488,17 +1673,18 @@ function renderWorkTable(){
   tbody.innerHTML=list.map(w=>`<tr>
     <td><span class="wnum">#${w.workNum}</span></td>
     <td><span class="uid-tag" style="cursor:pointer;" onclick="showPage('clientHistory');document.getElementById('chSearch').value='${esc(w.phone)}';searchClientHistory();" title="View all works for this client">${esc(w.clientId||'—')}</span></td>
-    <td><strong>${esc(w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-    <td style="font-weight:700;">${esc(w.vehicle)}</td>
+    <td><strong>${esc(w.ownerName||w.clientName)}</strong>${w.clientName&&w.clientName!==w.ownerName?`<br/><span style='font-size:.7rem;color:var(--gray);'>Client: ${esc(w.clientName)}</span>`:''}<br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
+    <td style="font-weight:700;">${esc(w.vehicles||w.vehicle)}${w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:''}</td>
     <td>${wtBadge(w)}</td>
-    <td>${payBadge(w)}</td>
-    <td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅ Done':'🔄 Open'}</span></td>
+    <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ₹${w.remainingBalance.toLocaleString('en-IN')}</span>`:''}</td>
+    <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
     <td style="font-size:.77rem;color:var(--gray);">${esc(w.date)}<br/>${esc(w.time)}</td>
     <td>
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
-        ${w.status==='open'?`<button class="btn btn-sm btn-gray" onclick="openEditWork('${w._key}')">✏️</button>`:''}
+        ${w.status!=='done'?`<button class="btn btn-sm btn-gray" onclick="openEditWork('${w._key}')">✏️</button>`:''}
+        <button class="btn btn-sm btn-outline" onclick="printReceipt('${w._key}')" title="Print Receipt">🖨️</button>
         <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp">📱</button>
         ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-danger" onclick="deleteWork('${w._key}')">🗑️</button>`:''}
       </div>
@@ -1715,56 +1901,43 @@ function searchClientHistory(){
 // VIEW WORK DETAIL
 // ============================================================
 function viewWork(key){
-  const w=allWorks.find(x=>x._key===key); if(!w) return;
-  document.getElementById('workDetailTitle').innerHTML=`Work #${w.workNum} &nbsp;<span class="uid-tag" title="Client ID">${esc(w.clientId||'—')}</span>`;
+  const w=allWorks.find(x=>x._key===key);
+  if(!w)return;
+  let payInfo='';
+  try{const modes=JSON.parse(w.payModes||'[]');payInfo=modes.map(m=>`<div class="di"><div class="dl">${esc(m.mode)}${m.bank?' ('+esc(m.bank)+')':''}${m.employee?' — '+esc(m.employee)+' ':''}</div><div class="dv">₹${(m.amount||0).toLocaleString('en-IN')}</div></div>`).join('');
+  }catch(e){payInfo=`<div class="di"><div class="dl">${esc(w.payMode||'—')}</div><div class="dv">₹${(w.amount||0).toLocaleString('en-IN')}</div></div>`;}
   document.getElementById('workDetailBody').innerHTML=`
-    <div class="dgrid">
-      <div class="di"><div class="dl">Client Name</div><div class="dv">${esc(w.clientName)}</div></div>
-      <div class="di"><div class="dl">Vehicle</div><div class="dv" style="font-family:monospace;">${esc(w.vehicle)}</div></div>
-      <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
-      <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag">${esc(w.clientId||'—')}</span> <span style="font-size:.72rem;color:var(--gray);">(for client tracking)</span></div></div>
-      <div class="di"><div class="dl">Work Type</div><div class="dv">${wtBadge(w)}${w.othersSpecify?`<div style="margin-top:5px;font-size:.88rem;font-weight:800;color:#374151;">📝 ${esc(w.othersSpecify)}</div>`:''}</div></div>
-      <div class="di"><div class="dl">Payment</div><div class="dv">${payBadge(w)}</div></div>
-      <div class="di"><div class="dl">Amount Received</div><div class="dv">₹${(w.amount||0).toLocaleString('en-IN')}</div></div>
-      <div class="di"><div class="dl">Status</div><div class="dv"><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅ Completed':'🔄 Open'}</span></div></div>
-      <div class="di"><div class="dl">Taken By</div><div class="dv">${esc(w.takenBy)}</div></div>
-      <div class="di"><div class="dl">Date</div><div class="dv">${esc(w.date)}</div></div>
-      <div class="di"><div class="dl">Time</div><div class="dv">${esc(w.time)}</div></div>
-      ${w.notes?`<div class="di" style="grid-column:1/-1;"><div class="dl">Notes</div><div class="dv">${esc(w.notes)}</div></div>`:''}
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')">🖨️ Print Receipt</button>
+      <button class="btn btn-success btn-sm" onclick="waFromWork('${key}')">📱 WhatsApp</button>
+      ${w.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="closeModal('workDetailModal');openCloseWork('${key}')">✅ Complete Work</button>`:''}
     </div>
-    ${w.status==='done'?`
-      <hr class="dv"/>
-      <div style="font-weight:800;color:var(--g);margin-bottom:10px;">✅ Completion Details</div>
-      <div class="dgrid">
-        <div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div>
-        <div class="di"><div class="dl">Completed On</div><div class="dv">${esc(w.completedDate)} · ${esc(w.completedTime)}</div></div>
-        ${w.expiryDate?`<div class="di"><div class="dl">Paper Expiry</div><div class="dv" style="color:var(--o);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
-        ${w.closingBank?`<div class="di"><div class="dl">Paid From</div><div class="dv">${esc(w.closingBank)}</div></div>`:''}
-        ${w.receiptAmount?`<div class="di"><div class="dl">Receipt Amount</div><div class="dv">₹${w.receiptAmount.toLocaleString('en-IN')}</div></div>`:''}
-        ${w.closeNotes?`<div class="di" style="grid-column:1/-1;"><div class="dl">Completion Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
-      </div>
-      ${w.receiptPhoto?`<div style="margin-top:12px;"><div class="dl" style="font-size:.73rem;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:7px;">Receipt Photo</div>
-        <img src="${w.receiptPhoto}" class="photo-thumb" onclick="previewImg('${w.receiptPhoto}')"/></div>`:''}
-    `:''}
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--grayb);display:flex;gap:8px;flex-wrap:wrap;">
-      ${w.phone?`<a href="https://wa.me/91${w.phone}?text=${encodeURIComponent(`Hello ${w.clientName}! Your work (${wtLabel(w.workType)}) has been registered at our office.\nYour Unique ID is: *${w.uid}*\nUse this ID to track your work status.\n- Office Team`)}" target="_blank" class="btn btn-sm btn-success">📱 WhatsApp Client</a>`:''}
-      <button class="btn btn-sm btn-outline" onclick="closeModal('workDetailModal');showAddFollowupForWork('${w.workNum}')">📌 Add Follow-up</button>
-    </div>
+    <div class="di"><div class="dl">Work #</div><div class="dv"><strong>#${w.workNum}</strong></div></div>
+    <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag">${esc(w.clientId||'—')}</span></div></div>
+    <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
+    ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client Name</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
+    <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
+    <div class="di"><div class="dl">Vehicle(s)</div><div class="dv">${esc(w.vehicles||w.vehicle)}</div></div>
+    ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
+    <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div></div>
+    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?'₹'+w.workValue.toLocaleString('en-IN'):'—'}</div></div>
+    <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">₹${(w.totalPaid||w.amount||0).toLocaleString('en-IN')}</div></div>
+    ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">₹${w.remainingBalance.toLocaleString('en-IN')}</div></div>`:''}
+    ${payInfo}
+    <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
+    ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
+    <div class="di"><div class="dl">Date</div><div class="dv">${esc(w.date)} ${esc(w.time)}</div></div>
+    <div class="di"><div class="dl">Taken By</div><div class="dv">${esc(w.takenBy)}</div></div>
+    ${w.status!=='open'?`<div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div><div class="di"><div class="dl">Completed Date</div><div class="dv">${esc(w.completedDate)}</div></div>`:''}
+    ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">₹${w.receiptAmount.toLocaleString('en-IN')} from ${esc(w.closingBank)}</div></div>`:''}
+    ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">₹${w.miscExpense.toLocaleString('en-IN')} — ${esc(w.miscReason)}</div></div>`:''}
+    ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
+    ${w.closeNotes?`<div class="di"><div class="dl">Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
+    ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="window.open('${w.receiptPhoto}','_blank')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
   `;
-  const foot=document.getElementById('workDetailFooter');
-  if(w.status==='open'){
-    foot.innerHTML=`<button class="btn btn-gray" onclick="closeModal('workDetailModal')">Close</button>
-      <button class="btn btn-outline btn-sm" onclick="openEditWork('${w._key}')">✏️ Edit</button>
-      <button class="btn btn-success" onclick="openCloseWork('${w._key}')">✅ Mark Complete</button>`;
-  } else {
-    foot.innerHTML=`<button class="btn btn-primary" onclick="closeModal('workDetailModal')">Close</button>`;
-  }
   openModal('workDetailModal');
 }
 
-// ============================================================
-// EDIT WORK
-// ============================================================
 function openEditWork(key){
   const w=allWorks.find(x=>x._key===key); if(!w) return;
   editingWorkKey=key;
@@ -1835,69 +2008,76 @@ function openCloseWork(key){
   openModal('closeWorkModal');
 }
 
-async function completeWork(){
-  const w=allWorks.find(x=>x._key===closingWorkId); if(!w) return;
-  const needsExpiry=['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(w.workType);
-  const photoFile=document.getElementById('receiptPhoto').files[0];
-  const expiryDate=document.getElementById('expiryDate').value;
-  const closingBank=document.getElementById('closingBank').value;
-  const receiptAmount=document.getElementById('receiptAmount').value;
-  const closeNotes=document.getElementById('closeNotes').value.trim();
-  if(!photoFile){toast('Attach receipt photo','error');return;}
-  if(needsExpiry&&!expiryDate){toast('Enter paper expiry date','error');return;}
-  if(!closingBank){toast('Select payment source','error');return;}
-  toast('Compressing photo…','');
-  const photoBase64 = await compressImage(photoFile);
-  const compKB = Math.round((photoBase64.length * 3/4) / 1024);
-  const origKB = Math.round(photoFile.size / 1024);
-  const now=new Date();
+async function completeWork() {
+  const w = allWorks.find(x=>x._key===closeWorkKey);
+  if(!w) return;
+  const bank = document.getElementById('closingBank').value;
+  const amt = parseFloat(document.getElementById('receiptAmount').value)||0;
+  const notes = document.getElementById('closeNotes').value.trim();
+  const expiry = document.getElementById('expiryDate').value;
+  const miscAmt = parseFloat(document.getElementById('miscAmount').value)||0;
+  const miscRsn = document.getElementById('miscReason').value.trim();
+  const isPartial = closeWorkType==='partial';
+  const partialDesc = isPartial ? document.getElementById('partialDesc').value.trim() : '';
+  if(!bank){toast('Select payment source','error');return;}
+  if(isPartial&&!partialDesc){toast('Describe what was completed','error');return;}
+
+  // Collect all document uploads
+  let photoData = '';
+  const fileInputs = document.querySelectorAll('#docUploadList input[type=file]');
+  if(fileInputs[0]&&fileInputs[0].files[0]) {
+    try { photoData = await compressImage(fileInputs[0].files[0]); } catch(e){}
+  }
+
+  const now = new Date();
+  const updates = {
+    status: isPartial?'partial':'done',
+    completedBy: currentUser.name,
+    completedDate: now.toLocaleDateString('en-IN'),
+    completedTime: now.toLocaleTimeString('en-IN'),
+    completedTimestamp: now.getTime(),
+    closingBank: bank, receiptAmount: amt,
+    closeNotes: notes, receiptPhoto: photoData,
+    expiryDate: expiry||'',
+    miscExpense: miscAmt, miscReason: miscRsn,
+    partialDesc: partialDesc
+  };
+
   try {
-    await dbSet('works/'+closingWorkId,{...w,status:'done',completedBy:currentUser.name,completedByKey:currentUser.key,completedDate:now.toLocaleDateString('en-IN'),completedTime:now.toLocaleTimeString('en-IN'),completedTimestamp:now.getTime(),receiptPhoto:photoBase64,expiryDate:expiryDate||'',closingBank,receiptAmount:receiptAmount?Number(receiptAmount):0,closeNotes});
-    // AUTO LEDGER DEBIT
-    if(receiptAmount&&Number(receiptAmount)>0){
-      await dbPush('ledger',{bank:closingBank,type:'debit',amount:Number(receiptAmount),date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),workRef:`#${w.workNum} — ${w.clientName} / ${w.vehicle}`,description:`Receipt payment: ${wtLabel(w.workType)}`,by:currentUser.name,autoEntry:true});
+    await dbSet('works/'+closeWorkKey, {...w, ...updates});
+    // Auto ledger debit for work expense
+    if(amt>0) {
+      await dbPush('ledger',{
+        bank, type:'debit', amount:amt,
+        date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
+        workRef:`#${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}`,
+        description:`Work expense: ${wtLabel(w.workType)}${isPartial?' [Partial]':''}`,
+        by:currentUser.name, autoEntry:true
+      });
     }
-    toast(`Work marked complete! ✅ Photo: ${origKB}KB → ${compKB}KB saved`,'success');
+    // Misc expense → cash debit
+    if(miscAmt>0) {
+      await dbPush('ledger',{
+        bank:'Cash', type:'debit', amount:miscAmt,
+        date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
+        workRef:`#${w.workNum} — Misc`,
+        description:`Misc expense: ${miscRsn||'—'} (Work #${w.workNum})`,
+        by:currentUser.name, autoEntry:true
+      });
+    }
+    toast(isPartial?'⏳ Partial completion saved!':'✅ Work marked complete!','success');
     closeModal('closeWorkModal');
+    document.getElementById('miscAmount').value='';
+    document.getElementById('miscReason').value='';
+    document.getElementById('partialDesc').value='';
+    closeWorkType='full';
     await loadAllData();
+    renderWorkTable();
     renderDashboard();
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
-function printWorkReceipt(key) {
-  const w = allWorks.find(x=>x._key===key); if(!w) return;
-  const win = window.open('','_blank','width=420,height=600');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
-    <title>Receipt #${w.workNum}</title>
-    <style>body{font-family:sans-serif;padding:24px;max-width:380px;margin:0 auto;}
-    h2{text-align:center;margin-bottom:4px;} .sub{text-align:center;color:#666;font-size:.85rem;margin-bottom:18px;}
-    .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:.92rem;}
-    .label{color:#666;} .value{font-weight:700;text-align:right;}
-    .uid{text-align:center;background:#e8f0fe;padding:10px;border-radius:8px;margin:16px 0;font-size:1.3rem;font-weight:800;letter-spacing:3px;color:#1a56db;}
-    .footer{text-align:center;margin-top:18px;font-size:.78rem;color:#888;}
-    @media print{button{display:none;}}</style></head><body>
-    <h2>🏢 Office Receipt</h2>
-    <div class="sub">${new Date().toLocaleDateString('en-IN')}</div>
-    <div class="uid">${w.uid}</div>
-    <div class="row"><span class="label">Work #</span><span class="value">#${w.workNum}</span></div>
-    <div class="row"><span class="label">Client Name</span><span class="value">${w.clientName}</span></div>
-    <div class="row"><span class="label">Vehicle</span><span class="value">${w.vehicle}</span></div>
-    <div class="row"><span class="label">Phone</span><span class="value">${w.phone}</span></div>
-    <div class="row"><span class="label">Work Type</span><span class="value">${w.workType.replace(/-/g,' ')}</span></div>
-    <div class="row"><span class="label">Date</span><span class="value">${w.date}</span></div>
-    <div class="row"><span class="label">Amount</span><span class="value">₹${(w.amount||0).toLocaleString('en-IN')}</span></div>
-    <div class="row"><span class="label">Payment</span><span class="value">${w.payMode}</span></div>
-    <div class="row"><span class="label">Status</span><span class="value">${w.status==='done'?'✅ Completed':'🔄 In Progress'}</span></div>
-    ${w.expiryDate?`<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">${w.expiryDate}</span></div>`:''}
-    <div class="footer">Thank you for your business!<br/>Keep this Unique ID to track your work.</div>
-    <br/><button onclick="window.print()" style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">🖨️ Print</button>
-  </body></html>`);
-  win.document.close();
-}
 
-// ============================================================
-// RECEIPT PHOTO PREVIEW
-// ============================================================
 async function previewReceiptPhoto(input) {
   const file = input.files[0];
   if(!file) return;
@@ -1960,7 +2140,12 @@ function compressImage(file, maxW=1200, maxH=1200, quality=0.65) {
 function filterLedger(bank,btn){currentLedgerBank=bank;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLedger();}
 
 function renderLedger(){
-  const entries=allLedger.filter(l=>l.bank===currentLedgerBank);
+  let entries;
+  if(currentLedgerBank==='Employee') {
+    entries=allLedger.filter(l=>l.employeeName);
+  } else {
+    entries=allLedger.filter(l=>l.bank===currentLedgerBank);
+  }
   const credits=entries.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
   const debits=entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
   const opening=entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
@@ -2274,6 +2459,201 @@ function recoAddToLedger(credit, debit, dateStr, desc) {
   toast('Fill in the date and save to add this entry to your ledger','');
 }
 
+
+// ============================================================
+// PRINT RECEIPT
+// ============================================================
+function printReceipt(key) {
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+  let payInfo = '';
+  try {
+    const modes = JSON.parse(w.payModes||'[]');
+    payInfo = modes.map(m=>`${m.mode}${m.bank?' ('+m.bank+')':''}${m.employee?' — '+m.employee+' ':''}: ₹${(m.amount||0).toLocaleString('en-IN')}`).join('<br>');
+  } catch(e){ payInfo = `${w.payMode||'—'}: ₹${(w.amount||0).toLocaleString('en-IN')}`; }
+  const win = window.open('','_blank','width=400,height=600');
+  win.document.write(`<!DOCTYPE html><html><head><title>Receipt #${w.workNum}</title>
+  <style>body{font-family:Arial,sans-serif;padding:20px;max-width:380px;margin:auto;font-size:13px;}
+  h2{text-align:center;margin:0 0 4px;}p{text-align:center;margin:0 0 16px;font-size:11px;color:#555;}
+  table{width:100%;border-collapse:collapse;}td{padding:5px 2px;border-bottom:1px dashed #ddd;vertical-align:top;}
+  td:first-child{font-weight:bold;width:45%;}
+  .total{font-size:14px;font-weight:bold;}.footer{text-align:center;margin-top:16px;font-size:10px;color:#888;}
+  @media print{button{display:none;}}</style></head><body>
+  <h2>🏢 Work Receipt</h2>
+  <p>RTO & Vehicle Services Office</p>
+  <hr/>
+  <table>
+    <tr><td>Work #</td><td>#${w.workNum}</td></tr>
+    <tr><td>Date</td><td>${esc(w.date)}</td></tr>
+    <tr><td>Owner</td><td>${esc(w.ownerName||w.clientName)}</td></tr>
+    ${w.clientName&&w.clientName!==w.ownerName?`<tr><td>Client</td><td>${esc(w.clientName)}</td></tr>`:''}
+    <tr><td>Vehicle</td><td>${esc(w.vehicles||w.vehicle)}</td></tr>
+    <tr><td>Phone</td><td>${esc(w.phone)}</td></tr>
+    <tr><td>Work Type</td><td>${esc(wtLabel(w.workType))}</td></tr>
+    ${w.workType==='Transfer'?`<tr><td>From</td><td>${esc(w.transferFrom)}</td></tr><tr><td>To</td><td>${esc(w.transferTo)}</td></tr>`:''}
+    ${w.workValue?`<tr><td>Work Value</td><td>₹${w.workValue.toLocaleString('en-IN')}</td></tr>`:''}
+    <tr><td>Amount Paid</td><td class="total">₹${(w.totalPaid||w.amount||0).toLocaleString('en-IN')}</td></tr>
+    ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:red;font-weight:bold;">₹${w.remainingBalance.toLocaleString('en-IN')}</td></tr>`:''}
+    <tr><td>Payment Mode</td><td>${payInfo}</td></tr>
+    <tr><td>Status</td><td>${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial':'🔵 Open'}</td></tr>
+    ${w.partialDesc?`<tr><td>Done</td><td>${esc(w.partialDesc)}</td></tr>`:''}
+    ${w.miscExpense>0?`<tr><td>Misc Expense</td><td>₹${w.miscExpense.toLocaleString('en-IN')} — ${esc(w.miscReason)}</td></tr>`:''}
+    ${w.notes?`<tr><td>Notes</td><td>${esc(w.notes)}</td></tr>`:''}
+    <tr><td>Client ID</td><td>${esc(w.clientId||'—')}</td></tr>
+    <tr><td>Taken By</td><td>${esc(w.takenBy)}</td></tr>
+  </table>
+  <div class="footer">Thank you for your visit!<br>Keep this receipt for your records.</div>
+  <br><button onclick="window.print()" style="width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">🖨️ Print</button>
+  </body></html>`);
+  win.document.close();
+}
+
+// ============================================================
+// COMBINED BALANCE
+// ============================================================
+function renderCombinedBalance() {
+  const banks = ['Cash','HDFC','SBI','Kotak','ICICI','Canara'];
+  let html = '<div class="stats-row" style="margin-bottom:20px;">';
+  let grandTotal = 0;
+  banks.forEach(bank=>{
+    const entries = allLedger.filter(l=>l.bank===bank);
+    const opening = entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
+    const credits = entries.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
+    const debits = entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
+    const bal = opening+credits-debits;
+    grandTotal += bal;
+    html += `<div class="sc ${bal<0?'red':''}"><div class="sl">${bank==='Cash'?'💵':''} ${bank}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">₹${bal.toLocaleString('en-IN')}</div></div>`;
+  });
+
+  // Employee held amounts
+  const empEntries = allLedger.filter(l=>l.employeeName);
+  const empMap = {};
+  empEntries.forEach(e=>{
+    if(!empMap[e.employeeName]) empMap[e.employeeName]=0;
+    empMap[e.employeeName] += (e.amount||0);
+  });
+  let empTotal = 0;
+  let empHtml = '';
+  Object.entries(empMap).forEach(([name,amt])=>{
+    empTotal += amt;
+    empHtml += `<div class="sc orange"><div class="sl">👤 ${esc(name)}</div><div class="sv" style="color:#d97706;">₹${amt.toLocaleString('en-IN')}</div></div>`;
+  });
+
+  html += '</div>';
+  if(empHtml) {
+    html += `<div style="font-weight:800;margin-bottom:8px;font-size:.85rem;">👤 Employee-Held Amounts</div><div class="stats-row" style="margin-bottom:20px;">${empHtml}</div>`;
+  }
+
+  // Remaining balances (work value - paid)
+  const pendingBal = allWorks.filter(w=>w.remainingBalance>0&&w.status==='open').reduce((s,w)=>s+(w.remainingBalance||0),0);
+  const miscExp = allWorks.reduce((s,w)=>s+(w.miscExpense||0),0);
+
+  html += `<div style="background:var(--pl);border-radius:var(--rads);padding:14px;margin-top:4px;">
+    <div style="font-weight:900;font-size:1rem;margin-bottom:12px;">📊 Grand Summary</div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total in Banks + Cash</span><span style="font-weight:800;color:var(--g);">₹${grandTotal.toLocaleString('en-IN')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>With Employees</span><span style="font-weight:800;color:#d97706;">₹${empTotal.toLocaleString('en-IN')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Pending Client Payments</span><span style="font-weight:800;color:var(--r);">₹${pendingBal.toLocaleString('en-IN')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grayb);"><span>Total Misc Expenses</span><span style="font-weight:800;color:var(--r);">₹${miscExp.toLocaleString('en-IN')}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:1rem;font-weight:900;"><span>Net Total (Banks+Emp)</span><span style="color:var(--g);">₹${(grandTotal+empTotal).toLocaleString('en-IN')}</span></div>
+  </div>`;
+
+  document.getElementById('combinedBalBody').innerHTML = html;
+}
+
+// ============================================================
+// OFFICE INSIDE SPEND
+// ============================================================
+let ospSelectedWork = null;
+
+function renderOfficeSpend() {
+  document.getElementById('ospDate').value = new Date().toISOString().split('T')[0];
+  renderOspHistory();
+}
+
+function searchOspWork() {
+  const veh = document.getElementById('ospVehicle').value.trim().toUpperCase();
+  if(!veh){toast('Enter vehicle number','error');return;}
+  const matches = allWorks.filter(w=>(w.vehicles||w.vehicle||'').toUpperCase().includes(veh)&&w.status!=='done');
+  const res = document.getElementById('ospSearchResult');
+  if(!matches.length){
+    res.innerHTML=`<div style="background:var(--rl);padding:10px;border-radius:var(--rads);color:var(--r);font-weight:700;">No open works found for "${veh}"</div>`;
+    document.getElementById('ospEntryForm').style.display='none';
+    return;
+  }
+  if(matches.length===1) {
+    selectOspWork(matches[0]);
+    res.innerHTML=`<div style="background:var(--gl);padding:10px;border-radius:var(--rads);color:var(--g);font-weight:700;">✅ Found: Work #${matches[0].workNum} — ${esc(matches[0].ownerName||matches[0].clientName)} — ${esc(matches[0].vehicles||matches[0].vehicle)}</div>`;
+  } else {
+    res.innerHTML=`<div style="font-weight:800;margin-bottom:8px;">Multiple open works found — select one:</div>`+
+      matches.map(w=>`<div style="border:1.5px solid var(--grayb);border-radius:var(--rads);padding:10px;margin-bottom:8px;cursor:pointer;background:var(--graylite);" onclick="selectOspWork(${JSON.stringify(w).replace(/"/g,'&quot;')},this)">
+        <strong>#${w.workNum}</strong> — ${esc(w.ownerName||w.clientName)} — ${esc(w.vehicles||w.vehicle)} — ${esc(wtLabel(w.workType))}
+      </div>`).join('');
+    document.getElementById('ospEntryForm').style.display='none';
+  }
+}
+
+function selectOspWork(w, el) {
+  ospSelectedWork = w;
+  document.getElementById('ospWorkLabel').textContent=`Work #${w.workNum} — ${w.ownerName||w.clientName} — ${w.vehicles||w.vehicle} — ${wtLabel(w.workType)}`;
+  document.getElementById('ospEntryForm').style.display='block';
+  if(el) { document.querySelectorAll('#ospSearchResult div[onclick]').forEach(d=>d.style.background='var(--graylite)'); el.style.background='var(--pl)'; }
+}
+
+async function saveOspSpend() {
+  if(!ospSelectedWork){toast('No work selected','error');return;}
+  const amt = parseFloat(document.getElementById('ospAmount').value)||0;
+  const reason = document.getElementById('ospReason').value.trim();
+  const dateVal = document.getElementById('ospDate').value;
+  if(!amt){toast('Enter amount','error');return;}
+  if(!reason){toast('Enter reason','error');return;}
+  const now = new Date();
+  const dateStr = dateVal?new Date(dateVal).toLocaleDateString('en-IN'):now.toLocaleDateString('en-IN');
+  const w = ospSelectedWork;
+  try {
+    // Save as expense in ledger (cash debit)
+    await dbPush('ledger',{
+      bank:'Cash', type:'debit', amount:amt,
+      date:dateStr, timestamp:now.getTime(),
+      workRef:`#${w.workNum} — ${w.ownerName||w.clientName}`,
+      description:`Office Inside Spend: ${reason}`,
+      by:currentUser.name, autoEntry:true, ospEntry:true
+    });
+    // Save in officeSpend node for history
+    await dbPush('officeSpend',{
+      workKey:w._key, workNum:w.workNum,
+      ownerName:w.ownerName||w.clientName, vehicle:w.vehicles||w.vehicle,
+      amount:amt, reason, date:dateStr, timestamp:now.getTime(), by:currentUser.name
+    });
+    toast(`✅ Expense of ₹${amt} saved against Work #${w.workNum}`,'success');
+    document.getElementById('ospAmount').value='';
+    document.getElementById('ospReason').value='';
+    ospSelectedWork=null;
+    document.getElementById('ospEntryForm').style.display='none';
+    document.getElementById('ospVehicle').value='';
+    document.getElementById('ospSearchResult').innerHTML='';
+    await loadAllData();
+    renderOspHistory();
+  } catch(e){toast('Error: '+e.message,'error');}
+}
+
+let allOspSpend = [];
+async function renderOspHistory() {
+  const snap = await dbGet('officeSpend');
+  allOspSpend = snap?Object.entries(snap).map(([k,v])=>({...v,_key:k})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):[];
+  const el = document.getElementById('ospHistory');
+  if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
+  el.innerHTML=`<table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Vehicle</th><th>Reason</th><th>Amount</th><th>By</th></tr></thead><tbody>
+    ${allOspSpend.map(s=>`<tr>
+      <td style="font-size:.78rem;">${esc(s.date)}</td>
+      <td style="font-size:.78rem;">#${s.workNum} — ${esc(s.ownerName)}</td>
+      <td style="font-size:.78rem;">${esc(s.vehicle)}</td>
+      <td style="font-size:.82rem;">${esc(s.reason)}</td>
+      <td style="font-weight:800;color:var(--r);">₹${(s.amount||0).toLocaleString('en-IN')}</td>
+      <td style="font-size:.78rem;">${esc(s.by)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
 // ============================================================
 // DAILY SUMMARY
 // ============================================================
@@ -2286,7 +2666,11 @@ function renderSummary(){
   const open=works.filter(w=>w.status==='open');
   const totalCollected=works.reduce((s,w)=>s+(w.amount||0),0);
   const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
+  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0);
+  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   const ledgerEntries=allLedger.filter(l=>l.date===selDate);
+  const miscExpenses=works.reduce((s,w)=>s+(w.miscExpense||0),0);
+  const ospExpenses=allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   document.getElementById('summaryBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Daily Report — ${selDate}</h2><p>Generated on ${new Date().toLocaleDateString('en-IN')}</p></div>
     <div class="stats-row">
