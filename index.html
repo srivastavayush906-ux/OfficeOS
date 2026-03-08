@@ -4,193 +4,635 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OfficeOS — Work Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{
-  --p:#1a56db;--pd:#0e3bab;--pl:#e8f0fe;
-  --g:#16a34a;--gl:#dcfce7;--gd:#15803d;
-  --r:#dc2626;--rl:#fee2e2;
-  --o:#ea580c;--ol:#ffedd5;
-  --y:#d97706;--yl:#fef3c7;
-  --gray:#6b7280;--grayb:#e5e7eb;--graylite:#f8fafc;
-  --bg:#eef2ff;--white:#fff;
-  --shadow:0 2px 16px rgba(26,86,219,.10);
-  --shadow2:0 4px 24px rgba(26,86,219,.16);
-  --rad:14px;--rads:8px;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:#1e293b;min-height:100vh;overflow-x:hidden;}
-h1,h2,h3,h4,.brand{font-family:'Baloo 2',sans-serif;}
-button{font-family:'Nunito',sans-serif;cursor:pointer;border:none;outline:none;}
-input,select,textarea{font-family:'Nunito',sans-serif;outline:none;}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap');
 
-/* SPLASH */
-#splash{position:fixed;inset:0;background:linear-gradient(135deg,#0e3bab,#1a56db 55%,#3b82f6);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
-#splash .logo{text-align:center;color:#fff;}
-#splash .logo h1{font-size:3rem;font-weight:800;}
-#splash .logo p{font-size:1.1rem;opacity:.8;margin-top:4px;}
-#splash .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin:24px auto 0;}
-@keyframes spin{to{transform:rotate(360deg);}}
+:root {
+  --p: #4f46e5;      /* indigo */
+  --pd: #3730a3;
+  --pl: #eef2ff;
+  --pm: #6366f1;
 
-/* LOGIN */
-#loginPage{display:none;min-height:100vh;background:linear-gradient(135deg,#0e3bab,#1a56db 55%,#3b82f6);align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:20px;}
-#loginPage.show{display:flex;}
-.login-card{background:#fff;border-radius:20px;padding:34px 30px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.18);}
-.login-card .brand{font-size:1.75rem;font-weight:800;color:var(--p);margin-bottom:2px;}
-.login-card .sub{color:var(--gray);font-size:.9rem;margin-bottom:20px;}
-.fb-status{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:var(--rads);font-size:.83rem;font-weight:700;margin-bottom:18px;}
-.fb-status.connected{background:var(--gl);color:var(--g);}
-.fb-status.disconnected{background:var(--rl);color:var(--r);}
-.fb-status.checking{background:var(--yl);color:var(--y);}
-.fb-dot{width:9px;height:9px;border-radius:50%;background:currentColor;display:inline-block;}
-.client-card{background:rgba(255,255,255,.13);border-radius:20px;padding:22px 28px;width:100%;max-width:420px;border:1.5px solid rgba(255,255,255,.25);}
-.client-card h3{color:#fff;font-size:1rem;margin-bottom:6px;}
-.client-card p{color:rgba(255,255,255,.7);font-size:.82rem;margin-bottom:12px;}
-.client-card input{width:100%;padding:10px 14px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:var(--rads);font-size:.93rem;margin-bottom:10px;letter-spacing:2px;}
-.client-card input::placeholder{color:rgba(255,255,255,.5);letter-spacing:0;}
-.btn-white{background:#fff;color:var(--p);font-weight:800;padding:10px 20px;border-radius:var(--rads);cursor:pointer;width:100%;font-size:.93rem;transition:.2s;border:none;}
-.btn-white:hover{background:#e8f0fe;}
+  --g: #10b981;
+  --gl: #d1fae5;
+  --gd: #059669;
 
-/* FIELDS */
-.field{margin-bottom:15px;}
-.field label{display:block;font-weight:700;font-size:.86rem;color:#374151;margin-bottom:5px;}
-.field input,.field select,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.93rem;color:#1e293b;background:#fff;transition:border-color .2s;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(26,86,219,.08);}
-.field textarea{resize:vertical;min-height:65px;}
-.field .hint{font-size:.76rem;color:var(--gray);margin-top:3px;}
+  --r: #f43f5e;
+  --rl: #ffe4e6;
+  --rd: #e11d48;
 
-/* BUTTONS */
-.btn{padding:10px 18px;border-radius:var(--rads);font-weight:700;font-size:.9rem;transition:.2s;border:none;cursor:pointer;}
-.btn-primary{background:var(--p);color:#fff;} .btn-primary:hover{background:var(--pd);}
-.btn-success{background:var(--g);color:#fff;} .btn-success:hover{background:var(--gd);}
-.btn-danger{background:var(--r);color:#fff;} .btn-danger:hover{background:#b91c1c;}
-.btn-outline{background:#fff;color:var(--p);border:1.5px solid var(--p);} .btn-outline:hover{background:var(--pl);}
-.btn-gray{background:var(--graylite);color:#374151;border:1.5px solid var(--grayb);} .btn-gray:hover{background:var(--grayb);}
-.btn-orange{background:var(--o);color:#fff;} .btn-orange:hover{background:#c2410c;}
-.btn-full{width:100%;} .btn-sm{padding:6px 13px;font-size:.8rem;}
+  --o: #f59e0b;
+  --ol: #fef3c7;
 
-/* LAYOUT */
-#mainApp{display:none;}
-#mainApp.show{display:flex;min-height:100vh;}
-#sidebar{width:232px;background:var(--pd);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto;transition:.3s;}
-#sidebar .brand{padding:18px 16px 13px;font-size:1.25rem;font-weight:800;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:7px;}
-#sidebar nav{flex:1;padding:8px 0;}
-#sidebar nav .ns{padding:9px 16px 3px;font-size:.68rem;font-weight:800;color:rgba(255,255,255,.38);letter-spacing:1px;text-transform:uppercase;}
-#sidebar nav a{display:flex;align-items:center;gap:9px;padding:9px 16px;color:rgba(255,255,255,.75);font-size:.88rem;font-weight:700;border-left:3px solid transparent;transition:.15s;cursor:pointer;}
-#sidebar nav a:hover{background:rgba(255,255,255,.1);color:#fff;} #sidebar nav a.active{background:#1d4ed8;color:#fff;border-left:3px solid #93c5fd;border-radius:0 20px 20px 0;margin-right:12px;font-weight:900;box-shadow:0 2px 10px rgba(0,0,0,.3);}
-#sidebar nav a .ico{font-size:.95rem;width:19px;text-align:center;}
-#sidebar .ubox{padding:13px 16px;border-top:1px solid rgba(255,255,255,.12);}
-#sidebar .ubox .uname{font-weight:800;font-size:.9rem;}
-#sidebar .ubox .urole{font-size:.73rem;opacity:.6;margin-bottom:9px;}
-#sidebar .ubox button{width:100%;padding:7px;background:rgba(255,255,255,.12);color:#fff;border-radius:var(--rads);font-weight:700;font-size:.8rem;border:none;cursor:pointer;transition:.15s;margin-bottom:5px;}
-#sidebar .ubox button:hover{background:rgba(255,255,255,.22);}
+  --y: #eab308;
+  --yl: #fef9c3;
 
-#content{margin-left:232px;flex:1;padding:26px;min-height:100vh;}
-#topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:8px;}
-#topbar h2{font-size:1.5rem;font-weight:800;color:var(--pd);}
-.tdate{font-size:.83rem;color:var(--gray);}
+  --gray: #6b7280;
+  --grayb: #e5e7eb;
+  --graylite: #f9fafb;
 
-.page{display:none;}
-.page.active{display:block;animation:fadeIn .22s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  --bg: #f5f6fa;
+  --white: #ffffff;
+  --text: #111827;
+  --text2: #374151;
+  --text3: #6b7280;
 
-/* CARDS */
-.card{background:#fff;border-radius:var(--rad);padding:20px;box-shadow:var(--shadow);margin-bottom:18px;}
-.card-title{font-size:1.02rem;font-weight:800;color:var(--pd);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:13px;margin-bottom:20px;}
-.sc{background:#fff;border-radius:var(--rad);padding:15px 17px;box-shadow:var(--shadow);border-left:4px solid var(--p);}
-.sc.green{border-left-color:var(--g);} .sc.red{border-left-color:var(--r);}
-.sc.orange{border-left-color:var(--o);} .sc.yellow{border-left-color:var(--y);}
-.sc .sl{font-size:.73rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;}
-.sc .sv{font-size:1.7rem;font-weight:800;font-family:'Baloo 2',sans-serif;color:#1e293b;margin-top:1px;}
-
-/* TABLE */
-.wt{width:100%;border-collapse:collapse;font-size:.86rem;}
-.wt th{background:var(--pl);color:var(--pd);font-weight:800;padding:9px 12px;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.4px;}
-.wt td{padding:10px 12px;border-bottom:1px solid var(--grayb);vertical-align:middle;}
-.wt tr:last-child td{border-bottom:none;}
-.wt tr:hover td{background:#f8faff;}
-.wt .nd{text-align:center;color:var(--gray);padding:28px;}
-.ox{overflow-x:auto;}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:800;}
-.bb{background:var(--pl);color:var(--p);}
-.bg{background:var(--gl);color:var(--g);}
-.br{background:var(--rl);color:var(--r);}
-.bo{background:var(--ol);color:var(--o);}
-.by{background:var(--yl);color:var(--y);}
-.bgr{background:var(--graylite);color:var(--gray);border:1px solid var(--grayb);}
-
-/* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center;padding:14px;}
-.mo.show{display:flex;}
-.md{background:#fff;border-radius:20px;padding:26px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2);position:relative;}
-.md-title{font-size:1.15rem;font-weight:800;color:var(--pd);margin-bottom:18px;display:flex;align-items:center;gap:7px;}
-.md-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.35rem;color:var(--gray);cursor:pointer;padding:2px 6px;border-radius:4px;}
-.md-close:hover{background:var(--rl);color:var(--r);}
-.md-foot{display:flex;gap:9px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--grayb);}
-
-/* TABS */
-.tab-row{display:flex;gap:3px;background:#fff;padding:5px;border-radius:var(--rad);box-shadow:var(--shadow);width:fit-content;margin-bottom:16px;flex-wrap:wrap;}
-.tb{padding:7px 15px;border-radius:var(--rads);font-weight:700;font-size:.83rem;color:var(--gray);background:none;border:none;cursor:pointer;transition:.15s;}
-.tb.active{background:var(--p);color:#fff;}
-.tb:hover:not(.active){background:var(--pl);color:var(--p);}
-
-/* SEARCH */
-.sbar{display:flex;gap:9px;margin-bottom:16px;flex-wrap:wrap;}
-.sbar input{flex:1;min-width:190px;padding:9px 15px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.9rem;}
-.sbar input:focus{border-color:var(--p);}
-.sbar select{padding:9px 13px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;color:#374151;background:#fff;}
-
-/* DETAIL */
-.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
-.di .dl{font-size:.73rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;}
-.di .dv{font-size:.93rem;font-weight:700;color:#1e293b;margin-top:2px;}
-
-/* MISC */
-hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
-.wnum{font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--p);font-size:1rem;}
-.uid-tag{font-family:monospace;background:var(--pl);color:var(--pd);padding:2px 7px;border-radius:4px;font-size:.82rem;font-weight:700;letter-spacing:1.5px;}
-.photo-thumb{width:65px;height:65px;object-fit:cover;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;transition:.2s;}
-.photo-thumb:hover{transform:scale(1.07);}
-.ov-row td{background:#fff8f8!important;}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:9px;}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
-.expiry-alert{background:var(--rl);border-radius:var(--rads);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
-.expiry-alert.warn{background:var(--yl);}
-.print-only{display:none;}
-@media print{
-  #sidebar,#topbar,#menuToggle,.btn,.tab-row,.sbar,.md-foot{display:none!important;}
-  #content{margin-left:0!important;padding:0!important;}
-  .print-only{display:block!important;}
-  body{background:#fff;}
+  --rad: 14px;
+  --rads: 9px;
+  --rad-sm: 6px;
+  --sidebar-w: 248px;
 }
 
-/* TOAST */
-#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:7px;}
-.tm{background:#1e293b;color:#fff;padding:11px 17px;border-radius:var(--rads);font-size:.86rem;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:tIn .3s ease;max-width:310px;}
-.tm.success{background:var(--g);} .tm.error{background:var(--r);} .tm.warn{background:var(--y);}
-@keyframes tIn{from{transform:translateX(60px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* MOBILE */
-#menuToggle{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--p);color:#fff;border:none;border-radius:var(--rads);width:39px;height:39px;font-size:1.15rem;cursor:pointer;box-shadow:var(--shadow2);}
-#sideOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99;}
-@media(max-width:768px){
-  #sidebar{transform:translateX(-100%);} #sidebar.open{transform:translateX(0);}
-  #sideOverlay.show{display:block;}
-  #content{margin-left:0;padding:14px;padding-top:58px;}
-  #menuToggle{display:flex;align-items:center;justify-content:center;}
-  .g2,.g3,.dgrid{grid-template-columns:1fr;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .tab-row{width:100%;}
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
+
+h1,h2,h3,h4,.brand { font-family: 'Sora', sans-serif; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: inherit; outline: none; }
+
+/* ═══════════ SPLASH ═══════════ */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .5s;
+}
+#splash .logo { text-align: center; color: #fff; }
+#splash .logo h1 {
+  font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px;
+  background: linear-gradient(135deg, #fff 30%, #a5b4fc);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+#splash .logo p { font-size: 1rem; color: rgba(255,255,255,.55); margin-top: 6px; letter-spacing: .5px; }
+#splash .spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top-color: #a5b4fc;
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+  margin: 28px auto 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════ LOGIN ═══════════ */
+#loginPage {
+  display: none; min-height: 100vh;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%);
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 20px; padding: 20px;
+}
+#loginPage.show { display: flex; }
+
+.login-card {
+  background: #fff; border-radius: 20px;
+  padding: 36px 32px; width: 100%; max-width: 420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.25);
+}
+.login-card .brand {
+  font-size: 1.7rem; font-weight: 800; color: var(--p);
+  margin-bottom: 2px; letter-spacing: -1px;
+}
+.login-card .sub { color: var(--text3); font-size: .85rem; margin-bottom: 22px; }
+
+.fb-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--rads);
+  font-size: .8rem; font-weight: 700; margin-bottom: 18px;
+}
+.fb-status.connected  { background: var(--gl); color: var(--gd); }
+.fb-status.disconnected { background: var(--rl); color: var(--rd); }
+.fb-status.checking   { background: var(--yl); color: #92400e; }
+.fb-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+.client-card {
+  background: rgba(255,255,255,.08); border-radius: 20px;
+  padding: 22px 28px; width: 100%; max-width: 420px;
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(12px);
+}
+.client-card h3 { color: #fff; font-size: .95rem; margin-bottom: 6px; }
+.client-card p  { color: rgba(255,255,255,.55); font-size: .8rem; margin-bottom: 14px; }
+.client-card input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.1);
+  color: #fff; border-radius: var(--rads);
+  font-size: .9rem; margin-bottom: 10px; letter-spacing: 2px;
+}
+.client-card input::placeholder { color: rgba(255,255,255,.35); letter-spacing: 0; }
+.btn-white {
+  background: #fff; color: var(--p);
+  font-weight: 700; padding: 11px 20px;
+  border-radius: var(--rads); cursor: pointer;
+  width: 100%; font-size: .9rem;
+  transition: .18s; border: none;
+}
+.btn-white:hover { background: #eef2ff; }
+
+/* ═══════════ FORM FIELDS ═══════════ */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-weight: 600;
+  font-size: .8rem; color: var(--text2);
+  margin-bottom: 5px; letter-spacing: .1px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; padding: 9px 12px;
+  border: 1.5px solid var(--grayb);
+  border-radius: var(--rads);
+  font-size: .88rem; color: var(--text);
+  background: #fff; transition: all .18s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--p);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+}
+.field input:hover, .field select:hover { border-color: #9ca3af; }
+.field textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
+.field .hint { font-size: .72rem; color: var(--text3); margin-top: 4px; }
+
+/* ═══════════ BUTTONS ═══════════ */
+.btn {
+  padding: 9px 18px; border-radius: var(--rads);
+  font-weight: 700; font-size: .85rem;
+  transition: all .17s; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.btn-primary   { background: var(--p); color: #fff; box-shadow: 0 2px 8px rgba(79,70,229,.3); }
+.btn-primary:hover   { background: var(--pd); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,70,229,.4); }
+.btn-success   { background: var(--g); color: #fff; box-shadow: 0 2px 8px rgba(16,185,129,.25); }
+.btn-success:hover   { background: var(--gd); transform: translateY(-1px); }
+.btn-danger    { background: var(--r); color: #fff; }
+.btn-danger:hover    { background: var(--rd); }
+.btn-outline   { background: #fff; color: var(--p); border: 1.5px solid #c7d2fe; }
+.btn-outline:hover   { background: var(--pl); border-color: var(--p); }
+.btn-gray      { background: #f3f4f6; color: var(--text2); border: 1.5px solid var(--grayb); }
+.btn-gray:hover      { background: var(--grayb); }
+.btn-orange    { background: var(--o); color: #fff; }
+.btn-orange:hover    { background: #d97706; }
+.btn-full { width: 100%; justify-content: center; }
+.btn-sm { padding: 5px 11px; font-size: .75rem; }
+.btn-lg { padding: 12px 24px; font-size: .95rem; }
+
+/* ═══════════ LAYOUT ═══════════ */
+#mainApp { display: none; }
+#mainApp.show { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+#sidebar {
+  width: var(--sidebar-w);
+  background: #1e1b4b;
+  color: #fff;
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0;
+  height: 100vh; z-index: 100;
+  overflow-y: auto; overflow-x: hidden;
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+#sidebar * { scrollbar-width: thin; }
+
+.sidebar-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo .logo-icon {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; box-shadow: 0 2px 8px rgba(99,102,241,.4);
+  flex-shrink: 0;
+}
+.sidebar-logo .logo-text { font-size: 1.15rem; font-weight: 800; letter-spacing: -.5px; }
+.sidebar-logo .logo-sub  { font-size: .6rem; color: rgba(255,255,255,.35); font-weight: 500; letter-spacing: .8px; text-transform: uppercase; margin-top: 1px; }
+
+/* Keep old .brand selector working */
+#sidebar .brand { display: none; }
+
+#sidebar nav { flex: 1; padding: 10px 0 6px; }
+#sidebar nav .ns {
+  padding: 14px 18px 5px;
+  font-size: .6rem; font-weight: 700;
+  color: rgba(255,255,255,.25);
+  letter-spacing: 1.8px; text-transform: uppercase;
+}
+#sidebar nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px;
+  color: rgba(255,255,255,.6);
+  font-size: .83rem; font-weight: 600;
+  border-left: 2px solid transparent;
+  transition: all .15s; cursor: pointer;
+  margin: 1px 8px 1px 0;
+  border-radius: 0 8px 8px 0;
+}
+#sidebar nav a:hover {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  border-left-color: rgba(165,180,252,.4);
+}
+#sidebar nav a.active {
+  background: rgba(99,102,241,.25);
+  color: #fff;
+  border-left: 2px solid #818cf8;
+  font-weight: 700;
+}
+#sidebar nav a .ico { font-size: .85rem; width: 18px; text-align: center; flex-shrink: 0; }
+
+#sidebar .ubox {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: rgba(0,0,0,.2);
+}
+#sidebar .ubox .uname { font-weight: 700; font-size: .85rem; }
+#sidebar .ubox .urole { font-size: .68rem; color: rgba(255,255,255,.4); margin-bottom: 10px; text-transform: capitalize; }
+#sidebar .ubox button {
+  width: 100%; padding: 7px 10px;
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.75);
+  border-radius: var(--rads); font-weight: 600;
+  font-size: .76rem; border: 1px solid rgba(255,255,255,.08);
+  cursor: pointer; transition: .15s; margin-bottom: 5px;
+}
+#sidebar .ubox button:hover { background: rgba(255,255,255,.14); color: #fff; }
+
+/* CONTENT */
+#content {
+  margin-left: var(--sidebar-w);
+  flex: 1; padding: 24px 28px;
+  min-height: 100vh;
+  max-width: calc(100vw - var(--sidebar-w));
+}
+
+#topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px; flex-wrap: wrap; gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--grayb);
+}
+#topbar h2 {
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--text); letter-spacing: -.4px;
+}
+.tdate {
+  font-size: .78rem; color: var(--text3);
+  background: #fff; padding: 5px 12px;
+  border-radius: 20px; border: 1px solid var(--grayb);
+  font-weight: 600; box-shadow: var(--shadow-sm);
+}
+
+/* PAGE TRANSITIONS */
+.page { display: none; }
+.page.active { display: block; animation: pgIn .2s ease; }
+@keyframes pgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══════════ CARDS ═══════════ */
+.card {
+  background: #fff;
+  border-radius: var(--rad);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+  border: 1px solid rgba(0,0,0,.05);
+}
+.card-title {
+  font-size: .95rem; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ═══════════ STAT CARDS ═══════════ */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px; margin-bottom: 22px;
+}
+.sc {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,.05);
+  position: relative; overflow: hidden;
+  transition: transform .15s, box-shadow .15s;
+}
+.sc::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: var(--p);
+  border-radius: 12px 12px 0 0;
+}
+.sc:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.sc.green::before { background: var(--g); }
+.sc.red::before   { background: var(--r); }
+.sc.orange::before { background: var(--o); }
+.sc.yellow::before { background: var(--y); }
+.sc .sl {
+  font-size: .68rem; font-weight: 700;
+  color: var(--text3); text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 5px;
+}
+.sc .sv {
+  font-size: 1.55rem; font-weight: 800;
+  font-family: 'Sora', sans-serif;
+  color: var(--text); line-height: 1.1;
+}
+
+/* ═══════════ TABLES ═══════════ */
+.ox { overflow-x: auto; border-radius: var(--rads); }
+.wt { width: 100%; border-collapse: collapse; font-size: .83rem; }
+.wt thead tr {
+  background: #f9fafb;
+  border-bottom: 2px solid var(--grayb);
+}
+.wt th {
+  padding: 10px 13px; text-align: left;
+  font-size: .7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px;
+  color: var(--text3); white-space: nowrap;
+}
+.wt td {
+  padding: 11px 13px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+.wt tbody tr:last-child td { border-bottom: none; }
+.wt tbody tr:hover td { background: #fafaf9; }
+.wt .nd {
+  text-align: center; color: var(--text3);
+  padding: 40px 20px; font-size: .88rem;
+}
+
+/* ═══════════ BADGES ═══════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .2px;
+  white-space: nowrap;
+}
+.bb { background: #eef2ff; color: #4338ca; }
+.bg { background: #d1fae5; color: #065f46; }
+.br { background: #ffe4e6; color: #be123c; }
+.bo { background: #fef3c7; color: #92400e; }
+.by { background: #fef9c3; color: #78350f; }
+.bgr { background: #f3f4f6; color: #4b5563; border: 1px solid var(--grayb); }
+
+/* ═══════════ MODALS ═══════════ */
+.mo {
+  position: fixed; inset: 0;
+  background: rgba(17,24,39,.55);
+  backdrop-filter: blur(6px);
+  z-index: 500; display: none;
+  align-items: center; justify-content: center;
+  padding: 16px;
+}
+.mo.show { display: flex; animation: moIn .2s ease; }
+@keyframes moIn { from { opacity: 0; } to { opacity: 1; } }
+
+.md {
+  background: #fff; border-radius: 18px;
+  padding: 26px; width: 100%; max-width: 560px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  border: 1px solid rgba(0,0,0,.06);
+  animation: mdIn .2s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes mdIn { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.md-title {
+  font-size: 1.05rem; font-weight: 800;
+  color: var(--text); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--grayb);
+}
+.md-close {
+  position: absolute; top: 14px; right: 16px;
+  background: #f3f4f6; border: none;
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); cursor: pointer; font-size: .9rem;
+  transition: .15s;
+}
+.md-close:hover { background: var(--rl); color: var(--r); }
+.md-foot {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--grayb);
+}
+
+/* ═══════════ TABS ═══════════ */
+.tab-row {
+  display: flex; gap: 3px;
+  background: #f3f4f6; padding: 4px;
+  border-radius: 12px; width: fit-content;
+  margin-bottom: 18px; flex-wrap: wrap;
+}
+.tb {
+  padding: 6px 15px; border-radius: 9px;
+  font-weight: 700; font-size: .79rem;
+  color: var(--text3); background: transparent;
+  border: none; cursor: pointer; transition: all .15s;
+}
+.tb.active {
+  background: #fff; color: var(--p);
+  box-shadow: 0 1px 5px rgba(0,0,0,.1);
+}
+.tb:hover:not(.active) { color: var(--text2); background: rgba(255,255,255,.5); }
+
+/* ═══════════ SEARCH BAR ═══════════ */
+.sbar { display: flex; gap: 9px; margin-bottom: 18px; flex-wrap: wrap; }
+.sbar input {
+  flex: 1; min-width: 190px;
+  padding: 9px 14px;
+  border: 1.5px solid var(--grayb);
+  border-radius: var(--rads);
+  font-size: .86rem; background: #fff;
+  transition: .18s;
+}
+.sbar input:focus { border-color: var(--p); box-shadow: 0 0 0 3px rgba(79,70,229,.08); }
+.sbar select {
+  padding: 9px 12px;
+  border: 1.5px solid var(--grayb);
+  border-radius: var(--rads);
+  font-size: .83rem; color: var(--text2); background: #fff;
+}
+
+/* ═══════════ DETAIL VIEW ═══════════ */
+.dgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.di {
+  background: #f9fafb; border-radius: 10px;
+  padding: 10px 13px; border: 1px solid var(--grayb);
+}
+.di .dl {
+  font-size: .67rem; font-weight: 700;
+  color: var(--text3); text-transform: uppercase; letter-spacing: .7px;
+}
+.di .dv {
+  font-size: .9rem; font-weight: 700;
+  color: var(--text); margin-top: 3px;
+}
+
+/* ═══════════ LAYOUT HELPERS ═══════════ */
+hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
+.wnum{font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--pd);font-size:.85rem;background:var(--pl);padding:2px 9px;border-radius:6px;border:1px solid #bfdbfe;display:inline-block;}
+.uid-tag {
+  font-family: 'Courier New', monospace;
+  background: #eef2ff; color: #3730a3;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: 1.5px; border: 1px solid #c7d2fe;
+}
+.photo-thumb {
+  width: 62px; height: 62px; object-fit: cover;
+  border-radius: var(--rads);
+  border: 2px solid var(--grayb);
+  cursor: pointer; transition: .18s;
+}
+.photo-thumb:hover { transform: scale(1.08); box-shadow: var(--shadow-md); }
+.ov-row td { background: #fff5f5 !important; }
+.sh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 9px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.expiry-alert {
+  background: var(--rl); border-radius: 10px;
+  padding: 11px 15px; margin-bottom: 9px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap;
+  border-left: 3px solid var(--r);
+}
+.expiry-alert.warn { background: var(--yl); border-left-color: var(--o); }
+.print-only { display: none; }
+
+/* ═══════════ TOAST ═══════════ */
+#toast {
+  position: fixed; bottom: 22px; right: 22px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+}
+.tm {
+  background: #111827; color: #fff;
+  padding: 11px 17px; border-radius: 11px;
+  font-size: .83rem; font-weight: 700;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  animation: tIn .25s cubic-bezier(.34,1.56,.64,1);
+  max-width: 320px; border: 1px solid rgba(255,255,255,.08);
+}
+.tm.success { background: var(--g); }
+.tm.error   { background: var(--r); }
+.tm.warn    { background: var(--o); }
+@keyframes tIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ═══════════ PRINT ═══════════ */
+@media print {
+  #sidebar, #topbar, #menuToggle, .btn, .tab-row, .sbar, .md-foot { display: none !important; }
+  #content { margin-left: 0 !important; padding: 0 !important; }
+  .print-only { display: block !important; }
+  body { background: #fff; }
+}
+
+/* ═══════════ MOBILE ═══════════ */
+#menuToggle {
+  display: none; position: fixed;
+  top: 12px; left: 12px; z-index: 200;
+  background: var(--p); color: #fff;
+  border: none; border-radius: 10px;
+  width: 40px; height: 40px;
+  font-size: 1.1rem; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79,70,229,.4);
+}
+#sideOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 99; }
+
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #sideOverlay.show { display: block; }
+  #content { margin-left: 0; padding: 16px; padding-top: 60px; max-width: 100vw; }
+  #menuToggle { display: flex; align-items: center; justify-content: center; }
+  .g2, .g3, .dgrid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .tab-row { width: 100%; }
+}
+
+/* ═══════════ PW TOGGLE ═══════════ */
+.pw-wrap { position: relative; }
+.pw-eye {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; color: var(--text3);
+  font-size: .95rem; padding: 4px;
+}
+.pw-eye:hover { color: var(--p); }
+
+/* ═══════════ SECTION DIVIDERS ═══════════ */
+.form-section { background: #f9fafb; border-radius: 11px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--grayb); }
+.form-section-title { font-size: .72rem; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 11px; }
+
+/* ═══════════ EMPTY STATE IMPROVEMENT ═══════════ */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--text3);
+}
+.empty-state .empty-icon { font-size: 2.4rem; margin-bottom: 12px; opacity: .5; }
+.empty-state p { font-size: .88rem; }
+
+/* ═══════════ TOPBAR PILL DATE ═══════════ */
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ═══════════ FORM IMPROVEMENTS ═══════════ */
+#page-newWork .card { max-width: 860px; }
+#page-newWork .card-title { font-size: 1.1rem; font-weight: 800; }
+
+/* ═══════════ TABLE IMPROVEMENTS ═══════════ */
+.wt tbody tr { transition: background .12s; }
+
+/* ═══════════ BALANCE ROWS ═══════════ */
+.balance-bank-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 16px; border-radius: 10px;
+  background: #f9fafb; border: 1px solid var(--grayb);
+  margin-bottom: 9px; transition: .15s;
+}
+.balance-bank-row:hover { background: #f3f4f6; transform: translateX(3px); }
+.balance-bank-name { font-weight: 700; font-size: .9rem; }
+.balance-bank-amount { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.05rem; }
+
+/* ═══════════ SCROLLBAR GLOBAL ═══════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ═══════════ SELECTION ═══════════ */
+::selection { background: #c7d2fe; color: #1e1b4b; }
+
+/* ═══════════ LINK FONT ═══════════ */
+body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
 </style>
 </head>
 <body>
@@ -198,8 +640,9 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
 <!-- SPLASH -->
 <div id="splash">
   <div class="logo">
-    <h1>🏢 OfficeOS</h1>
-    <p>Work Management System</p>
+    <div style="font-size:3.5rem;margin-bottom:8px;">🏢</div>
+    <h1 style="font-size:2.6rem;letter-spacing:-1px;">OfficeOS</h1>
+    <p style="opacity:.65;letter-spacing:.5px;font-size:.95rem;">Work Management System</p>
     <div class="spinner"></div>
   </div>
 </div>
@@ -232,7 +675,15 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
 <!-- MAIN APP -->
 <div id="mainApp">
   <div id="sidebar">
-    <div class="brand"><span>🏢</span> OfficeOS</div>
+    <div class="sidebar-header" onclick="showPage('dashboard')" style="cursor:pointer;">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🏢</div>
+        <div>
+          <div class="logo-text">OfficeOS</div>
+          <div class="logo-sub">Work Manager</div>
+        </div>
+      </div>
+    </div>
     <nav>
       <div class="ns">Main</div>
       <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">🏠</span> Dashboard</a>
@@ -246,6 +697,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="ns">Finance</div>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
+      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues</a>
       <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
@@ -276,27 +728,48 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
 
   <div id="content">
     <div id="topbar">
-      <h2 id="pageTitle">Dashboard</h2>
-      <span class="tdate" id="topbarDate"></span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <h2 id="pageTitle">Dashboard</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="tdate" id="topbarDate"></span>
+        <span class="tdate" id="topbarClock" style="font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--p);min-width:70px;text-align:center;"></span>
+      </div>
     </div>
 
     <!-- DASHBOARD -->
     <div class="page" id="page-dashboard">
+      <div id="dashWelcome" style="margin-bottom:18px;padding:20px 24px;background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 100%);border-radius:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:'Sora',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.3px;" id="dashGreeting">Good morning 👋</div>
+          <div style="font-size:.82rem;opacity:.65;margin-top:3px;" id="dashSubtitle">Here's what's happening today</div>
+        </div>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showPage('newWork')">＋ New Work</button>
+      </div>
       <div class="stats-row" id="dashStats"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+        <button class="btn btn-primary" onclick="showPage('newWork')">➕ New Work</button>
+        <button class="btn btn-outline" onclick="showPage('allWork')">📋 All Works</button>
+        <button class="btn btn-outline" onclick="showPage('dues')">💳 Check Dues</button>
+        <button class="btn btn-outline" onclick="showPage('dailySummary')">📊 Today Summary</button>
+        <button class="btn btn-outline" onclick="showPage('cashTracker')">💵 Cash Tracker</button>
+      </div>
       <div class="g2">
         <div class="card"><div class="card-title">📋 Recent Works</div><div id="recentList"></div></div>
         <div class="card"><div class="card-title">⚠️ Overdue (&gt;1 week)</div><div id="overdueSnippet"></div></div>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title">🔔 Expiring Soon (30 days)</div><div id="expirySnippet"></div></div>
-        <div class="card"><div class="card-title">💸 Recent Udhari</div><div id="udhariSnippet"></div></div>
+        <div class="card"><div class="card-title">💸 Udhari Pending</div><div id="udhariSnippet"></div></div>
       </div>
+      <div class="card" id="pinboardDashCard"><div class="card-title">📌 Pinboard</div><div id="pinsDash"></div></div>
     </div>
 
     <!-- NEW WORK -->
     <div class="page" id="page-newWork">
       <div class="card">
         <div class="card-title">➕ Add New Work</div>
+        <div style="background:#eff6ff;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:.83rem;color:#1d4ed8;font-weight:700;">📋 Fill in details below — fields marked * are required</div>
         <div class="g2">
           <div class="field"><label>Owner Name *</label><input type="text" id="w_name" placeholder="Vehicle owner's name"/></div>
           <div class="field"><label>Client Name (if different from owner)</label><input type="text" id="w_clientName" placeholder="Person who came to office (optional)"/></div>
@@ -489,10 +962,36 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
           <button class="tb" onclick="filterLedger('Canara',this)">Canara</button>
           <button class="tb" onclick="filterLedger('Cash',this)">Cash</button>
           <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
-          <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
         </div>
+        <div style="margin-bottom:10px;"><input type="text" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
         <div class="ox"><table class="wt"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount (₹)</th><th>Linked Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- DUES PAGE -->
+    <div class="page" id="page-dues">
+      <div class="card">
+        <div class="sh">
+          <div class="card-title" style="margin:0;">💳 Pending Dues</div>
+          <div id="duesSummaryBadge"></div>
+        </div>
+        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">All open works where client has not paid the full amount.</p>
+        <div class="stats-row" id="duesStats" style="margin-bottom:14px;"></div>
+        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Owner</th><th>Vehicle</th><th>Type</th><th>Work Value</th><th>Paid</th><th>Due</th><th>Date</th><th>Action</th></tr></thead><tbody id="duesBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- DUES PAGE -->
+    <div class="page" id="page-dues">
+      <div class="card">
+        <div class="sh">
+          <div class="card-title" style="margin:0;">💳 Pending Dues</div>
+          <div id="duesSummaryBadge"></div>
+        </div>
+        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">All works where client has not paid the full amount.</p>
+        <div class="stats-row" id="duesStats" style="margin-bottom:14px;"></div>
+        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Owner</th><th>Vehicle</th><th>Type</th><th>Work Value</th><th>Paid</th><th>Due</th><th>Date</th><th>Action</th></tr></thead><tbody id="duesBody"></tbody></table></div>
       </div>
     </div>
 
@@ -501,6 +1000,7 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="card">
         <div class="sh"><div class="card-title" style="margin:0;">💰 Combined Balance Overview</div>
           <button class="btn btn-sm btn-outline" onclick="renderCombinedBalance()">🔄 Refresh</button>
+          <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print / Export PDF</button>
         </div>
         <div id="combinedBalBody"><div class="nd">Loading…</div></div>
       </div>
@@ -594,9 +1094,12 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
       <div class="card">
         <div class="sh">
           <div class="card-title" style="margin:0;">📊 Daily Summary & Report</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-sm btn-gray" onclick="shiftSummaryDate(-1)">← Prev</button>
             <input type="date" id="summaryDate" onchange="renderSummary()" style="padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"/>
-            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print Report</button>
+            <button class="btn btn-sm btn-gray" onclick="shiftSummaryDate(1)">Next →</button>
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('summaryDate').value=new Date().toISOString().split('T')[0];renderSummary()">Today</button>
+            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
           </div>
         </div>
         <div id="summaryBody"></div>
@@ -731,8 +1234,9 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
     <button class="md-close" onclick="closeModal('editWorkModal')">×</button>
     <div class="md-title">✏️ Edit Work</div>
     <div class="g2">
-      <div class="field"><label>Client Name *</label><input type="text" id="ew_name"/></div>
-      <div class="field"><label>Vehicle Number *</label><input type="text" id="ew_vehicle" style="text-transform:uppercase;"/></div>
+      <div class="field"><label>Owner Name *</label><input type="text" id="ew_name" placeholder="Vehicle owner name"/></div>
+      <div class="field"><label>Client Name (if different)</label><input type="text" id="ew_clientName" placeholder="Person at office (optional)"/></div>
+      <div class="field"><label>Vehicle Number(s) *</label><input type="text" id="ew_vehicle" style="text-transform:uppercase;" placeholder="e.g. UP32AB1234"/></div>
       <div class="field"><label>Phone *</label><input type="tel" id="ew_phone" maxlength="10"/></div>
       <div class="field"><label>Work Type *</label>
         <select id="ew_type" onchange="editWorkTypeChange()">
@@ -751,21 +1255,10 @@ hr.dv{border:none;border-top:1px solid var(--grayb);margin:14px 0;}
         </select>
       </div>
       <div class="field" id="ew_othersField" style="display:none;"><label>Specify</label><input type="text" id="ew_othersSpec"/></div>
-      <div class="field"><label>Payment Mode *</label>
-        <select id="ew_payMode" onchange="editPayModeChange()">
-          <option value="Cash">💵 Cash</option>
-          <option value="UPI">📱 UPI</option>
-          <option value="Unpaid">⏳ Unpaid</option>
-          <option value="ExcessPaid">➕ Excessive Paid</option>
-        </select>
-      </div>
-      <div class="field" id="ew_bankField" style="display:none;"><label>UPI Bank</label>
-        <select id="ew_bank">
-          <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-          <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
-        </select>
-      </div>
-      <div class="field"><label>Amount (₹)</label><input type="number" id="ew_amount" min="0"/></div>
+      <div class="field" id="ew_transferFromField" style="display:none;"><label>Transfer From</label><input type="text" id="ew_transferFrom"/></div>
+      <div class="field" id="ew_transferToField" style="display:none;"><label>Transfer To</label><input type="text" id="ew_transferTo"/></div>
+      <div class="field"><label>Work Value (₹)</label><input type="number" id="ew_workValue" min="0"/></div>
+      <div class="field"><label>Amount Received (₹)</label><input type="number" id="ew_amount" min="0"/></div>
     </div>
     <div class="field"><label>Notes</label><textarea id="ew_notes"></textarea></div>
     <div class="md-foot">
@@ -1327,7 +1820,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Pending Dues',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend'};
 
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1337,7 +1830,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page==='newWork') initNewWorkDate();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -1360,15 +1853,26 @@ function renderDashboard() {
   const cashOut=cashLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const cashBalance=cashOpening+cashIn-cashOut;
   const pendingDue=allWorks.filter(w=>w.remainingBalance>0&&w.status!=='done').reduce((s,w)=>s+(w.remainingBalance||0),0);
+  const todayStr=new Date().toLocaleDateString('en-IN');
+  const todayWorks=allWorks.filter(w=>w.date===todayStr);
+  const todayCollected=todayWorks.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
+  const todayCount=todayWorks.length;
   document.getElementById('dashStats').innerHTML=`
     <div class="sc"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${open}</div></div>
     <div class="sc red"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
     <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${udhari}</div></div>
-    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">💵 Cash in Hand</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
+    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">Cash in Hand</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
     ${pendingDue>0?`<div class="sc red"><div class="sl">Pending Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
+    <div class="sc"><div class="sl">Today's Works</div><div class="sv">${todayCount}</div></div>
+    <div class="sc green"><div class="sl">Today's Collection</div><div class="sv">${inr(todayCollected)}</div></div>
   `;
+  // Greeting
+  const hr = new Date().getHours();
+  const greet = hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  const greetEl = document.getElementById('dashGreeting');
+  if(greetEl) greetEl.textContent = (hr<12?'Good morning ☀️':hr<17?'Good afternoon 👋':'Good evening 🌙') + ', ' + (currentUser?.name||'').split(' ')[0];
   // Recent works
   // Pinboard snippet on dashboard
   loadPinsDashboard();
@@ -1383,7 +1887,7 @@ function renderDashboard() {
       <div><div style="font-weight:700;font-size:.88rem;">${esc(w.ownerName||w.clientName)}</div>
       <div style="font-size:.75rem;color:var(--gray);">${esc(w.vehicle)} · ${wtLabel(w.workType)}</div></div>
       <span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span>
-    </div>`).join('')||'<div class="nd">No works yet</div>';
+    </div>`).join('')||'<div style="text-align:center;padding:24px;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:8px;">📭</div><div style="font-weight:700;">No works yet</div></div>';
   // Overdue snippet
   const ovList=allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000).slice(0,4);
   document.getElementById('overdueSnippet').innerHTML=ovList.length===0?'<div class="nd">🎉 No overdue works!</div>':ovList.map(w=>`
@@ -1420,6 +1924,32 @@ function workTypeChange(){document.getElementById('othersField').style.display=d
 
 // Set date default when new work page loads — called from showPage
 function initNewWorkDate(){const el=document.getElementById('w_date');if(el)el.value=new Date().toISOString().split('T')[0];}
+// Live clock in topbar
+function startClock(){
+  const el=document.getElementById('topbarClock');
+  if(!el) return;
+  const tick=()=>{
+    const n=new Date();
+    const h=String(n.getHours()).padStart(2,'0');
+    const m=String(n.getMinutes()).padStart(2,'0');
+    const s=String(n.getSeconds()).padStart(2,'0');
+    el.textContent=h+':'+m+':'+s;
+  };
+  tick(); setInterval(tick,1000);
+}
+// Live clock in topbar
+function startClock(){
+  const el=document.getElementById('topbarClock');
+  if(!el) return;
+  const tick=()=>{
+    const n=new Date();
+    const h=String(n.getHours()).padStart(2,'0');
+    const m=String(n.getMinutes()).padStart(2,'0');
+    const s=String(n.getSeconds()).padStart(2,'0');
+    el.textContent=h+':'+m+':'+s;
+  };
+  tick(); setInterval(tick,1000);
+}
 
 // ── New Work helpers ──────────────────────────────────────────
 function addVehicleRow() {
@@ -1593,7 +2123,7 @@ async function submitWork() {
     document.getElementById('remainingBal').style.display='none';
     ['othersField','transferFromField','transferToField'].forEach(id=>document.getElementById(id).style.display='none');
     await loadAllData();
-    renderDashboard();
+    renderDashboard(); startClock();
     showWhatsAppPopup(ownerName, phone, clientId, type);
   } catch(e){toast('Error: '+e.message,'error');}
 }
@@ -1640,7 +2170,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+inr(w.totalPaid||w.amount||0)+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+inr(w.remainingBalance)+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="'+w.receiptPhoto+'" target="_blank" style="color:#2563eb;text-decoration:underline;">📄 Download / View</a></span></div>':'')
     +'<div class="row"><span class="label">Payment</span><span class="value">'+w.payMode+'</span></div>'
     +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':'In Progress')+'</span></div>'
-    +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+w.expiryDate+'</span></div>':'')
+    +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+fmtDate(w.expiryDate)+'</span></div>':'')
     +'<div class="footer">Thank you! Keep this Unique ID to track your work.</div>'
     +'<br/><button onclick="window.print()" style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">Print</button>'
     +'</body></html>');
@@ -1685,7 +2215,7 @@ function renderWorkTable(){
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ${inr(w.remainingBalance)}</span>`:''}</td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
-    <td style="font-size:.77rem;color:var(--gray);">${esc(w.date)}<br/>${esc(w.time)}</td>
+    <td style="font-size:.77rem;color:var(--gray);">${fmtDate(w.date)}<br/><span style="font-size:.7rem;">${esc(w.time||"")}</span></td>
     <td>
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
@@ -1760,7 +2290,7 @@ function renderOverdue(){
   if(!list.length){tbody.innerHTML='<tr><td colspan="9" class="nd">🎉 No overdue works!</td></tr>';return;}
   tbody.innerHTML=list.map(w=>`<tr class="ov-row">
     <td><span class="wnum">#${w.workNum}</span></td><td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
-    <td><strong>${esc(w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
+    <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
     <td style="font-weight:700;">${esc(w.vehicle)}</td><td>${wtBadge(w)}</td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
     <td style="font-size:.77rem;color:var(--gray);">${esc(w.date)}</td>
@@ -1778,7 +2308,7 @@ function renderUdhari(){
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="nd">No unpaid completed works</td></tr>';return;}
   tbody.innerHTML=list.map(w=>`<tr>
     <td><span class="wnum">#${w.workNum}</span></td><td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
-    <td><strong>${esc(w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
+    <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
     <td style="font-weight:700;">${esc(w.vehicle)}</td><td>${wtBadge(w)}</td>
     <td style="font-size:.8rem;">${esc(w.completedDate||'—')}</td>
     <td style="font-size:.8rem;">${esc(w.completedBy||'—')}</td>
@@ -1854,11 +2384,11 @@ function renderExpiry(){
     const d=new Date(w.expiryDate); const days=Math.ceil((d-today)/86400000);
     return `<div class="expiry-alert ${days<=7?'':'warn'}" onclick="viewWork('${w._key}')">
       <div>
-        <div style="font-weight:800;font-size:.92rem;">${esc(w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicle)}</span></div>
+        <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicle)}</span></div>
         <div style="font-size:.78rem;margin-top:2px;">${wtLabel(w.workType)} · Phone: ${esc(w.phone)}</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-weight:800;font-size:.95rem;">Expires: ${esc(w.expiryDate)}</div>
+        <div style="font-weight:800;font-size:.95rem;">Expires: ${fmtDate(w.expiryDate)}</div>
         <span class="badge ${days<=7?'br':'by'}" style="margin-top:4px;">${days} day${days===1?'':'s'} left</span>
       </div>
     </div>`;}).join('');
@@ -1894,10 +2424,12 @@ function searchClientHistory(){
   </div>
   <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
     ${list.map(w=>`<tr>
-      <td><span class="wnum">#${w.workNum}</span></td><td><span class="uid-tag">${esc(w.uid)}</span></td>
-      <td>${wtBadge(w)}</td><td>${payBadge(w)}</td>
-      <td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅ Done':'🔄 Open'}</span></td>
-      <td style="font-size:.8rem;">${esc(w.date)}</td>
+      <td><span class="wnum">#${w.workNum}</span></td>
+      <td>${wtBadge(w)}</td>
+      <td style="font-size:.8rem;">${esc(w.vehicles||w.vehicle)}</td>
+      <td>${payBadge(w)}</td>
+      <td><span class="badge ${w.status==='done'?'bg':(w.status==='partial'?'by':'bb')}">${w.status==='done'?'✅ Done':(w.status==='partial'?'⏳ Partial':'🔄 Open')}</span></td>
+      <td style="font-size:.8rem;">${fmtDate(w.date)}</td>
       <td><button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button></td>
     </tr>`).join('')}
   </tbody></table></div>`;
@@ -1921,7 +2453,7 @@ function viewWork(key){
     <div class="di"><div class="dl">Work #</div><div class="dv"><strong>#${w.workNum}</strong></div></div>
     <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag">${esc(w.clientId||'—')}</span></div></div>
     <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
-    ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client Name</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
+    ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client at Office</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
     <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
     <div class="di"><div class="dl">Vehicle(s)</div><div class="dv">${esc(w.vehicles||w.vehicle)}</div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
@@ -1932,7 +2464,8 @@ function viewWork(key){
     ${payInfo}
     <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
     ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
-    <div class="di"><div class="dl">Date</div><div class="dv">${esc(w.date)} ${esc(w.time)}</div></div>
+    <div class="di"><div class="dl">Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
+
     <div class="di"><div class="dl">Taken By</div><div class="dv">${esc(w.takenBy)}</div></div>
     ${w.status!=='open'?`<div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div><div class="di"><div class="dl">Completed Date</div><div class="dv">${esc(w.completedDate)}</div></div>`:''}
     ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">${inr(w.receiptAmount)} from ${esc(w.closingBank)}</div></div>`:''}
@@ -1947,48 +2480,57 @@ function viewWork(key){
 function openEditWork(key){
   const w=allWorks.find(x=>x._key===key); if(!w) return;
   editingWorkKey=key;
-  document.getElementById('ew_name').value=w.clientName||'';
-  document.getElementById('ew_vehicle').value=w.vehicle||'';
+  document.getElementById('ew_name').value=w.ownerName||w.clientName||'';
+  document.getElementById('ew_clientName').value=w.clientName&&w.clientName!==w.ownerName?w.clientName:'';
+  document.getElementById('ew_vehicle').value=w.vehicles||w.vehicle||'';
   document.getElementById('ew_phone').value=w.phone||'';
   document.getElementById('ew_type').value=w.workType||'';
   document.getElementById('ew_othersSpec').value=w.othersSpecify||'';
   document.getElementById('ew_othersField').style.display=w.workType==='Others'?'block':'none';
-  document.getElementById('ew_payMode').value=w.payMode||'';
-  document.getElementById('ew_bank').value=w.bank||'';
-  document.getElementById('ew_bankField').style.display=w.payMode==='UPI'?'block':'none';
-  document.getElementById('ew_amount').value=w.amount||'';
+  document.getElementById('ew_transferFromField').style.display=w.workType==='Transfer'?'block':'none';
+  document.getElementById('ew_transferToField').style.display=w.workType==='Transfer'?'block':'none';
+  document.getElementById('ew_transferFrom').value=w.transferFrom||'';
+  document.getElementById('ew_transferTo').value=w.transferTo||'';
+  document.getElementById('ew_workValue').value=w.workValue||'';
+  document.getElementById('ew_amount').value=w.totalPaid||w.amount||'';
   document.getElementById('ew_notes').value=w.notes||'';
   closeModal('workDetailModal');
   openModal('editWorkModal');
 }
-function editWorkTypeChange(){document.getElementById('ew_othersField').style.display=document.getElementById('ew_type').value==='Others'?'block':'none';}
-function editPayModeChange(){document.getElementById('ew_bankField').style.display=document.getElementById('ew_payMode').value==='UPI'?'block':'none';}
+function editWorkTypeChange(){
+  const t=document.getElementById('ew_type').value;
+  document.getElementById('ew_othersField').style.display=t==='Others'?'block':'none';
+  document.getElementById('ew_transferFromField').style.display=t==='Transfer'?'block':'none';
+  document.getElementById('ew_transferToField').style.display=t==='Transfer'?'block':'none';
+}
+function editPayModeChange(){}
 
 async function saveEditWork(){
   if(!editingWorkKey) return;
   const w=allWorks.find(x=>x._key===editingWorkKey); if(!w) return;
-  const name=document.getElementById('ew_name').value.trim();
-  const vehicle=document.getElementById('ew_vehicle').value.trim().toUpperCase();
+  const ownerName=document.getElementById('ew_name').value.trim();
+  const clientName=document.getElementById('ew_clientName').value.trim()||ownerName;
+  const vehicles=document.getElementById('ew_vehicle').value.trim().toUpperCase();
   const phone=document.getElementById('ew_phone').value.trim();
   const type=document.getElementById('ew_type').value;
-  const payMode=document.getElementById('ew_payMode').value;
-  const bank=document.getElementById('ew_bank').value;
-  const amount=document.getElementById('ew_amount').value;
+  const workValue=parseFloat(document.getElementById('ew_workValue').value)||0;
+  const amount=parseFloat(document.getElementById('ew_amount').value)||0;
   const notes=document.getElementById('ew_notes').value.trim();
   const othersSpec=document.getElementById('ew_othersSpec').value.trim();
-  if(!name||!vehicle||!phone||!type||!payMode){toast('Fill all required fields','error');return;}
+  const transferFrom=document.getElementById('ew_transferFrom').value.trim();
+  const transferTo=document.getElementById('ew_transferTo').value.trim();
+  if(!ownerName||!vehicles||!phone||!type){toast('Fill all required fields','error');return;}
   if(!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
+  const remaining=workValue>0?Math.max(0,workValue-amount):0;
   try {
-    const oldWork = allWorks.find(x=>x._key===editingWorkKey);
-    await dbUpd('works/'+editingWorkKey,{clientName:name,vehicle,phone,workType:type,othersSpecify:type==='Others'?othersSpec:'',payMode,bank:payMode==='UPI'?bank:'',amount:amount?Number(amount):0,notes});
-    // If payment mode or amount changed, add a correction ledger note
-    if(oldWork && (oldWork.payMode !== payMode || oldWork.amount !== Number(amount))) {
-      const now2 = new Date();
-      const ledgerBank = payMode==='Cash'?'Cash':(payMode==='UPI'?bank:null);
-      if(ledgerBank && payMode !== 'Unpaid' && amount && Number(amount)>0) {
-        await dbPush('ledger',{bank:ledgerBank,type:'credit',amount:Number(amount),date:now2.toLocaleDateString('en-IN'),timestamp:now2.getTime(),workRef:`#${oldWork.workNum} — ${name} / ${vehicle}`,description:`Payment corrected (edit): ${wtLabel(type)}`,by:currentUser.name,autoEntry:true});
-      }
-    }
+    await dbUpd('works/'+editingWorkKey,{
+      ownerName, clientName, vehicle:vehicles.split(',')[0].trim(),
+      vehicles, phone, workType:type,
+      othersSpecify:type==='Others'?othersSpec:'',
+      transferFrom:type==='Transfer'?transferFrom:'',
+      transferTo:type==='Transfer'?transferTo:'',
+      workValue, totalPaid:amount, amount, remainingBalance:remaining, notes
+    });
     toast('Work updated! ✅','success');
     closeModal('editWorkModal');
     await loadAllData();
@@ -2073,6 +2615,20 @@ async function completeWork() {
     }
     toast(isPartial?'⏳ Partial completion saved!':'✅ Work marked complete!','success');
     closeModal('closeWorkModal');
+    // WhatsApp completion message
+    if(w.phone) {
+      const compMsg = isPartial ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS | Client ID: *${w.clientId||'—'}*\n- Office Team` : `Hello ${w.ownerName||w.clientName}! ✅ Work #${w.workNum} (${wtLabel(w.workType)}) is DONE!${w.expiryDate?'\n📅 Expiry: '+w.expiryDate:''}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS | Client ID: *${w.clientId||'—'}*\n- Office Team`;
+      const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
+      setTimeout(()=>{if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');},500);
+    }
+    // WhatsApp completion message
+    if(w.phone) {
+      const compMsg = isPartial
+        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack your work: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`
+        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed successfully.\n${w.expiryDate?'\n📅 Document Expiry: '+w.expiryDate:''}\n\nTrack your work: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`;
+      const waUrl = 'https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
+      setTimeout(()=>{ if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank'); }, 500);
+    }
     document.getElementById('miscAmount').value='';
     document.getElementById('miscReason').value='';
     document.getElementById('partialDesc').value='';
@@ -2151,7 +2707,9 @@ function renderLedger(){
     entries=allLedger.filter(l=>l.employeeName);
   } else {
     entries=allLedger.filter(l=>l.bank===currentLedgerBank);
+  if(ledgerSearchTerm) entries=entries.filter(e=>(e.description||'').toLowerCase().includes(ledgerSearchTerm)||(e.date||'').includes(ledgerSearchTerm)||(e.workRef||'').toLowerCase().includes(ledgerSearchTerm));
   }
+  if(ledgerSearchTerm) entries=entries.filter(e=>(e.description||'').toLowerCase().includes(ledgerSearchTerm)||(e.date||'').includes(ledgerSearchTerm)||(e.workRef||'').toLowerCase().includes(ledgerSearchTerm));
   const credits=entries.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
   const debits=entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
   const opening=entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
@@ -2164,7 +2722,7 @@ function renderLedger(){
   const tbody=document.getElementById('ledgerBody');
   if(!entries.length){tbody.innerHTML=`<tr><td colspan="6" class="nd">No entries for ${currentLedgerBank}</td></tr>`;return;}
   tbody.innerHTML=entries.map(e=>`<tr>
-    <td style="font-size:.8rem;">${esc(e.date)}${e.autoEntry?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
+    <td style="font-size:.78rem;">${fmtDate(e.date)}${e.autoEntry?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
     <td><span class="badge ${e.type==='credit'?'bg':e.type==='debit'?'br':'bgr'}">${e.type==='opening'?'Opening':e.type==='credit'?'↑ Credit':'↓ Debit'}</span></td>
     <td style="font-weight:800;color:${e.type==='credit'?'var(--g)':e.type==='debit'?'var(--r)':'#374151'};">${inr(e.amount||0)}</td>
     <td style="font-size:.78rem;color:var(--gray);">${esc(e.workRef||'—')}</td>
@@ -2192,6 +2750,22 @@ async function saveLedgerEntry(){
 }
 
 
+// Better date display
+function fmtDate(d) {
+  if(!d) return '—';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Handle DD/MM/YYYY format (Indian locale)
+  const parts = String(d).split('/');
+  if(parts.length===3) {
+    const day=parts[0], mon=parseInt(parts[1])-1, yr=parts[2];
+    return `${day} ${months[mon]} ${yr}`;
+  }
+  // Handle date object or ISO
+  const dt = new Date(d);
+  if(!isNaN(dt)) return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+  return d;
+}
+
 // Indian number formatting (1,35,000 style)
 function inr(n){
   if(n===undefined||n===null||isNaN(n)) return '₹0';
@@ -2203,6 +2777,59 @@ function inr(n){
     while(rem.length>2){result=rem.slice(-2)+','+result;rem=rem.slice(0,-2);}
     if(rem.length) result=rem+','+result; }
   return (neg?'-':'')+'₹'+result;
+}
+
+
+// ============================================================
+// DUES PAGE
+// ============================================================
+function renderDues() {
+  const dueWorks = allWorks.filter(w=>w.remainingBalance>0||
+    (w.workValue>0&&(w.totalPaid||w.amount||0)<w.workValue));
+  const totalDue = dueWorks.reduce((s,w)=>s+(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0))),0);
+  const totalWV = dueWorks.reduce((s,w)=>s+(w.workValue||0),0);
+  const totalPd = dueWorks.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
+  document.getElementById('duesStats').innerHTML=`
+    <div class="sc red"><div class="sl">Total Due</div><div class="sv">${inr(totalDue)}</div></div>
+    <div class="sc"><div class="sl">Works Pending</div><div class="sv">${dueWorks.length}</div></div>
+    <div class="sc green"><div class="sl">Total Collected</div><div class="sv">${inr(totalPd)}</div></div>
+    <div class="sc"><div class="sl">Total Work Value</div><div class="sv">${inr(totalWV)}</div></div>
+  `;
+  const tbody = document.getElementById('duesBody');
+  if(!dueWorks.length){tbody.innerHTML='<tr><td colspan="9" class="nd" style="color:var(--g);">🎉 No pending dues! All clients have paid in full.</td></tr>';return;}
+  tbody.innerHTML = dueWorks.map(w=>{
+    const due = w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0));
+    return `<tr>
+      <td><span class="wnum">#${w.workNum}</span></td>
+      <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.72rem;color:var(--gray);">${esc(w.phone)}</span></td>
+      <td style="font-size:.8rem;">${esc(w.vehicles||w.vehicle)}</td>
+      <td>${wtBadge(w)}</td>
+      <td style="font-weight:700;">${inr(w.workValue||0)}</td>
+      <td style="color:var(--g);font-weight:700;">${inr(w.totalPaid||w.amount||0)}</td>
+      <td style="color:var(--r);font-weight:800;">${inr(due)}</td>
+      <td style="font-size:.78rem;">${fmtDate(w.date)}</td>
+      <td>
+        <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp reminder">📱</button>
+        <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// BANK LEDGER SEARCH
+// ============================================================
+let ledgerSearchTerm = '';
+function ledgerSearch(val) {
+  ledgerSearchTerm = val.toLowerCase();
+  renderLedger();
+}
+
+// ============================================================
+// EXPORT COMBINED BALANCE PDF (print)
+// ============================================================
+function exportCombinedPDF() {
+  window.print();
 }
 
 // ============================================================
@@ -2663,7 +3290,7 @@ async function renderOspHistory() {
   if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
   el.innerHTML=`<table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Vehicle</th><th>Reason</th><th>Amount</th><th>By</th></tr></thead><tbody>
     ${allOspSpend.map(s=>`<tr>
-      <td style="font-size:.78rem;">${esc(s.date)}</td>
+      <td style="font-size:.78rem;">${fmtDate(s.date)}</td>
       <td style="font-size:.78rem;">#${s.workNum} — ${esc(s.ownerName)}</td>
       <td style="font-size:.78rem;">${esc(s.vehicle)}</td>
       <td style="font-size:.82rem;">${esc(s.reason)}</td>
@@ -2676,6 +3303,20 @@ async function renderOspHistory() {
 // ============================================================
 // DAILY SUMMARY
 // ============================================================
+function shiftSummaryDate(delta){
+  const el=document.getElementById('summaryDate');
+  const d=new Date(el.value||new Date());
+  d.setDate(d.getDate()+delta);
+  el.value=d.toISOString().split('T')[0];
+  renderSummary();
+}
+function shiftSummaryDate(delta){
+  const el=document.getElementById('summaryDate');
+  const d=new Date(el.value||new Date().toISOString().split('T')[0]);
+  d.setDate(d.getDate()+delta);
+  el.value=d.toISOString().split('T')[0];
+  renderSummary();
+}
 function renderSummary(){
   const dateVal=document.getElementById('summaryDate').value;
   if(!dateVal){document.getElementById('summaryBody').innerHTML='<div class="nd">Select a date</div>';return;}
@@ -2695,7 +3336,8 @@ function renderSummary(){
       <div class="sc"><div class="sl">Open</div><div class="sv">${open.length}</div></div>
       <div class="sc yellow"><div class="sl">Collected (₹)</div><div class="sv">${inr(totalCollected)}</div></div>
       <div class="sc red"><div class="sl">Spent (₹)</div><div class="sv">${inr(totalSpent)}</div></div>
-      <div class="sc green"><div class="sl">Net (₹)</div><div class="sv">${inr(totalCollected-totalSpent)}</div></div>
+      <div class="sc green"><div class="sl">Net (₹)</div><div class="sv">${inr(totalCollected-totalSpent-totalMisc)}</div></div>
+      <div class="sc red"><div class="sl">Misc Exp</div><div class="sv">${inr(totalMisc)}</div></div>
     </div>
     ${works.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Works on ${selDate}</div>
@@ -2895,7 +3537,7 @@ async function clientTrack(){
     html+='<span style="font-weight:800;font-size:.8rem;color:'+sc+';">'+st+'</span></div>';
     html+='<div style="font-size:.78rem;color:var(--gray);display:flex;gap:12px;flex-wrap:wrap;">';
     html+='<span>'+esc(w.vehicle)+'</span><span>'+esc(w.date)+'</span><span>Work #'+w.workNum+'</span>';
-    if(w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+esc(w.expiryDate)+'</span>';
+    if(w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
     html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div></div>';
   });
   document.getElementById('clientStatusBody').innerHTML=html;
@@ -2910,7 +3552,7 @@ function exportWorksExcel(){
   try{localStorage.setItem('officeOS_lastBackup',Date.now());}catch(e){}
 
   if(typeof XLSX==='undefined'){toast('Excel library not loaded','error');return;}
-  const worksData=allWorks.map(w=>({'Work #':w.workNum,'Unique ID':w.uid,'Client Name':w.clientName,'Vehicle':w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:''),'Payment Mode':w.payMode,'Bank':w.bank||'','Amount':w.amount||0,'Status':w.status==='done'?'Completed':'Open','Taken By':w.takenBy,'Date Taken':w.date,'Time':w.time,'Completed By':w.completedBy||'','Completed Date':w.completedDate||'','Expiry Date':w.expiryDate||'','Notes':w.notes||''}));
+  const worksData=allWorks.map(w=>({'Work #':w.workNum,'Client ID':w.clientId||'','Owner Name':w.ownerName||w.clientName,'Client Name':w.clientName||'','Vehicle(s)':w.vehicles||w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:''),'Work Value':w.workValue||0,'Total Paid':w.totalPaid||w.amount||0,'Remaining Balance':w.remainingBalance||0,'Payment Mode':w.payMode,'Bank':w.bank||'','Status':w.status==='done'?'Completed':(w.status==='partial'?'Partial':'Open'),'Taken By':w.takenBy,'Date Taken':w.date,'Time':w.time,'Completed By':w.completedBy||'','Completed Date':w.completedDate||'','Expiry Date':w.expiryDate||'','Misc Expense':w.miscExpense||0,'Notes':w.notes||''}));
   const ledgerData=allLedger.map(l=>({'Bank':l.bank,'Type':l.type,'Amount':l.amount||0,'Date':l.date,'Description':l.description||'','Linked Work':l.workRef||'','By':l.by||'','Auto Entry':l.autoEntry?'Yes':'No'}));
   const salaryData=allSalary.map(s=>({'Staff Name':s.staffName,'Amount':s.amount||0,'Mode':s.mode,'Bank':s.bank||'','Paid By':s.paidBy,'Date':s.date,'Time':s.time||''}));
   const wb=XLSX.utils.book_new();
@@ -3173,9 +3815,17 @@ async function saveCashEntry() {
   const desc=document.getElementById('cash_desc').value.trim();
   if(!type||!amount||isNaN(amount)||!date||!desc){toast('Fill all fields','error');return;}
   const now=new Date();
+  const fmtD = new Date(date).toLocaleDateString('en-IN');
+  // Route to ledger (Cash bank) so renderCashTracker picks it up correctly
   try {
-    await dbPush('cash',{type,amount,date,description:desc,by:currentUser.name,timestamp:now.getTime()});
-    toast('Cash entry saved','success');
+    await dbPush('ledger',{
+      bank:'Cash',
+      type: type==='in'?'credit':'debit',
+      amount, date:fmtD, timestamp:now.getTime(),
+      description:desc, by:currentUser.name,
+      autoEntry:false, manualCash:true
+    });
+    toast('Cash entry saved ✅','success');
     closeModal('addCashModal');
     await loadAllData();
     renderCashTracker();
@@ -3206,12 +3856,12 @@ function renderCashTracker(){
   const totalOut = txns.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
 
   document.getElementById('cashSummary')?.remove&&null;
-  const el = document.getElementById('cashTrackerBody')||document.getElementById('cashBody');
-  const sumEl = document.getElementById('cashSummaryRow');
+  const el = document.getElementById('cashBody');
+  const sumEl = document.getElementById('cashStats');
   if(sumEl) sumEl.innerHTML=`
     <div class="sc green"><div class="sl">Total IN</div><div class="sv">${inr(totalIn+opening)}</div></div>
     <div class="sc red"><div class="sl">Total OUT</div><div class="sv">${inr(totalOut)}</div></div>
-    <div class="sc ${balance<0?'red':''}"><div class="sl">Cash in Hand</div><div class="sv" style="color:${balance<0?'var(--r)':'var(--g)'};">${inr(balance)}</div></div>
+    <div class="sc ${balance<0?'red':'green'}"><div class="sl">Cash in Hand</div><div class="sv" style="color:${balance<0?'var(--r)':'var(--g)'};">${inr(balance)}</div></div>
   `;
   if(!el){return;}
   if(!rows.length){el.innerHTML='<tr><td colspan="6" class="nd">No cash transactions yet. Add ledger entries for Cash account.</td></tr>';return;}
@@ -3236,10 +3886,10 @@ function renderPnL() {
   const monthLedger = allLedger.filter(l=>{if(!l.timestamp)return false;const d=new Date(l.timestamp);return d.getMonth()===m&&d.getFullYear()===y;});
   const monthSalary = allSalary.filter(s=>{if(!s.timestamp)return false;const d=new Date(s.timestamp);return d.getMonth()===m&&d.getFullYear()===y;});
 
-  const totalCollected = monthWorks.reduce((s,w)=>s+(w.payMode!=='Unpaid'?w.amount||0:0),0);
-  const totalSpent = monthWorks.filter(w=>w.status==='done').reduce((s,w)=>s+(w.receiptAmount||0),0);
+  const totalCollected = monthWorks.reduce((s,w)=>s+(w.payMode!=='Unpaid'?(w.totalPaid||w.amount||0):0),0);
+  const totalSpent = monthWorks.filter(w=>w.status!=='open').reduce((s,w)=>s+(w.receiptAmount||0),0);
   const totalSalary = monthSalary.reduce((s,x)=>s+(x.amount||0),0);
-  const totalMiscPnL = monthWorks.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>{ const ld=new Date(l.timestamp); return l.ospEntry&&ld.getMonth()===selMonth&&ld.getFullYear()===selYear; }).reduce((s,l)=>s+(l.amount||0),0);
+  const totalMiscPnL = monthWorks.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>{ const ld=new Date(l.timestamp); return l.ospEntry&&ld.getMonth()===m&&ld.getFullYear()===y; }).reduce((s,l)=>s+(l.amount||0),0);
   const netProfit = totalCollected - totalSpent - totalSalary - totalMiscPnL;
 
   // Work type breakdown
@@ -3254,7 +3904,7 @@ function renderPnL() {
 
   // Bank-wise collection from ledger
   const bankTotals = {};
-  ['HDFC','SBI','Kotak','ICICI','Cash'].forEach(b=>{
+  ['HDFC','SBI','Kotak','ICICI','Canara','Cash'].forEach(b=>{
     const credits = monthLedger.filter(l=>l.bank===b&&l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
     const debits = monthLedger.filter(l=>l.bank===b&&l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
     if(credits||debits) bankTotals[b]={credits,debits};
