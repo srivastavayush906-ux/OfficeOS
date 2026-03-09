@@ -405,6 +405,7 @@ input, select, textarea { font-family: inherit; outline: none; }
 .bo { background: #fef3c7; color: #92400e; }
 .by { background: #fef9c3; color: #78350f; }
 .bgr { background: #f3f4f6; color: #4b5563; border: 1px solid var(--grayb); }
+.bp  { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 
 /* ═══════════ MODALS ═══════════ */
 .mo {
@@ -827,9 +828,11 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
                     <option value="PUC">🌿 PUC</option>
                     <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
                     <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="DrivingLicense">🪪 Driving License</option>
                     <option value="Others">📦 Others</option>
                   </select>
                   <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+                  <select class="wtype-dltype" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"><option value="">— License Type —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select>
                   <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
                   <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
                 </div>
@@ -902,6 +905,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
             <option value="PUC">PUC</option>
             <option value="RoadTax-OTT">Road Tax-OTT</option>
             <option value="RoadTax-Quarterly">Road Tax-Quarterly</option>
+            <option value="DrivingLicense">Driving License</option>
             <option value="Others">Others</option>
           </select>
           <select id="filterStatus" onchange="filterWorks()">
@@ -2187,9 +2191,11 @@ function vwTypeChange(sel) {
   const spec = row.querySelector('.wtype-spec');
   const tfrom = row.querySelector('.wtype-tfrom');
   const tto = row.querySelector('.wtype-tto');
+  const dltype = row.querySelector('.wtype-dltype');
   spec.style.display = sel.value==='Others' ? 'block' : 'none';
   tfrom.style.display = sel.value==='Transfer' ? 'block' : 'none';
   tto.style.display = sel.value==='Transfer' ? 'block' : 'none';
+  if(dltype) dltype.style.display = sel.value==='DrivingLicense' ? 'block' : 'none';
 }
 
 function addVWRow() {
@@ -2213,9 +2219,16 @@ function addVWRow() {
                     <option value="PUC">🌿 PUC</option>
                     <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
                     <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="DrivingLicense">🪪 Driving License</option>
                     <option value="Others">📦 Others</option>
       </select>
       <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+      <select class="wtype-dltype" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
+        <option value="">— License Type —</option>
+        <option value="Renewal">Renewal</option>
+        <option value="Permanent (New)">Permanent (New)</option>
+        <option value="Learner (New)">Learner (New)</option>
+      </select>
       <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
       <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
     </div>
@@ -2228,6 +2241,7 @@ function getVWRows() {
     vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
     workType: row.querySelector('.wtype-sel').value,
     othersSpecify: row.querySelector('.wtype-spec').value.trim(),
+    dlLicenseType: row.querySelector('.wtype-dltype')?.value.trim()||'',
     transferFrom: row.querySelector('.wtype-tfrom').value.trim(),
     transferTo: row.querySelector('.wtype-tto').value.trim(),
   })).filter(r => r.vehicle || r.workType);
@@ -2251,9 +2265,11 @@ function resetVWRows() {
                     <option value="PUC">🌿 PUC</option>
                     <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
                     <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="DrivingLicense">🪪 Driving License</option>
                     <option value="Others">📦 Others</option>
         </select>
         <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+        <select class="wtype-dltype" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"><option value="">— License Type —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select>
         <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
         <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
       </div>
@@ -2297,6 +2313,8 @@ async function _doSubmitWork() {
   if(!vwRows.length||!vwRows[0].vehicle){toast('Enter at least one vehicle number','error');return;}
   if(vwRows.some(r=>r.vehicle&&!r.workType)){toast('Select work type for each vehicle','error');return;}
   if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
+  if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
+  if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
   if(!payRows.length){toast('Select at least one payment mode','error');return;}
   if(payRows.some(r=>r.mode==='UPI'&&!r.bank)){toast('Select bank for UPI payment','error');return;}
@@ -2321,6 +2339,7 @@ async function _doSubmitWork() {
     phone,
     workType: primaryRow.workType,
     othersSpecify: primaryRow.workType==='Others'?primaryRow.othersSpecify:'',
+    dlLicenseType: primaryRow.workType==='DrivingLicense'?(primaryRow.dlLicenseType||''):'',
     transferFrom: primaryRow.workType==='Transfer'?primaryRow.transferFrom:'',
     transferTo: primaryRow.workType==='Transfer'?primaryRow.transferTo:'',
     workValue, totalPaid, remainingBalance: remaining,
@@ -2361,7 +2380,7 @@ async function _doSubmitWork() {
     document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock();
-    showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType);
+    showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
@@ -2415,17 +2434,18 @@ function printWorkReceipt(key) {
 }
 
 // WhatsApp popup
-function showWhatsAppPopup(name, phone, uid, workType) {
+function showWhatsAppPopup(name, phone, uid, workType, dlLicenseType='') {
   document.getElementById("wa_clientName").textContent = name;
   document.getElementById("wa_phone").textContent = phone;
   document.getElementById("wa_uid").textContent = uid;
-  document.getElementById("wa_workType").textContent = wtLabel(workType);
+  const wtDisplay = wtLabel(workType)+(dlLicenseType?' — '+dlLicenseType:'');
+  document.getElementById("wa_workType").textContent = wtDisplay;
   const siteUrl = "https://srivastavayush906-ux.github.io/OfficeOS";
-  const msg = "Hello "+name+"! Your work ("+wtLabel(workType)+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\n- Nandan Legal Services";
+  const msg = "Hello "+name+"! Your work ("+wtDisplay+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\n- Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
 }
-function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.ownerName||w.clientName,w.phone,w.clientId||w.uid,w.workType); }
+function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.ownerName||w.clientName,w.phone,w.clientId||w.uid,w.workType,w.dlLicenseType||''); }
 // ============================================================
 // ALL WORKS TABLE
 // ============================================================
@@ -2452,7 +2472,7 @@ function renderWorkTable(){
         const items=JSON.parse(w.vehicleWorkItems||'[]');
         if(items.length>1) return items.map(r=>`<div><span style="font-family:monospace;">${esc(r.vehicle)}</span> <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.68rem;">${wtLabel(r.workType)}</span></div>`).join('');
       }catch(e){}
-      return esc(w.vehicles||w.vehicle)+(w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:'');
+      return esc(w.vehicles||w.vehicle)+(w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:'')+(w.workType==='DrivingLicense'&&w.dlLicenseType?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.dlLicenseType)}</span>`:'');
     })()}</td>
     <td>${wtBadge(w)}</td>
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ${inr(w.remainingBalance)}</span>`:''}</td>
@@ -2735,7 +2755,7 @@ function viewWork(key){
       })()}
     </div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
-    <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div></div>
+    <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}${w.dlLicenseType?' — '+esc(w.dlLicenseType):''}</div></div>
     <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}</div></div>
     <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
     ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
@@ -2764,6 +2784,8 @@ function openEditWork(key){
   document.getElementById('ew_phone').value=w.phone||'';
   document.getElementById('ew_type').value=w.workType||'';
   document.getElementById('ew_othersSpec').value=w.othersSpecify||'';
+  document.getElementById('ew_dlLicenseType').value=w.dlLicenseType||'';
+  document.getElementById('ew_dlLicenseTypeField').style.display=w.workType==='DrivingLicense'?'block':'none';
   document.getElementById('ew_othersField').style.display=w.workType==='Others'?'block':'none';
   document.getElementById('ew_transferFromField').style.display=w.workType==='Transfer'?'block':'none';
   document.getElementById('ew_transferToField').style.display=w.workType==='Transfer'?'block':'none';
@@ -2779,6 +2801,7 @@ function editWorkTypeChange(){
   const t=document.getElementById('ew_type').value;
   document.getElementById('ew_othersField').style.display=t==='Others'?'block':'none';
   document.getElementById('ew_transferFromField').style.display=t==='Transfer'?'block':'none';
+  document.getElementById('ew_dlLicenseTypeField').style.display=t==='DrivingLicense'?'block':'none';
   document.getElementById('ew_transferToField').style.display=t==='Transfer'?'block':'none';
 }
 function editPayModeChange(){}
@@ -2805,6 +2828,7 @@ async function saveEditWork(){
       ownerName, clientName, vehicle:vehicles.split(',')[0].trim(),
       vehicles, phone, workType:type,
       othersSpecify:type==='Others'?othersSpec:'',
+      dlLicenseType:type==='DrivingLicense'?(document.getElementById('ew_dlLicenseType').value.trim()):'',
       transferFrom:type==='Transfer'?transferFrom:'',
       transferTo:type==='Transfer'?transferTo:'',
       workValue, totalPaid:amount, amount, remainingBalance:remaining, notes
@@ -3969,7 +3993,7 @@ function exportWorksExcel(){
   try{localStorage.setItem('officeOS_lastBackup',Date.now());}catch(e){}
 
   if(typeof XLSX==='undefined'){toast('Excel library not loaded','error');return;}
-  const worksData=allWorks.map(w=>({'Work #':w.workNum,'Client ID':w.clientId||'','Owner Name':w.ownerName||w.clientName,'Client Name':w.clientName||'','Vehicle(s)':w.vehicles||w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:''),'Work Value':w.workValue||0,'Total Paid':w.totalPaid||w.amount||0,'Remaining Balance':w.remainingBalance||0,'Payment Mode':w.payMode,'Bank':w.bank||'','Status':w.status==='done'?'Completed':(w.status==='partial'?'Partial':'Open'),'Taken By':w.takenBy,'Date Taken':w.date,'Time':w.time,'Completed By':w.completedBy||'','Completed Date':w.completedDate||'','Expiry Date':w.expiryDate||'','Misc Expense':w.miscExpense||0,'Notes':w.notes||''}));
+  const worksData=allWorks.map(w=>({'Work #':w.workNum,'Client ID':w.clientId||'','Owner Name':w.ownerName||w.clientName,'Client Name':w.clientName||'','Vehicle(s)':w.vehicles||w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:'')+(w.dlLicenseType?' — '+w.dlLicenseType:''),'Work Value':w.workValue||0,'Total Paid':w.totalPaid||w.amount||0,'Remaining Balance':w.remainingBalance||0,'Payment Mode':w.payMode,'Bank':w.bank||'','Status':w.status==='done'?'Completed':(w.status==='partial'?'Partial':'Open'),'Taken By':w.takenBy,'Date Taken':w.date,'Time':w.time,'Completed By':w.completedBy||'','Completed Date':w.completedDate||'','Expiry Date':w.expiryDate||'','Misc Expense':w.miscExpense||0,'Notes':w.notes||''}));
   const ledgerData=allLedger.map(l=>({'Bank':l.bank,'Type':l.type,'Amount':l.amount||0,'Date':l.date,'Description':l.description||'','Linked Work':l.workRef||'','By':l.by||'','Auto Entry':l.autoEntry?'Yes':'No'}));
   const salaryData=allSalary.map(s=>({'Staff Name':s.staffName,'Amount':s.amount||0,'Mode':s.mode,'Bank':s.bank||'','Paid By':s.paidBy,'Date':s.date,'Time':s.time||''}));
   const wb=XLSX.utils.book_new();
@@ -4174,11 +4198,11 @@ async function downloadClientDoc(workKey, workNum) {
 // ============================================================
 // UTILITIES
 // ============================================================
-const wtLabels={'Insurance':'🛡️ Insurance','Chalaan-Online':'📄 Chalaan (Online)','Chalaan-Court':'⚖️ Chalaan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others'};
-const wtClasses={'Insurance':'bb','Chalaan-Online':'bo','Chalaan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr'};
+const wtLabels={'Insurance':'🛡️ Insurance','Chalaan-Online':'📄 Chalaan (Online)','Chalaan-Court':'⚖️ Chalaan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others','DrivingLicense':'🪪 Driving License'};
+const wtClasses={'Insurance':'bb','Chalaan-Online':'bo','Chalaan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr','DrivingLicense':'bp'};
 function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
-const wtPlainLabels={'Insurance':'Insurance','Chalaan-Online':'Chalaan (Online)','Chalaan-Court':'Chalaan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others'};
+const wtPlainLabels={'Insurance':'Insurance','Chalaan-Online':'Chalaan (Online)','Chalaan-Court':'Chalaan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others','DrivingLicense':'Driving License'};
 function wtLabelPlain(t){return wtPlainLabels[t]||t||'—';}
 function wtBadge(w){return `<span class="badge ${wtClasses[w.workType]||'bgr'}">${wtLabel(w.workType)}</span>`;}
 function payBadge(w){
