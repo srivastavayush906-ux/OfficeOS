@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OfficeOS — Work Manager</title>
+<title>Nandan Legal Services</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap');
 
@@ -643,7 +644,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
 <div id="splash">
   <div class="logo">
     <div style="font-size:3.5rem;margin-bottom:8px;">🏢</div>
-    <h1 style="font-size:2.6rem;letter-spacing:-1px;">OfficeOS</h1>
+    <h1 style="font-size:2.0rem;letter-spacing:-1px;">Nandan Legal Services</h1>
     <p style="opacity:.65;letter-spacing:.5px;font-size:.95rem;">Work Management System</p>
     <div class="spinner"></div>
   </div>
@@ -655,7 +656,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
 <!-- LOGIN PAGE -->
 <div id="loginPage">
   <div class="login-card">
-    <div class="brand">🏢 OfficeOS</div>
+    <div class="brand">⚖️ Nandan Legal Services</div>
     <div class="sub">Staff Login — Enter your credentials</div>
     <div class="fb-status checking" id="fbStatus">
       <span class="fb-dot"></span> <span id="fbStatusText">Checking Firebase connection…</span>
@@ -681,7 +682,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <div class="sidebar-logo">
         <div class="logo-icon">🏢</div>
         <div>
-          <div class="logo-text">OfficeOS</div>
+          <div class="logo-text">Nandan Legal Services</div>
           <div class="logo-sub">Work Manager</div>
         </div>
       </div>
@@ -2295,7 +2296,7 @@ function showWhatsAppPopup(name, phone, uid, workType) {
   document.getElementById("wa_uid").textContent = uid;
   document.getElementById("wa_workType").textContent = wtLabel(workType);
   const siteUrl = "https://srivastavayush906-ux.github.io/OfficeOS";
-  const msg = "Hello "+name+"! Your work ("+wtLabel(workType)+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\n- Office Team";
+  const msg = "Hello "+name+"! Your work ("+wtLabel(workType)+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\n- Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
 }
@@ -2788,8 +2789,8 @@ async function completeWork() {
     // WhatsApp — single block, after all data saved
     if(w.phone) {
       const compMsg = isPartial
-        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`
-        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed!\n${w.expiryDate?'\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`;
+        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Nandan Legal Services`
+        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed!\n${w.expiryDate?'\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Nandan Legal Services`;
       const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
     }
@@ -3765,10 +3766,8 @@ async function clientTrack(){
     if(w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
     html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div>';
     if(w.status==='done' && w.receiptPhoto) {
-      const isUrl = w.receiptPhoto.startsWith('http');
       html+='<div style="margin-top:8px;">';
-      html+='<a href="'+w.receiptPhoto+'" '+(isUrl?'target="_blank"':'onclick="openImgInTab(\''+w.receiptPhoto+'\')"')
-        +' style="display:inline-flex;align-items:center;gap:5px;background:var(--p);color:#fff;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-decoration:none;">📄 View / Download Document</a>';
+      html+='<button onclick="downloadClientDoc(\''+w._key+'\','+w.workNum+')" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1e3a6e,#2563eb);color:#fff;padding:7px 16px;border-radius:20px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.3);">⬇️ Download Your Papers (PDF)</button>';
       html+='</div>';
     }
     html+='</div>';
@@ -3792,7 +3791,7 @@ function exportWorksExcel(){
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(worksData),'Works');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ledgerData),'Ledger');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(salaryData),'Salary');
-  XLSX.writeFile(wb,'OfficeOS_Export_'+new Date().toLocaleDateString('en-IN').replace(/[/]/g,'-')+'.xlsx');
+  XLSX.writeFile(wb,'NandanLegal_Export_'+new Date().toLocaleDateString('en-IN').replace(/[/]/g,'-')+'.xlsx');
   toast('Excel exported! 3 sheets: Works, Ledger, Salary ✅','success');
 }
 
@@ -3817,6 +3816,175 @@ function openImgInTab(src){
     }
   } catch(e){}
   window.open(src,'_blank');
+}
+
+// ── Generate & download branded 2-page PDF for client ──
+async function downloadClientDoc(workKey, workNum) {
+  const w = allWorks.find(x => x._key === workKey);
+  if(!w || !w.receiptPhoto){ toast('No document found','error'); return; }
+
+  toast('Generating PDF...', 'warn');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const PW = 210, PH = 297; // A4 dimensions
+
+    // ── PAGE 1: Professional details page ──
+    // Dark header bar
+    doc.setFillColor(15, 40, 80);
+    doc.rect(0, 0, PW, 38, 'F');
+
+    // Office name
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('Nandan Legal Services', PW/2, 18, { align:'center' });
+
+    // Subtitle
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 200, 240);
+    doc.text('Legal Documentation & Vehicle Services', PW/2, 27, { align:'center' });
+
+    // Thin gold accent line
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.8);
+    doc.line(15, 33, PW-15, 33);
+
+    // Document title
+    doc.setTextColor(15, 40, 80);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('WORK COMPLETION CERTIFICATE', PW/2, 50, { align:'center' });
+
+    // Horizontal rule
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(15, 54, PW-15, 54);
+
+    // Details table
+    const fields = [
+      ['Client Name', w.ownerName || w.clientName || '—'],
+      ['Client ID', w.clientId || '—'],
+      ['Vehicle No.', w.vehicles || w.vehicle || '—'],
+      ['Work Type', wtLabel(w.workType) + (w.othersSpecify ? ' — ' + w.othersSpecify : '')],
+      ['Work Number', '#' + w.workNum],
+      ['Date Completed', w.completedDate || '—'],
+      ['Completed By', w.completedBy || '—'],
+    ];
+    if(w.expiryDate) fields.push(['Document Expiry', fmtDate(w.expiryDate)]);
+
+    let y = 64;
+    fields.forEach(([label, value], i) => {
+      // Alternate row background
+      if(i % 2 === 0){
+        doc.setFillColor(245, 247, 252);
+        doc.rect(15, y-5, PW-30, 10, 'F');
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 120);
+      doc.text(label.toUpperCase(), 20, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(20, 20, 40);
+      doc.text(String(value), 90, y);
+      y += 10;
+    });
+
+    y += 4;
+
+    // Status badge
+    const isPaid = w.payMode !== 'Unpaid' && (w.remainingBalance||0) === 0;
+    const isPartial = w.status === 'partial' || (w.remainingBalance||0) > 0;
+    if(isPaid){
+      doc.setFillColor(34, 197, 94);
+      doc.roundedRect(15, y, 40, 10, 2, 2, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text('✓  PAID', 35, y+6.5, {align:'center'});
+    } else if(isPartial){
+      doc.setFillColor(251, 146, 60);
+      doc.roundedRect(15, y, 55, 10, 2, 2, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text('⚠  PARTIAL PAYMENT', 42, y+6.5, {align:'center'});
+    } else {
+      doc.setFillColor(239, 68, 68);
+      doc.roundedRect(15, y, 45, 10, 2, 2, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text('✗  UNPAID', 37, y+6.5, {align:'center'});
+    }
+
+    y += 22;
+
+    // "Scroll to page 2" callout box
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(251, 191, 36);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(15, y, PW-30, 28, 3, 3, 'FD');
+
+    doc.setTextColor(120, 80, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('📄  TO VIEW YOUR PAPERS', PW/2, y+11, { align:'center' });
+    doc.setFontSize(12);
+    doc.text('SCROLL DOWN TO PAGE 2', PW/2, y+21, { align:'center' });
+
+    y += 38;
+
+    // Footer on page 1
+    doc.setDrawColor(200,200,200);
+    doc.setLineWidth(0.3);
+    doc.line(15, PH-18, PW-15, PH-18);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text('Nandan Legal Services  •  This is a computer-generated document', PW/2, PH-11, {align:'center'});
+
+    // ── PAGE 2: Document image ──
+    doc.addPage();
+
+    // Load image
+    let imgData = w.receiptPhoto;
+    if(imgData.startsWith('http')) {
+      // For Storage URLs, fetch as base64
+      try {
+        const resp = await fetch(imgData);
+        const blob = await resp.blob();
+        imgData = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsDataURL(blob);
+        });
+      } catch(e){ toast('Could not load image','error'); return; }
+    }
+
+    // Detect format
+    const fmt = imgData.includes('image/png') ? 'PNG' : 'JPEG';
+    // Fill page with image, keeping aspect ratio
+    const margin = 10;
+    doc.addImage(imgData, fmt, margin, margin, PW-margin*2, PH-margin*2, '', 'FAST');
+
+    // ── Auto-name and download ──
+    const wtype = (w.workType||'Doc').replace(/[^a-zA-Z0-9]/g,'_');
+    const veh = (w.vehicles||w.vehicle||'').replace(/[^a-zA-Z0-9]/g,'_');
+    const cname = (w.ownerName||w.clientName||'Client').replace(/[^a-zA-Z0-9]/g,'_');
+    const filename = `${wtype}_${veh}_${cname}_Work${w.workNum}.pdf`;
+
+    doc.save(filename);
+    toast('PDF downloaded! ✅','success');
+
+  } catch(e) {
+    console.error(e);
+    toast('PDF generation failed: '+e.message,'error');
+  }
+}
 }
 
 // ============================================================
@@ -3980,7 +4148,7 @@ function followupTab(tab, btn) {
 }
 function waClientId(phone, clientId, name) {
   if(!phone) { toast('No phone number','error'); return; }
-  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with our office is:\n\n*'+clientId+'*\n\nUse this ID on our website to track all your works and document expiry dates anytime.\n\n- Office Team';
+  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with our office is:\n\n*'+clientId+'*\n\nUse this ID on our website to track all your works and document expiry dates anytime.\n\n- Nandan Legal Services';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
