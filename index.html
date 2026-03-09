@@ -1665,7 +1665,6 @@ window.addEventListener('DOMContentLoaded', () => {
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
       window.fbStorage = firebase.storage();
-      window.fbStorage = firebase.storage();
     } catch(e) {
       try { db = firebase.database(); } catch(e2){}
     }
@@ -2734,7 +2733,6 @@ async function completeWork() {
   const fileInputs = document.querySelectorAll('#docUploadList input[type=file]');
   if(fileInputs[0]&&fileInputs[0].files[0]) {
     try {
-      toast('Uploading document...','warn');
       photoData = await uploadDocToStorage(fileInputs[0].files[0], closeWorkKey);
     } catch(e){ console.warn('Upload failed:', e); }
   }
@@ -2828,39 +2826,15 @@ const fileToBase64 = file => compressImage(file); // kept for compatibility
 
 // Upload file to Firebase Storage, return download URL
 // Falls back to base64 if Storage not available (demo mode)
-async function uploadDocToStorage(file, workKey) {
-  if(!window.fbStorage || !file) return '';
-  try {
-    // Compress first if it's an image
-    let uploadFile = file;
-    if(file.type.startsWith('image/')) {
-      const b64 = await compressImage(file);
-      // convert base64 back to blob for upload
-      const parts = b64.match(/^data:([^;]+);base64,(.+)$/);
-      if(parts) {
-        const byteChars = atob(parts[2]);
-        const byteNums = new Array(byteChars.length);
-        for(let i=0;i<byteChars.length;i++) byteNums[i]=byteChars.charCodeAt(i);
-        uploadFile = new Blob([new Uint8Array(byteNums)], {type:parts[1]});
-      }
-    }
-    const ext = file.name.split('.').pop().toLowerCase()||'jpg';
-    const path = `documents/${workKey}_${Date.now()}.${ext}`;
-    const storageRef = window.fbStorage.ref(path);
-    const snap = await storageRef.put(uploadFile);
-    const url = await snap.ref.getDownloadURL();
-    return url;
-  } catch(e) {
-    console.error('Storage upload failed, using base64:', e);
-    // fallback to base64
-    return await compressImage(file);
-  }
-}
-
 // Upload file to Firebase Storage, return download URL
-// Falls back to base64 if Storage not available (demo mode)
+// Always falls back to base64 if Storage not ready yet
 async function uploadDocToStorage(file, workKey) {
-  if(!window.fbStorage || !file) return '';
+  if(!file) return '';
+  // If Storage not ready, go straight to base64
+  if(!window.fbStorage) {
+    if(file.type.startsWith('image/')) return await compressImage(file);
+    return '';
+  }
   try {
     let uploadBlob = file;
     if(file.type.startsWith('image/')) {
@@ -2879,6 +2853,7 @@ async function uploadDocToStorage(file, workKey) {
     return url;
   } catch(e) {
     console.warn('Storage upload failed, falling back to base64:', e.message);
+    // Fallback — always save as base64 so work completion never gets stuck
     if(file.type.startsWith('image/')) return await compressImage(file);
     return '';
   }
@@ -3788,7 +3763,15 @@ async function clientTrack(){
     html+='<div style="font-size:.78rem;color:var(--gray);display:flex;gap:12px;flex-wrap:wrap;">';
     html+='<span>'+esc(w.vehicle)+'</span><span>'+esc(w.date)+'</span><span>Work #'+w.workNum+'</span>';
     if(w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
-    html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div></div>';
+    html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div>';
+    if(w.status==='done' && w.receiptPhoto) {
+      const isUrl = w.receiptPhoto.startsWith('http');
+      html+='<div style="margin-top:8px;">';
+      html+='<a href="'+w.receiptPhoto+'" '+(isUrl?'target="_blank"':'onclick="openImgInTab(\''+w.receiptPhoto+'\')"')
+        +' style="display:inline-flex;align-items:center;gap:5px;background:var(--p);color:#fff;padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-decoration:none;">📄 View / Download Document</a>';
+      html+='</div>';
+    }
+    html+='</div>';
   });
   document.getElementById('clientStatusBody').innerHTML=html;
   document.getElementById('clientResult').innerHTML='';
