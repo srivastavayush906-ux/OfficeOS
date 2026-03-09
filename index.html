@@ -695,10 +695,10 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <a onclick="showPage('expiry')" id="nav-expiry"><span class="ico">🔔</span> Expiry Alerts <span id="badge-expiry" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('clientHistory')" id="nav-clientHistory"><span class="ico">👤</span> Client History</a>
       <div class="ns">Finance</div>
-      <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
-      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues</a>
-      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
+      <a onclick="showPage('bankLedger')" id="nav-bankLedger" class="owner-only-nav"><span class="ico">🏦</span> Bank Ledger</a>
+      <a onclick="showPage('reconcile')" id="nav-reconcile" class="owner-only-nav"><span class="ico">🔍</span> Reconciliation</a>
+      <a onclick="showPage('dues')" id="nav-dues" class="owner-only-nav"><span class="ico">💳</span> Dues</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">💰</span> Combined Balance</a>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
       <div class="ns">Office</div>
@@ -707,8 +707,8 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <a onclick="showPage('accessLog')" id="nav-accessLog"><span class="ico">📜</span> Access Log</a>
       <div class="ns">Tools</div>
       <a onclick="showPage('followup')" id="nav-followup"><span class="ico">📌</span> Follow-ups <span id="badge-followup" style="margin-left:auto;background:var(--p);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">💵</span> Cash in Hand</a>
-      <a onclick="showPage('pnl')" id="nav-pnl"><span class="ico">📈</span> Monthly P&amp;L</a>
+      <a onclick="showPage('cashTracker')" id="nav-cashTracker" class="owner-only-nav"><span class="ico">💵</span> Cash in Hand</a>
+      <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
       <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">🕐</span> Attendance</a>
       <div id="ownerNav" style="display:none;">
         <div class="ns">Owner Only</div>
@@ -1748,6 +1748,10 @@ async function loginSuccess() {
   document.getElementById('sidebarName').textContent = currentUser.name;
   document.getElementById('sidebarRole').textContent = currentUser.role==='owner'?'👑 Owner':'👤 Staff';
   document.getElementById('ownerNav').style.display = currentUser.role==='owner'?'block':'none';
+  // Hide financial pages from staff
+  document.querySelectorAll('.owner-only-nav').forEach(el=>{
+    el.classList.toggle('hidden-staff', currentUser.role!=='owner');
+  });
   const now = new Date();
   await dbPush('accessLog',{name:currentUser.name,role:currentUser.role,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()});
   await loadAllData();
@@ -1823,6 +1827,10 @@ function updateSidebarBadges() {
 const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Pending Dues',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend'};
 
 function showPage(page) {
+  const ownerPages=['bankLedger','reconcile','combinedBalance','pnl','cashTracker','dues'];
+  if(ownerPages.includes(page) && currentUser && currentUser.role!=='owner'){
+    toast('🔒 This section is restricted to Owner only','error'); return;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));
   const pg=document.getElementById('page-'+page); if(pg) pg.classList.add('active');
@@ -2591,8 +2599,10 @@ async function completeWork() {
     partialDesc: partialDesc
   };
 
+  // Strip _key before saving to Firebase (it's a local-only field)
+  const {_key, ...wClean} = w;
   try {
-    await dbSet('works/'+closeWorkKey, {...w, ...updates});
+    await dbSet('works/'+closeWorkKey, {...wClean, ...updates});
     // Auto ledger debit for work expense
     if(amt>0) {
       await dbPush('ledger',{
@@ -2613,22 +2623,7 @@ async function completeWork() {
         by:currentUser.name, autoEntry:true
       });
     }
-    toast(isPartial?'⏳ Partial completion saved!':'✅ Work marked complete!','success');
-    closeModal('closeWorkModal');
-    // WhatsApp completion message
-    if(w.phone) {
-      const compMsg = isPartial ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS | Client ID: *${w.clientId||'—'}*\n- Office Team` : `Hello ${w.ownerName||w.clientName}! ✅ Work #${w.workNum} (${wtLabel(w.workType)}) is DONE!${w.expiryDate?'\n📅 Expiry: '+w.expiryDate:''}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS | Client ID: *${w.clientId||'—'}*\n- Office Team`;
-      const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
-      setTimeout(()=>{if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');},500);
-    }
-    // WhatsApp completion message
-    if(w.phone) {
-      const compMsg = isPartial
-        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack your work: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`
-        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed successfully.\n${w.expiryDate?'\n📅 Document Expiry: '+w.expiryDate:''}\n\nTrack your work: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`;
-      const waUrl = 'https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
-      setTimeout(()=>{ if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank'); }, 500);
-    }
+    // Reload data first, THEN show WA prompt (non-blocking)
     document.getElementById('miscAmount').value='';
     document.getElementById('miscReason').value='';
     document.getElementById('partialDesc').value='';
@@ -2636,7 +2631,18 @@ async function completeWork() {
     await loadAllData();
     renderWorkTable();
     renderDashboard();
-  } catch(e){toast('Error: '+e.message,'error');}
+    updateSidebarBadges();
+    toast(isPartial?'⏳ Partial completion saved!':'✅ Work marked complete!','success');
+    closeModal('closeWorkModal');
+    // WhatsApp — single block, after all data saved
+    if(w.phone) {
+      const compMsg = isPartial
+        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`
+        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed!\n${w.expiryDate?'\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\nTrack: https://srivastavayush906-ux.github.io/OfficeOS\nClient ID: *${w.clientId||'—'}*\n\n- Office Team`;
+      const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
+      if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
+    }
+  } catch(e){console.error(e);toast('Error saving: '+e.message,'error');}
 }
 
 
