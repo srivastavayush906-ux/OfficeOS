@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -661,7 +661,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="fb-status checking" id="fbStatus">
       <span class="fb-dot"></span> <span id="fbStatusText">Checking Firebase connection…</span>
     </div>
-    <div class="field"><label>Username</label><input type="text" id="loginUser" placeholder="Your username" autocomplete="username"/></div>
+    <div class="field"><label>Email</label><input type="email" id="loginUser" placeholder="your@gmail.com" autocomplete="email"/></div>
     <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password"/><button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1">👁️</button></div></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()">Login →</button>
     <div id="loginErr" style="color:var(--r);font-size:.83rem;margin-top:9px;display:none;font-weight:700;"></div>
@@ -1402,7 +1402,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <button class="md-close" onclick="closeModal('addStaffModal')">×</button>
     <div class="md-title">➕ Add New Staff</div>
     <div class="field"><label>Full Name *</label><input type="text" id="ns_name"/></div>
-    <div class="field"><label>Username *</label><input type="text" id="ns_user" placeholder="lowercase, no spaces"/></div>
+    <div class="field"><label>Email *</label><input type="email" id="ns_user" placeholder="staff@gmail.com"/></div>
     <div class="field"><label>Password *</label><div class="pw-wrap"><input type="password" id="ns_pass" placeholder="Min 4 characters"/><button class="pw-eye" onclick="togglePw('ns_pass',this)" tabindex="-1">👁️</button></div></div>
     <div class="field"><label>Role *</label><select id="ns_role"><option value="staff">Staff</option><option value="owner">Owner</option></select></div>
     <div class="md-foot">
@@ -1666,6 +1666,7 @@ window.addEventListener('DOMContentLoaded', () => {
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
       window.fbStorage = firebase.storage();
+      window.fbAuth = firebase.auth();
     } catch(e) {
       try { db = firebase.database(); } catch(e2){}
     }
@@ -1708,10 +1709,19 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 async function checkFirstRun() {
-  const snap = await db.ref('staff').get();
-  if(!snap.exists()) {
-    await db.ref('staff').push({name:'Owner', username:'owner', password:'owner123', role:'owner'});
-    toast('First run! Default login: owner / owner123 — change password after login','warn');
+  if(window.fbAuth) {
+    // Firebase Auth mode — show setup hint if no staff_auth profiles exist yet
+    const snap = await db.ref('staff_auth').get();
+    if(!snap.exists()) {
+      toast('First time setup: Go to Firebase Console → Authentication → Add your owner email & password first!','warn');
+    }
+  } else {
+    // Demo/fallback mode
+    const snap = await db.ref('staff').get();
+    if(!snap.exists()) {
+      await db.ref('staff').push({name:'Owner', username:'owner', password:'owner123', role:'owner'});
+      toast('First run! Default login: owner / owner123','warn');
+    }
   }
 }
 
@@ -1727,25 +1737,43 @@ const dbUpd  = (path,val) => isDemo() ? (_demoUpd(path,val), Promise.resolve()) 
 // LOGIN
 // ============================================================
 async function doLogin() {
-  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const email = document.getElementById('loginUser').value.trim().toLowerCase();
   const password = document.getElementById('loginPass').value;
   const errEl = document.getElementById('loginErr');
   errEl.style.display = 'none';
-  if(!username||!password) { showErr('Please enter username and password.'); return; }
+  if(!email||!password){ showErr('Please enter email and password.'); return; }
+
+  const btn = document.querySelector('#loginPage .btn-primary');
+  if(btn){ btn.textContent='Signing in...'; btn.disabled=true; }
 
   try {
-    // Step 1: Verify credentials against staff records in DB
-    const staff = await dbGet('staff');
-    if(!staff) { showErr('No staff found. Contact owner.'); return; }
-    let fk=null, fu=null;
-    for(const [k,v] of Object.entries(staff)) {
-      if(v&&v.username&&v.username.toLowerCase()===username&&v.password===password) { fk=k;fu=v;break; }
+    if(window.fbAuth) {
+      // Firebase Auth login
+      const cred = await window.fbAuth.signInWithEmailAndPassword(email, password);
+      const uid = cred.user.uid;
+      // Fetch staff profile from DB using UID
+      const profile = await dbGet('staff_auth/'+uid);
+      if(!profile){ await window.fbAuth.signOut(); showErr('Account not set up. Contact owner.'); return; }
+      currentUser = { ...profile, uid, key: uid };
+    } else {
+      // Demo mode fallback — username/password from DB
+      const staff = await dbGet('staff');
+      if(!staff){ showErr('No staff found.'); return; }
+      let fk=null,fu=null;
+      for(const [k,v] of Object.entries(staff)){
+        if(v&&v.username&&v.username.toLowerCase()===email.split('@')[0]&&v.password===password){fk=k;fu=v;break;}
+      }
+      if(!fu){ showErr('Incorrect credentials.'); return; }
+      currentUser = {...fu, key:fk};
     }
-    if(!fu) { showErr('Incorrect username or password.'); return; }
-
-    currentUser = {...fu, key:fk};
     await loginSuccess();
-  } catch(e) { showErr('Error: '+e.message); }
+  } catch(e) {
+    const msg = e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'
+      ? 'Incorrect email or password.' : 'Error: '+e.message;
+    showErr(msg);
+  } finally {
+    if(btn){ btn.textContent='Login'; btn.disabled=false; }
+  }
 }
 function showErr(msg) { const e=document.getElementById('loginErr'); e.textContent=msg; e.style.display='block'; }
 
@@ -1777,6 +1805,7 @@ function doLogout() {
   if(!confirm('Are you sure you want to logout?')) return;
   clearTimeout(lockTimer);
   currentUser=null; allWorks=[];allStaff=[];allLedger=[];allSalary=[];allFollowups=[];allCash=[];allAttendance=[];
+  if(window.fbAuth) window.fbAuth.signOut().catch(()=>{});
   document.getElementById('mainApp').classList.remove('show');
   document.getElementById('loginPage').classList.add('show');
   ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
@@ -3678,24 +3707,51 @@ function renderManageStaff(){
 function showAddStaff(){['ns_name','ns_user','ns_pass'].forEach(id=>document.getElementById(id).value='');document.getElementById('ns_role').value='staff';openModal('addStaffModal');}
 
 async function saveStaff(){
-  const name=document.getElementById('ns_name').value.trim(),username=document.getElementById('ns_user').value.trim().toLowerCase();
-  const pass=document.getElementById('ns_pass').value,role=document.getElementById('ns_role').value;
-  if(!name||!username||!pass){toast('Fill all fields','error');return;}
-  if(pass.length<4){toast('Password min 4 chars','error');return;}
-  if(!/^[a-z0-9_]+$/.test(username)){toast('Username: lowercase letters, numbers, underscore only','error');return;}
-  if(allStaff.find(s=>s.username===username)){toast('Username already taken','error');return;}
-  try{await dbPush('staff',{name,username,password:pass,role});toast('Staff added!','success');closeModal('addStaffModal');await loadAllData();renderManageStaff();}
-  catch(e){toast('Error: '+e.message,'error');}
+  const name=document.getElementById('ns_name').value.trim();
+  const email=document.getElementById('ns_user').value.trim().toLowerCase();
+  const pass=document.getElementById('ns_pass').value;
+  const role=document.getElementById('ns_role').value;
+  if(!name||!email||!pass){toast('Fill all fields','error');return;}
+  if(pass.length<6){toast('Password min 6 characters','error');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Enter a valid email','error');return;}
+
+  try {
+    if(window.fbAuth) {
+      // Create user in Firebase Auth
+      const cred = await window.fbAuth.createUserWithEmailAndPassword(email, pass);
+      const uid = cred.user.uid;
+      // Save profile in DB under staff_auth/uid
+      await dbSet('staff_auth/'+uid, {name, email, role, addedBy: currentUser.name, addedAt: Date.now()});
+      // Also keep in staff node for display
+      await dbPush('staff', {name, username: email, email, role});
+      toast('Staff added! ✅','success');
+    } else {
+      await dbPush('staff',{name,username:email,email,password:pass,role});
+      toast('Staff added! ✅','success');
+    }
+    closeModal('addStaffModal');
+    await loadAllData();
+    renderManageStaff();
+  } catch(e) {
+    const msg = e.code==='auth/email-already-in-use' ? 'This email is already registered.'
+      : e.code==='auth/weak-password' ? 'Password too weak. Use min 6 characters.'
+      : 'Error: '+e.message;
+    toast(msg,'error');
+  }
 }
 
 function showResetPwd(key,name){resetStaffKey=key;document.getElementById('resetPwdFor').textContent='Resetting password for: '+name;document.getElementById('rp_new').value='';document.getElementById('rp_confirm').value='';openModal('resetPwdModal');}
 
 async function doResetPassword(){
   const np=document.getElementById('rp_new').value,cp=document.getElementById('rp_confirm').value;
-  if(!np||np.length<4){toast('Min 4 characters','error');return;}
+  if(!np||np.length<6){toast('Min 6 characters','error');return;}
   if(np!==cp){toast('Passwords do not match','error');return;}
-  try{await dbUpd('staff/'+resetStaffKey,{password:np});toast('Password reset!','success');closeModal('resetPwdModal');}
-  catch(e){toast('Error: '+e.message,'error');}
+  try {
+    // Update in DB (Firebase Auth password reset requires email — owner can use Firebase Console for that)
+    await dbUpd('staff/'+resetStaffKey,{password:np});
+    toast('Password updated in records. For Firebase Auth reset, use Firebase Console → Authentication.','warn');
+    closeModal('resetPwdModal');
+  } catch(e){toast('Error: '+e.message,'error');}
 }
 
 async function confirmDeleteStaff(key,name){
@@ -3868,7 +3924,7 @@ async function downloadClientDoc(workKey, workNum) {
       ['Client Name', w.ownerName || w.clientName || '—'],
       ['Client ID', w.clientId || '—'],
       ['Vehicle No.', w.vehicles || w.vehicle || '—'],
-      ['Work Type', wtLabel(w.workType) + (w.othersSpecify ? ' — ' + w.othersSpecify : '')],
+      ['Work Type', wtLabelPlain(w.workType) + (w.othersSpecify ? ' — ' + w.othersSpecify : '')],
       ['Work Number', '#' + w.workNum],
       ['Date Completed', w.completedDate || '—'],
       ['Completed By', w.completedBy || '—'],
@@ -3932,7 +3988,7 @@ async function downloadClientDoc(workKey, workNum) {
     doc.setTextColor(120, 80, 0);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('📄  TO VIEW YOUR PAPERS', PW/2, y+11, { align:'center' });
+    doc.text('TO VIEW YOUR PAPERS', PW/2, y+11, { align:'center' });
     doc.setFontSize(12);
     doc.text('SCROLL DOWN TO PAGE 2', PW/2, y+21, { align:'center' });
 
@@ -3992,6 +4048,9 @@ async function downloadClientDoc(workKey, workNum) {
 const wtLabels={'Insurance':'🛡️ Insurance','Chalaan-Online':'📄 Chalaan (Online)','Chalaan-Court':'⚖️ Chalaan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others'};
 const wtClasses={'Insurance':'bb','Chalaan-Online':'bo','Chalaan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr'};
 function wtLabel(t){return wtLabels[t]||t||'—';}
+// Plain version for PDF (no emoji — jsPDF can't render them)
+const wtPlainLabels={'Insurance':'Insurance','Chalaan-Online':'Chalaan (Online)','Chalaan-Court':'Chalaan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others'};
+function wtLabelPlain(t){return wtPlainLabels[t]||t||'—';}
 function wtBadge(w){return `<span class="badge ${wtClasses[w.workType]||'bgr'}">${wtLabel(w.workType)}</span>`;}
 function payBadge(w){
   if(w.payMode==='Cash') return `<span class="badge bg">💵 Cash</span>`;
