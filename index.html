@@ -2565,8 +2565,9 @@ function openCloseWork(key){
 }
 
 async function completeWork() {
+  const closeWorkKey = closingWorkId;
   const w = allWorks.find(x=>x._key===closeWorkKey);
-  if(!w) return;
+  if(!w){toast('Work not found — please try again','error');return;}
   const bank = document.getElementById('closingBank').value;
   const amt = parseFloat(document.getElementById('receiptAmount').value)||0;
   const notes = document.getElementById('closeNotes').value.trim();
@@ -2599,10 +2600,9 @@ async function completeWork() {
     partialDesc: partialDesc
   };
 
-  // Strip _key before saving to Firebase (it's a local-only field)
-  const {_key, ...wClean} = w;
   try {
-    await dbSet('works/'+closeWorkKey, {...wClean, ...updates});
+    // Use dbUpd (update only changed fields) — safer than dbSet which can fail on complex objects
+    await dbUpd('works/'+closeWorkKey, updates);
     // Auto ledger debit for work expense
     if(amt>0) {
       await dbPush('ledger',{
