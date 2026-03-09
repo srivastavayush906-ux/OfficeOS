@@ -1290,6 +1290,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         </select>
       </div>
       <div class="field" id="ew_othersField" style="display:none;"><label>Specify</label><input type="text" id="ew_othersSpec"/></div>
+      <div class="field" id="ew_dlLicenseTypeField" style="display:none;"><label>License Type</label><select id="ew_dlLicenseType"><option value="">— Select —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select></div>
       <div class="field" id="ew_transferFromField" style="display:none;"><label>Transfer From</label><input type="text" id="ew_transferFrom"/></div>
       <div class="field" id="ew_transferToField" style="display:none;"><label>Transfer To</label><input type="text" id="ew_transferTo"/></div>
       <div class="field"><label>Work Value (₹)</label><input type="number" id="ew_workValue" min="0"/></div>
@@ -2354,6 +2355,19 @@ async function _doSubmitWork() {
 
   try {
     await dbPush('works', workData);
+    // Mirror to public clientWorks node for unauthenticated client portal
+    if(clientId) {
+      const cwKey = workData.workNum+'_'+now.getTime();
+      await dbSet('clientWorks/'+clientId+'/'+cwKey, {
+        workNum, clientId, clientName: clientName||ownerName, ownerName, phone,
+        vehicle: primaryRow.vehicle, vehicles: vwRows.map(r=>r.vehicle).join(', '),
+        workType: primaryRow.workType, othersSpecify: primaryRow.othersSpecify||'',
+        dlLicenseType: primaryRow.dlLicenseType||'',
+        status:'open', payMode: primaryRow.mode||payRows[0]?.mode||'',
+        totalPaid, remainingBalance, timestamp: now.getTime(),
+        date: dateStr, workValue
+      });
+    }
     // AUTO LEDGER for each payment row
     for(const pr of payRows) {
       if(pr.mode==='Unpaid'||pr.amount<=0) continue;
@@ -2929,6 +2943,19 @@ async function completeWork() {
     document.getElementById('miscReason').value='';
     document.getElementById('partialDesc').value='';
     closeWorkType='full';
+    // Update clientWorks mirror with completed status + receipt
+    if(w.clientId) {
+      const cwRef = await dbGet('clientWorks/'+w.clientId).catch(()=>null);
+      if(cwRef) {
+        const cwKey = Object.keys(cwRef).find(k=>cwRef[k].workNum==w.workNum);
+        if(cwKey) await dbUpd('clientWorks/'+w.clientId+'/'+cwKey, {
+          status: isPartial?'partial':'done',
+          expiryDate: expiry||'',
+          receiptPhoto: photoData?'1':'', // just flag — don't expose actual photo URL publicly
+          completedDate: now.toLocaleDateString('en-IN')
+        }).catch(()=>{});
+      }
+    }
     await loadAllData();
     renderWorkTable();
     renderDashboard();
@@ -3934,8 +3961,10 @@ async function forgotPassword(){
 async function clientTrack(){
   const cid=document.getElementById('clientUID').value.trim().toUpperCase();
   if(!cid||cid.length<4){document.getElementById('clientResult').innerHTML='<div style="background:var(--rl);color:var(--r);padding:9px 13px;border-radius:var(--rads);font-weight:700;font-size:.83rem;">Enter a valid Client ID</div>';return;}
-  await loadAllData();
-  const works=allWorks.filter(x=>x.clientId===cid).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  document.getElementById('clientResult').innerHTML='<div style="color:var(--gray);font-size:.83rem;padding:8px;">Looking up...</div>';
+  // Read from public clientWorks node — no auth required
+  const rawData = await dbGet('clientWorks/'+cid).catch(()=>null);
+  const works = rawData ? Object.values(rawData).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)) : [];
   if(!works.length){document.getElementById('clientResult').innerHTML='<div style="background:var(--rl);color:var(--r);padding:9px 13px;border-radius:var(--rads);font-weight:700;font-size:.83rem;">No works found for Client ID: '+esc(cid)+'</div>';return;}
   const w0=works[0];
   const openW=works.filter(w=>w.status==='open').length;
@@ -4267,6 +4296,14 @@ function showFirebaseRulesGuide() {
       ".write": "auth != null"
     },
     "counter": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "clientWorks": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "staff_auth": {
       ".read": "auth != null",
       ".write": "auth != null"
     }
