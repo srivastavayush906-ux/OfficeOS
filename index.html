@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap');
@@ -774,45 +776,48 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
           <div class="field"><label>Owner Name *</label><input type="text" id="w_name" placeholder="Vehicle owner's name"/></div>
           <div class="field"><label>Client Name (if different from owner)</label><input type="text" id="w_clientName" placeholder="Person who came to office (optional)"/></div>
         </div>
-        <!-- Multiple Vehicles -->
+        <!-- Vehicle + Work Type rows — each vehicle can have its own work type -->
         <div class="field">
-          <label>Vehicle Number(s) *</label>
-          <div id="vehicleList">
-            <div class="vehicle-row" style="display:flex;gap:8px;margin-bottom:6px;">
-              <input type="text" class="vehicle-input" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;flex:1;"/>
-              <button class="btn btn-sm btn-outline" onclick="addVehicleRow()" title="Add another vehicle">＋</button>
+          <label>Vehicle(s) &amp; Work Type(s) *</label>
+          <div style="background:#f8fafc;border-radius:12px;padding:12px;border:1px solid var(--grayb);">
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;">
+              <div style="font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Vehicle No.</div>
+              <div style="font-size:.7rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Work Type</div>
+              <div></div>
+            </div>
+            <div id="vehicleWorkList">
+              <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:8px;align-items:start;">
+                <input type="text" class="vehicle-input" placeholder="e.g. UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;width:100%;"/>
+                <div>
+                  <select class="wtype-sel" onchange="vwTypeChange(this)" style="width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
+                    <option value="">— Work Type —</option>
+                    <option value="Insurance">🛡️ Insurance</option>
+                    <option value="Chalaan-Online">📄 Chalaan — Online</option>
+                    <option value="Chalaan-Court">⚖️ Chalaan — Court</option>
+                    <option value="Fitness">✅ Fitness</option>
+                    <option value="Permit-AllIndia">🗺️ Permit — All India</option>
+                    <option value="Permit-State">📍 Permit — State</option>
+                    <option value="Registration">📝 Registration</option>
+                    <option value="Transfer">🔄 Transfer</option>
+                    <option value="PUC">🌿 PUC</option>
+                    <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
+                    <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="Others">📦 Others</option>
+                  </select>
+                  <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+                  <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+                  <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="addVWRow()" title="Add another vehicle/work" style="padding:8px 10px;">＋</button>
+              </div>
             </div>
           </div>
-          <div class="hint">Click ＋ to add multiple vehicles under this work</div>
+          <div class="hint">Each vehicle can have a different work type. Click ＋ to add more.</div>
         </div>
+        <div class="field"><label>Phone Number *</label><input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10"/></div>
         <div class="g2">
-          <div class="field"><label>Phone Number *</label><input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10"/></div>
-          <div class="field">
-            <label>Work Type *</label>
-            <select id="w_type" onchange="workTypeChange()">
-              <option value="">— Select Work Type —</option>
-              <option value="Insurance">🛡️ Insurance</option>
-              <option value="Chalaan-Online">📄 Chalaan — Online</option>
-              <option value="Chalaan-Court">⚖️ Chalaan — Court</option>
-              <option value="Fitness">✅ Fitness</option>
-              <option value="Permit-AllIndia">🗺️ Permit — All India</option>
-              <option value="Permit-State">📍 Permit — State</option>
-              <option value="Registration">📝 Registration</option>
-              <option value="Transfer">🔄 Transfer</option>
-              <option value="PUC">🌿 PUC (Pollution Certificate)</option>
-              <option value="RoadTax-OTT">🛣️ Road Tax — OTT (One Time)</option>
-              <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
-              <option value="Others">📦 Others (Specify)</option>
-            </select>
-          </div>
-          <div class="field" id="othersField" style="display:none;"><label>Specify Work *</label><input type="text" id="w_othersSpec" placeholder="Describe the work"/></div>
-          <!-- Transfer From/To -->
-          <div class="field" id="transferFromField" style="display:none;"><label>Transfer From (Current Owner) *</label><input type="text" id="w_transferFrom" placeholder="Current owner name"/></div>
-          <div class="field" id="transferToField" style="display:none;"><label>Transfer To (New Owner) *</label><input type="text" id="w_transferTo" placeholder="New owner name"/></div>
-        </div>
-        <div class="g2">
-          <div class="field"><label>Work Value (₹)</label><input type="number" id="w_workValue" placeholder="Total charge for this work" min="0" onchange="calcRemaining()"/><div class="hint">Total amount this work costs the client</div></div>
-          <div class="field"><label>Amount Received from Client (₹)</label><input type="number" id="w_amount" placeholder="Amount paid now" min="0" oninput="calcRemaining()" onchange="calcRemaining()"/></div>
+          <div class="field"><label>Work Value (₹)</label><input type="number" id="w_workValue" placeholder="Total charge for this work" min="0" onchange="calcRemaining()" oninput="showAmtHint(this)"/><div class="hint">Total amount this work costs the client</div></div>
+          <div class="field"><label>Amount Received from Client (₹)</label><input type="number" id="w_amount" placeholder="Amount paid now" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()"/></div>
         </div>
         <div id="remainingBal" style="display:none;background:var(--rl);border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:800;color:var(--r);font-size:.88rem;"></div>
         <!-- Payment Modes — multiple allowed -->
@@ -835,7 +840,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
                 <option value="Canara">Canara</option>
               </select>
               <select class="pay-emp-sel" style="display:none;flex:1;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;"/>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/>
               <button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button>
             </div>
           </div>
@@ -923,7 +928,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="page" id="page-udhari">
       <div class="card">
         <div class="card-title">💸 Udhari — Work Done But Client Has Not Paid</div>
-        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Completed On</th><th>By</th><th>Action</th></tr></thead><tbody id="udhariBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Amount Due</th><th>Completed On</th><th>Action</th></tr></thead><tbody id="udhariBody"></tbody></table></div>
       </div>
     </div>
 
@@ -1312,12 +1317,12 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         <option value="Canara">Canara Bank</option>
       </select>
     </div>
-    <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent to do this work" min="0"/></div>
+    <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent to do this work" min="0" oninput="showAmtHint(this)"/></div>
     <!-- Miscellaneous expense -->
     <div style="background:var(--graylite);border-radius:var(--rads);padding:12px;margin-bottom:12px;">
       <div style="font-weight:800;font-size:.82rem;margin-bottom:8px;">➕ Miscellaneous Expense (optional)</div>
       <div class="g2">
-        <div class="field" style="margin:0;"><label>Amount (₹)</label><input type="number" id="miscAmount" placeholder="e.g. 200" min="0"/></div>
+        <div class="field" style="margin:0;"><label>Amount (₹)</label><input type="number" id="miscAmount" placeholder="e.g. 200" min="0" oninput="showAmtHint(this)"/></div>
         <div class="field" style="margin:0;"><label>Reason</label><input type="text" id="miscReason" placeholder="e.g. Petrol, Stamp fee"/></div>
       </div>
     </div>
@@ -1659,6 +1664,8 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
+      window.fbStorage = firebase.storage();
+      window.fbStorage = firebase.storage();
     } catch(e) {
       try { db = firebase.database(); } catch(e2){}
     }
@@ -1927,7 +1934,7 @@ function renderDashboard() {
 // ============================================================
 // NEW WORK
 // ============================================================
-function workTypeChange(){document.getElementById('othersField').style.display=document.getElementById('w_type').value==='Others'?'block':'none';}
+// workTypeChange moved to vwTypeChange
 // payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
@@ -1989,7 +1996,7 @@ function addPayRow() {
     <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
   </select>
   <select class="pay-emp-sel" style="display:none;flex:1;">${empOpts}</select>
-  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" onchange="calcRemaining()"/>
+  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
   <button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>`;
   list.appendChild(row);
 }
@@ -1998,20 +2005,21 @@ function payRowChange(sel) {
   const row = sel.closest('.pay-row');
   const bankSel = row.querySelector('.pay-bank-sel');
   const empSel = row.querySelector('.pay-emp-sel');
-  bankSel.style.display = sel.value==='UPI' ? 'block' : 'none';
-  // populate employee select
+  const amtInp = row.querySelector('.pay-amt-inp');
+  bankSel.style.display = sel.value==='UPI' ? 'flex' : 'none';
   if(sel.value==='Employee') {
     empSel.innerHTML = allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
-    empSel.style.display = 'block';
+    empSel.style.display = 'flex';
   } else { empSel.style.display='none'; }
+  // Auto-fill amount from w_amount if this is the only row and amount is empty
+  if(amtInp && !amtInp.value) {
+    const total = parseFloat(document.getElementById('w_amount')?.value)||0;
+    const rows = document.querySelectorAll('.pay-row');
+    if(rows.length===1 && total>0) amtInp.value = total;
+  }
 }
 
-function workTypeChange() {
-  const t = document.getElementById('w_type').value;
-  document.getElementById('othersField').style.display = t==='Others'?'block':'none';
-  document.getElementById('transferFromField').style.display = t==='Transfer'?'block':'none';
-  document.getElementById('transferToField').style.display = t==='Transfer'?'block':'none';
-}
+// workTypeChange replaced by vwTypeChange
 
 function calcRemaining() {
   const wv = parseFloat(document.getElementById('w_workValue').value)||0;
@@ -2045,51 +2053,151 @@ function setCompleteType(type) {
   document.getElementById('closeWorkTitle').textContent = type==='full'?'✅ Mark Work Complete':'⏳ Mark Partial Completion';
 }
 
+
+// ============================================================
+// VEHICLE + WORK TYPE ROWS
+// ============================================================
+function vwTypeChange(sel) {
+  const row = sel.closest('.vw-row');
+  const spec = row.querySelector('.wtype-spec');
+  const tfrom = row.querySelector('.wtype-tfrom');
+  const tto = row.querySelector('.wtype-tto');
+  spec.style.display = sel.value==='Others' ? 'block' : 'none';
+  tfrom.style.display = sel.value==='Transfer' ? 'block' : 'none';
+  tto.style.display = sel.value==='Transfer' ? 'block' : 'none';
+}
+
+function addVWRow() {
+  const list = document.getElementById('vehicleWorkList');
+  const row = document.createElement('div');
+  row.className = 'vw-row';
+  row.style = 'display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:8px;align-items:start;';
+  row.innerHTML = `
+    <input type="text" class="vehicle-input" placeholder="e.g. UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;width:100%;"/>
+    <div>
+      <select class="wtype-sel" onchange="vwTypeChange(this)" style="width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
+        <option value="">— Work Type —</option>
+                    <option value="Insurance">🛡️ Insurance</option>
+                    <option value="Chalaan-Online">📄 Chalaan — Online</option>
+                    <option value="Chalaan-Court">⚖️ Chalaan — Court</option>
+                    <option value="Fitness">✅ Fitness</option>
+                    <option value="Permit-AllIndia">🗺️ Permit — All India</option>
+                    <option value="Permit-State">📍 Permit — State</option>
+                    <option value="Registration">📝 Registration</option>
+                    <option value="Transfer">🔄 Transfer</option>
+                    <option value="PUC">🌿 PUC</option>
+                    <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
+                    <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="Others">📦 Others</option>
+      </select>
+      <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+      <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+      <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+    </div>
+    <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.vw-row').remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function getVWRows() {
+  return [...document.querySelectorAll('.vw-row')].map(row => ({
+    vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
+    workType: row.querySelector('.wtype-sel').value,
+    othersSpecify: row.querySelector('.wtype-spec').value.trim(),
+    transferFrom: row.querySelector('.wtype-tfrom').value.trim(),
+    transferTo: row.querySelector('.wtype-tto').value.trim(),
+  })).filter(r => r.vehicle || r.workType);
+}
+
+function resetVWRows() {
+  document.getElementById('vehicleWorkList').innerHTML = `
+    <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:8px;align-items:start;">
+      <input type="text" class="vehicle-input" placeholder="e.g. UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;width:100%;"/>
+      <div>
+        <select class="wtype-sel" onchange="vwTypeChange(this)" style="width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
+          <option value="">— Work Type —</option>
+                    <option value="Insurance">🛡️ Insurance</option>
+                    <option value="Chalaan-Online">📄 Chalaan — Online</option>
+                    <option value="Chalaan-Court">⚖️ Chalaan — Court</option>
+                    <option value="Fitness">✅ Fitness</option>
+                    <option value="Permit-AllIndia">🗺️ Permit — All India</option>
+                    <option value="Permit-State">📍 Permit — State</option>
+                    <option value="Registration">📝 Registration</option>
+                    <option value="Transfer">🔄 Transfer</option>
+                    <option value="PUC">🌿 PUC</option>
+                    <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
+                    <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
+                    <option value="Others">📦 Others</option>
+        </select>
+        <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+        <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+        <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="addVWRow()" style="padding:8px 10px;">＋</button>
+    </div>`;
+}
+
+let _submitWorkLock = false;
 async function submitWork() {
+  if(_submitWorkLock){ toast('Already saving, please wait...','warn'); return; }
+  _submitWorkLock = true;
+  const saveBtn = document.querySelector('.btn-primary[onclick="submitWork()"]');
+  if(saveBtn){ saveBtn.textContent='⏳ Saving...'; saveBtn.disabled=true; }
+  try { await _doSubmitWork(); }
+  finally {
+    _submitWorkLock = false;
+    if(saveBtn){ saveBtn.textContent='✅ Save Work'; saveBtn.disabled=false; }
+  }
+}
+async function _doSubmitWork() {
   const ownerName = document.getElementById('w_name').value.trim();
   const clientName = document.getElementById('w_clientName').value.trim();
-  const vehicles = [...document.querySelectorAll('.vehicle-input')].map(i=>i.value.trim().toUpperCase()).filter(Boolean);
   const phone = document.getElementById('w_phone').value.trim();
-  const type = document.getElementById('w_type').value;
-  const othersSpec = document.getElementById('w_othersSpec').value.trim();
   const workValue = parseFloat(document.getElementById('w_workValue').value)||0;
   const notes = document.getElementById('w_notes').value.trim();
   const dateVal = document.getElementById('w_date').value;
-  const transferFrom = document.getElementById('w_transferFrom')?.value.trim()||'';
-  const transferTo = document.getElementById('w_transferTo')?.value.trim()||'';
+
+  // Collect vehicle+worktype rows
+  const vwRows = getVWRows();
 
   // Collect payment rows
   const payRows = [...document.querySelectorAll('.pay-row')].map(row=>({
     mode: row.querySelector('.pay-mode-sel').value,
     bank: row.querySelector('.pay-bank-sel').value,
-    employee: row.querySelector('.pay-emp-sel').value,
+    employee: row.querySelector('.pay-emp-sel')?.value||'',
     amount: parseFloat(row.querySelector('.pay-amt-inp').value)||0
   })).filter(r=>r.mode);
 
+  // Validations
   if(!ownerName){toast('Enter owner name','error');return;}
-  if(!vehicles.length){toast('Enter at least one vehicle number','error');return;}
+  if(!vwRows.length||!vwRows[0].vehicle){toast('Enter at least one vehicle number','error');return;}
+  if(vwRows.some(r=>r.vehicle&&!r.workType)){toast('Select work type for each vehicle','error');return;}
+  if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
-  if(!type){toast('Select work type','error');return;}
-  if(type==='Others'&&!othersSpec){toast('Specify the work','error');return;}
   if(!payRows.length){toast('Select at least one payment mode','error');return;}
   if(payRows.some(r=>r.mode==='UPI'&&!r.bank)){toast('Select bank for UPI payment','error');return;}
 
   const totalPaid = payRows.reduce((s,r)=>s+r.amount,0);
   const remaining = workValue>0 ? Math.max(0,workValue-totalPaid) : 0;
-
   const workNum = allWorks.length>0?Math.max(...allWorks.map(w=>w.workNum||0))+1:1;
   const clientId = await getOrCreateClientId(phone);
   const now = new Date();
   const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
 
+  // Primary vehicle/type from first row
+  const primaryRow = vwRows[0];
+  const allVehicles = vwRows.map(r=>r.vehicle).filter(Boolean).join(', ');
+
   const workData = {
     workNum, clientId,
     ownerName, clientName: clientName||ownerName,
-    vehicle: vehicles[0], vehicles: vehicles.join(', '),
-    phone, workType: type,
-    othersSpecify: type==='Others'?othersSpec:'',
-    transferFrom: type==='Transfer'?transferFrom:'',
-    transferTo: type==='Transfer'?transferTo:'',
+    vehicle: primaryRow.vehicle,
+    vehicles: allVehicles,
+    vehicleWorkItems: JSON.stringify(vwRows), // full per-vehicle work type data
+    phone,
+    workType: primaryRow.workType,
+    othersSpecify: primaryRow.workType==='Others'?primaryRow.othersSpecify:'',
+    transferFrom: primaryRow.workType==='Transfer'?primaryRow.transferFrom:'',
+    transferTo: primaryRow.workType==='Transfer'?primaryRow.transferTo:'',
     workValue, totalPaid, remainingBalance: remaining,
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
@@ -2105,17 +2213,15 @@ async function submitWork() {
     // AUTO LEDGER for each payment row
     for(const pr of payRows) {
       if(pr.mode==='Unpaid'||pr.amount<=0) continue;
-      const ledBank = pr.mode==='Cash'?'Cash':pr.mode==='UPI'?pr.bank:pr.mode==='Employee'?'Cash':'Cash';
-      if(ledBank) {
-        await dbPush('ledger',{
-          bank:ledBank, type:'credit', amount:pr.amount,
-          date:dateStr, timestamp:now.getTime(),
-          workRef:`#${workNum} — ${ownerName} / ${vehicles[0]}`,
-          description:`${pr.mode==='Employee'?'[Employee: '+pr.employee+'] ':''}Payment received: ${wtLabel(type)}`,
-          by:currentUser.name, autoEntry:true,
-          employeeName: pr.mode==='Employee'?pr.employee:''
-        });
-      }
+      const ledBank = pr.mode==='Cash'?'Cash':pr.mode==='UPI'?pr.bank:'Cash';
+      await dbPush('ledger',{
+        bank:ledBank, type:'credit', amount:pr.amount,
+        date:dateStr, timestamp:now.getTime(),
+        workRef:`#${workNum} — ${ownerName} / ${primaryRow.vehicle}`,
+        description:`${pr.mode==='Employee'?'[Employee: '+pr.employee+'] ':''}Payment received: ${wtLabel(primaryRow.workType)}`,
+        by:currentUser.name, autoEntry:true,
+        employeeName: pr.mode==='Employee'?pr.employee:''
+      });
     }
     toast(`✅ Work #${workNum} saved! Client ID: ${clientId}`,'success');
     // Reset form
@@ -2124,15 +2230,13 @@ async function submitWork() {
     document.getElementById('w_phone').value='';
     document.getElementById('w_workValue').value='';
     document.getElementById('w_notes').value='';
-    document.getElementById('w_type').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
-    document.getElementById('vehicleList').innerHTML=`<div class="vehicle-row" style="display:flex;gap:8px;margin-bottom:6px;"><input type="text" class="vehicle-input" placeholder="e.g. UP32 AB 1234" style="text-transform:uppercase;flex:1;"/><button class="btn btn-sm btn-outline" onclick="addVehicleRow()" title="Add another vehicle">＋</button></div>`;
-    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;"/><button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button></div>`;
     document.getElementById('remainingBal').style.display='none';
-    ['othersField','transferFromField','transferToField'].forEach(id=>document.getElementById(id).style.display='none');
+    resetVWRows();
+    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock();
-    showWhatsAppPopup(ownerName, phone, clientId, type);
+    showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType);
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
@@ -2175,7 +2279,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Phone</span><span class="value">'+w.phone+'</span></div>'
     +'<div class="row"><span class="label">Work Type</span><span class="value">'+(w.workType||'').replace(/-/g,' ')+'</span></div>'
     +'<div class="row"><span class="label">Date</span><span class="value">'+w.date+'</span></div>'
-    +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+inr(w.totalPaid||w.amount||0)+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+inr(w.remainingBalance)+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="'+w.receiptPhoto+'" target="_blank" style="color:#2563eb;text-decoration:underline;">📄 Download / View</a></span></div>':'')
+    +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+inr(w.totalPaid||w.amount||0)+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+inr(w.remainingBalance)+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="#" onclick="openImgInTab(\''+w.receiptPhoto+'\')" style="color:#2563eb;text-decoration:underline;">📄 View Document</a></span></div>':'')
     +'<div class="row"><span class="label">Payment</span><span class="value">'+w.payMode+'</span></div>'
     +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':'In Progress')+'</span></div>'
     +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+fmtDate(w.expiryDate)+'</span></div>':'')
@@ -2218,7 +2322,13 @@ function renderWorkTable(){
     <td><span class="wnum">#${w.workNum}</span></td>
     <td><span class="uid-tag" style="cursor:pointer;" onclick="showPage('clientHistory');document.getElementById('chSearch').value='${esc(w.phone)}';searchClientHistory();" title="View all works for this client">${esc(w.clientId||'—')}</span></td>
     <td><strong>${esc(w.ownerName||w.clientName)}</strong>${w.clientName&&w.clientName!==w.ownerName?`<br/><span style='font-size:.7rem;color:var(--gray);'>Client: ${esc(w.clientName)}</span>`:''}<br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-    <td style="font-weight:700;">${esc(w.vehicles||w.vehicle)}${w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:''}</td>
+    <td style="font-weight:700;">${(()=>{
+      try{
+        const items=JSON.parse(w.vehicleWorkItems||'[]');
+        if(items.length>1) return items.map(r=>`<div><span style="font-family:monospace;">${esc(r.vehicle)}</span> <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.68rem;">${wtLabel(r.workType)}</span></div>`).join('');
+      }catch(e){}
+      return esc(w.vehicles||w.vehicle)+(w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:'');
+    })()}</td>
     <td>${wtBadge(w)}</td>
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ${inr(w.remainingBalance)}</span>`:''}</td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
@@ -2311,20 +2421,47 @@ function renderOverdue(){
 // UDHARI
 // ============================================================
 function renderUdhari(){
-  const list=allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid');
-  const tbody=document.getElementById('udhariBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="nd">No unpaid completed works</td></tr>';return;}
-  tbody.innerHTML=list.map(w=>`<tr>
-    <td><span class="wnum">#${w.workNum}</span></td><td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
+  // Section A: Work taken as Unpaid (full udhari) — now done, nothing collected
+  const pureUdhari = allWorks.filter(w=>w.status==='done' && w.payMode==='Unpaid');
+  // Section B: Work done, partial payment collected, remaining balance still due
+  const partialDue = allWorks.filter(w=>w.status==='done' && w.payMode!=='Unpaid' && (w.remainingBalance||0)>0);
+
+  const tbody = document.getElementById('udhariBody');
+
+  const makeRow = (w, sectionTag) => `<tr>
+    <td><span class="wnum">#${w.workNum}</span></td>
+    <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
     <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-    <td style="font-weight:700;">${esc(w.vehicle)}</td><td>${wtBadge(w)}</td>
+    <td style="font-weight:700;font-size:.82rem;">${esc(w.vehicles||w.vehicle)}</td>
+    <td>${wtBadge(w)}</td>
+    <td style="font-weight:800;color:var(--r);">${inr(w.remainingBalance||w.amount||0)}</td>
     <td style="font-size:.8rem;">${esc(w.completedDate||'—')}</td>
-    <td style="font-size:.8rem;">${esc(w.completedBy||'—')}</td>
     <td style="display:flex;gap:4px;flex-wrap:wrap;">
       <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
       <button class="btn btn-sm btn-success" onclick="openMarkPaid('${w._key}')">💰 Mark Paid</button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+
+  const sectionHeader = (title, color, count) => `<tr>
+    <td colspan="8" style="background:${color};font-weight:800;font-size:.8rem;padding:7px 14px;color:#374151;border-radius:6px;">
+      ${title} <span style="background:#fff;padding:2px 8px;border-radius:10px;font-size:.75rem;margin-left:6px;">${count}</span>
+    </td></tr>`;
+
+  if(!pureUdhari.length && !partialDue.length){
+    tbody.innerHTML='<tr><td colspan="8" class="nd">✅ No pending dues — all clients have paid</td></tr>';
+    return;
+  }
+
+  let html = '';
+  if(pureUdhari.length){
+    html += sectionHeader('💸 Full Udhari — Work done, nothing collected yet','#fef3c7', pureUdhari.length);
+    html += pureUdhari.map(w=>makeRow(w,'udhari')).join('');
+  }
+  if(partialDue.length){
+    html += sectionHeader('⚠️ Partial Due — Work done, some amount still pending','#fff0f3', partialDue.length);
+    html += partialDue.map(w=>makeRow(w,'partial')).join('');
+  }
+  tbody.innerHTML = html;
 }
 
 // ============================================================
@@ -2463,7 +2600,15 @@ function viewWork(key){
     <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
     ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client at Office</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
     <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
-    <div class="di"><div class="dl">Vehicle(s)</div><div class="dv">${esc(w.vehicles||w.vehicle)}</div></div>
+    <div class="di"><div class="dl">Vehicle(s) & Work</div><div class="dv">
+      ${(()=>{
+        try{
+          const items=JSON.parse(w.vehicleWorkItems||'[]');
+          if(items.length>1) return items.map(r=>`<div style="margin-bottom:4px;"><span style="font-family:monospace;font-weight:800;">${esc(r.vehicle)}</span> <span style="color:var(--gray);font-size:.82rem;">→ ${wtLabel(r.workType)}${r.othersSpecify?' ('+esc(r.othersSpecify)+')':''}</span></div>`).join('');
+        }catch(e){}
+        return `<span style="font-family:monospace;font-weight:800;">${esc(w.vehicles||w.vehicle)}</span>`;
+      })()}
+    </div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
     <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div></div>
     <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}</div></div>
@@ -2480,7 +2625,7 @@ function viewWork(key){
     ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
     ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
     ${w.closeNotes?`<div class="di"><div class="dl">Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
-    ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="window.open('${w.receiptPhoto}','_blank')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
+    ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="openImgInTab('${w.receiptPhoto}')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
   `;
   openModal('workDetailModal');
 }
@@ -2579,11 +2724,19 @@ async function completeWork() {
   if(!bank){toast('Select payment source','error');return;}
   if(isPartial&&!partialDesc){toast('Describe what was completed','error');return;}
 
-  // Collect all document uploads
+  // Lock button to prevent double submit
+  const submitBtn = document.querySelector('#closeWorkModal .btn-success');
+  if(submitBtn && submitBtn.dataset.submitting==='1'){toast('Already saving, please wait...','warn');return;}
+  if(submitBtn){ submitBtn.dataset.submitting='1'; submitBtn.textContent='⏳ Saving...'; submitBtn.disabled=true; }
+
+  // Upload documents to Firebase Storage
   let photoData = '';
   const fileInputs = document.querySelectorAll('#docUploadList input[type=file]');
   if(fileInputs[0]&&fileInputs[0].files[0]) {
-    try { photoData = await compressImage(fileInputs[0].files[0]); } catch(e){}
+    try {
+      toast('Uploading document...','warn');
+      photoData = await uploadDocToStorage(fileInputs[0].files[0], closeWorkKey);
+    } catch(e){ console.warn('Upload failed:', e); }
   }
 
   const now = new Date();
@@ -2643,8 +2796,10 @@ async function completeWork() {
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
     }
   } catch(e){console.error(e);toast('Error saving: '+e.message,'error');}
+  finally {
+    if(submitBtn){ submitBtn.dataset.submitting=''; submitBtn.textContent='✅ Submit'; submitBtn.disabled=false; }
+  }
 }
-
 
 async function previewReceiptPhoto(input) {
   const file = input.files[0];
@@ -2653,7 +2808,7 @@ async function previewReceiptPhoto(input) {
   const img = document.getElementById('receiptPreviewImg');
   const info = document.getElementById('receiptSizeInfo');
   box.style.display = 'block';
-  info.textContent = 'Compressing…';
+  info.textContent = 'Loading preview…';
   try {
     const compressed = await compressImage(file);
     img.src = compressed;
@@ -2670,6 +2825,64 @@ async function previewReceiptPhoto(input) {
 // IMAGE COMPRESSION
 // ============================================================
 const fileToBase64 = file => compressImage(file); // kept for compatibility
+
+// Upload file to Firebase Storage, return download URL
+// Falls back to base64 if Storage not available (demo mode)
+async function uploadDocToStorage(file, workKey) {
+  if(!window.fbStorage || !file) return '';
+  try {
+    // Compress first if it's an image
+    let uploadFile = file;
+    if(file.type.startsWith('image/')) {
+      const b64 = await compressImage(file);
+      // convert base64 back to blob for upload
+      const parts = b64.match(/^data:([^;]+);base64,(.+)$/);
+      if(parts) {
+        const byteChars = atob(parts[2]);
+        const byteNums = new Array(byteChars.length);
+        for(let i=0;i<byteChars.length;i++) byteNums[i]=byteChars.charCodeAt(i);
+        uploadFile = new Blob([new Uint8Array(byteNums)], {type:parts[1]});
+      }
+    }
+    const ext = file.name.split('.').pop().toLowerCase()||'jpg';
+    const path = `documents/${workKey}_${Date.now()}.${ext}`;
+    const storageRef = window.fbStorage.ref(path);
+    const snap = await storageRef.put(uploadFile);
+    const url = await snap.ref.getDownloadURL();
+    return url;
+  } catch(e) {
+    console.error('Storage upload failed, using base64:', e);
+    // fallback to base64
+    return await compressImage(file);
+  }
+}
+
+// Upload file to Firebase Storage, return download URL
+// Falls back to base64 if Storage not available (demo mode)
+async function uploadDocToStorage(file, workKey) {
+  if(!window.fbStorage || !file) return '';
+  try {
+    let uploadBlob = file;
+    if(file.type.startsWith('image/')) {
+      const b64 = await compressImage(file);
+      const parts = b64.match(/^data:([^;]+);base64,(.+)$/);
+      if(parts) {
+        const byteChars=atob(parts[2]), byteNums=new Array(byteChars.length);
+        for(let i=0;i<byteChars.length;i++) byteNums[i]=byteChars.charCodeAt(i);
+        uploadBlob = new Blob([new Uint8Array(byteNums)], {type:parts[1]});
+      }
+    }
+    const ext = (file.name||'doc').split('.').pop().toLowerCase()||'jpg';
+    const path = `documents/${workKey||'w'}_${Date.now()}.${ext}`;
+    const snap = await window.fbStorage.ref(path).put(uploadBlob);
+    const url = await snap.ref.getDownloadURL();
+    return url;
+  } catch(e) {
+    console.warn('Storage upload failed, falling back to base64:', e.message);
+    if(file.type.startsWith('image/')) return await compressImage(file);
+    return '';
+  }
+}
 
 function compressImage(file, maxW=1200, maxH=1200, quality=0.65) {
   return new Promise((resolve, reject) => {
@@ -2770,6 +2983,37 @@ function fmtDate(d) {
   const dt = new Date(d);
   if(!isNaN(dt)) return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
   return d;
+}
+
+// Format number input with Indian commas on blur
+function formatNumberInput(inp) {
+  const v = parseFloat(inp.value);
+  if(!isNaN(v) && inp.dataset.rawval !== undefined) inp.dataset.rawval = v;
+}
+// Show formatted hint next to amount fields
+function showAmtHint(inp) {
+  const v = parseFloat(inp.value);
+  let hint = inp.nextElementSibling;
+  if(!hint || !hint.classList.contains('amt-hint')) {
+    hint = document.createElement('div');
+    hint.className = 'amt-hint';
+    hint.style = 'font-size:.72rem;color:var(--p);font-weight:700;margin-top:2px;';
+    inp.parentNode.insertBefore(hint, inp.nextSibling);
+  }
+  hint.textContent = (!isNaN(v) && v>0) ? '= ' + inr(v) : '';
+}
+
+// Format number input with Indian commas as hint below field
+function showAmtHint(inp) {
+  const v = parseFloat(inp.value);
+  let hint = inp.parentNode.querySelector('.amt-hint');
+  if(!hint){
+    hint=document.createElement('div');
+    hint.className='amt-hint';
+    hint.style='font-size:.73rem;color:var(--p);font-weight:800;margin-top:3px;letter-spacing:.3px;';
+    inp.parentNode.appendChild(hint);
+  }
+  hint.textContent=(!isNaN(v)&&v>0)?'= '+inr(v):'';
 }
 
 // Indian number formatting (1,35,000 style)
@@ -3570,6 +3814,27 @@ function exportWorksExcel(){
 }
 
 function exportWorksPDF(){window.print();}
+
+// ============================================================
+// Open base64 image in new tab properly
+function openImgInTab(src){
+  if(!src) return;
+  // Build a blob URL so browser doesn't show blank page for base64
+  try {
+    const parts = src.match(/^data:([^;]+);base64,(.+)$/);
+    if(parts){
+      const mime=parts[1], b64=parts[2];
+      const byteChars=atob(b64), byteNums=new Array(byteChars.length);
+      for(let i=0;i<byteChars.length;i++) byteNums[i]=byteChars.charCodeAt(i);
+      const blob=new Blob([new Uint8Array(byteNums)],{type:mime});
+      const url=URL.createObjectURL(blob);
+      const win=window.open(url,'_blank');
+      if(!win){ alert('Allow popups to view document'); }
+      return;
+    }
+  } catch(e){}
+  window.open(src,'_blank');
+}
 
 // ============================================================
 // UTILITIES
