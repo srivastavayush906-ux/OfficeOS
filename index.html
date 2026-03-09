@@ -575,11 +575,33 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
   #sidebar { transform: translateX(-100%); }
   #sidebar.open { transform: translateX(0); }
   #sideOverlay.show { display: block; }
-  #content { margin-left: 0; padding: 16px; padding-top: 60px; max-width: 100vw; }
+  #content { margin-left: 0; padding: 12px; padding-top: 60px; max-width: 100vw; }
   #menuToggle { display: flex; align-items: center; justify-content: center; }
   .g2, .g3, .dgrid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: 1fr 1fr; }
   .tab-row { width: 100%; }
+  /* Modals — full width on mobile */
+  .md { width: 96vw !important; max-width: 96vw !important; padding: 18px 14px !important; margin: 8px !important; max-height: 92vh; overflow-y: auto; }
+  .md-title { font-size: 1rem !important; }
+  /* Tables — horizontal scroll */
+  .ox { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wt td, .wt th { font-size: .75rem; padding: 7px 8px; white-space: nowrap; }
+  /* Forms — bigger touch targets */
+  .field input, .field select, .field textarea { font-size: 16px !important; padding: 11px 12px !important; }
+  .btn { padding: 9px 14px; font-size: .82rem; min-height: 40px; }
+  .btn-sm { padding: 6px 10px; font-size: .75rem; min-height: 32px; }
+  /* Cards padding */
+  .card { padding: 14px !important; }
+  /* Filter bar wrap */
+  .filter-bar { flex-wrap: wrap; gap: 8px; }
+  .filter-bar input, .filter-bar select { width: 100%; }
+  /* Stat cards smaller */
+  .stat-card { padding: 12px 14px; }
+  .stat-value { font-size: 1.5rem !important; }
+  /* Login card */
+  .login-card { padding: 24px 18px !important; }
+  /* Topbar */
+  #topbarDate { display: none; }
 }
 
 /* ═══════════ PW TOGGLE ═══════════ */
@@ -665,6 +687,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password"/><button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1">👁️</button></div></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()">Login →</button>
     <div id="loginErr" style="color:var(--r);font-size:.83rem;margin-top:9px;display:none;font-weight:700;"></div>
+    <div style="text-align:center;margin-top:12px;"><button onclick="forgotPassword()" style="background:none;border:none;color:var(--p);font-size:.82rem;cursor:pointer;text-decoration:underline;">Forgot password?</button></div>
   </div>
   <div class="client-card">
     <h3>🔍 Track Your Works</h3>
@@ -750,6 +773,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showPage('newWork')">＋ New Work</button>
       </div>
       <div class="stats-row" id="dashStats"></div>
+      <div id="dashExpiryBanner"></div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
         <button class="btn btn-primary" onclick="showPage('newWork')">➕ New Work</button>
         <button class="btn btn-outline" onclick="showPage('allWork')">📋 All Works</button>
@@ -859,6 +883,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         <div class="sh"><div class="card-title" style="margin:0;">📋 All Works</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="btn btn-sm btn-outline" onclick="exportWorksExcel()">📥 Export Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="exportFullDBBackup()" title="Download full database backup as JSON">💾 Full Backup</button>
             <button class="btn btn-sm btn-gray" onclick="exportWorksPDF()">🖨️ Print / PDF</button>
           </div>
         </div>
@@ -1387,7 +1412,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <button class="md-close" onclick="closeModal('changePwdModal')">×</button>
     <div class="md-title">🔑 Change Your Password</div>
     <div class="field"><label>Current Password</label><div class="pw-wrap"><input type="password" id="cp_old"/><button class="pw-eye" onclick="togglePw('cp_old',this)" tabindex="-1">👁️</button></div></div>
-    <div class="field"><label>New Password</label><div class="pw-wrap"><input type="password" id="cp_new" placeholder="Min 4 characters"/><button class="pw-eye" onclick="togglePw('cp_new',this)" tabindex="-1">👁️</button></div></div>
+    <div class="field"><label>New Password</label><div class="pw-wrap"><input type="password" id="cp_new" placeholder="Min 6 characters"/><button class="pw-eye" onclick="togglePw('cp_new',this)" tabindex="-1">👁️</button></div></div>
     <div class="field"><label>Confirm New Password</label><div class="pw-wrap"><input type="password" id="cp_confirm"/><button class="pw-eye" onclick="togglePw('cp_confirm',this)" tabindex="-1">👁️</button></div></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('changePwdModal')">Cancel</button>
@@ -1679,7 +1704,30 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const s = document.getElementById('splash');
     s.style.opacity = '0';
-    setTimeout(() => { s.style.display = 'none'; document.getElementById('loginPage').classList.add('show'); checkFirstRun(); }, 500);
+    setTimeout(() => {
+      s.style.display = 'none';
+      if(window.fbAuth) {
+        // Firebase Auth — check if already logged in
+        window.fbAuth.onAuthStateChanged(async (user) => {
+          if(user && !currentUser) {
+            // Session still active — auto login
+            const profile = await dbGet('staff_auth/'+user.uid).catch(()=>null);
+            if(profile) {
+              currentUser = {...profile, uid: user.uid, key: user.uid};
+              await loginSuccess();
+              return;
+            }
+          }
+          if(!currentUser) {
+            document.getElementById('loginPage').classList.add('show');
+            checkFirstRun();
+          }
+        });
+      } else {
+        document.getElementById('loginPage').classList.add('show');
+        checkFirstRun();
+      }
+    }, 500);
   }, 1400);
 
   const now = new Date();
@@ -1704,8 +1752,6 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(checkBackupReminder, 4000);
   // Activity listeners for app lock
   ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
-  // Check backup reminder on load
-  setTimeout(checkBackupReminder, 4000);
 });
 
 async function checkFirstRun() {
@@ -1791,6 +1837,43 @@ async function loginSuccess() {
   await dbPush('accessLog',{name:currentUser.name,role:currentUser.role,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()});
   await loadAllData();
   showPage('dashboard');
+  // Check expiry notifications after data loads
+  setTimeout(checkExpiryNotifications, 1500);
+}
+
+function checkExpiryNotifications() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in7  = new Date(today.getTime() + 7*86400000);
+  const in30 = new Date(today.getTime() + 30*86400000);
+  const expiringSoon = allWorks.filter(w => {
+    if(!w.expiryDate || w.status !== 'done') return false;
+    const d = new Date(w.expiryDate); d.setHours(0,0,0,0);
+    return d >= today && d <= in7;
+  });
+  const expiringThisMonth = allWorks.filter(w => {
+    if(!w.expiryDate || w.status !== 'done') return false;
+    const d = new Date(w.expiryDate); d.setHours(0,0,0,0);
+    return d > in7 && d <= in30;
+  });
+  const expired = allWorks.filter(w => {
+    if(!w.expiryDate || w.status !== 'done') return false;
+    const d = new Date(w.expiryDate); d.setHours(0,0,0,0);
+    return d < today;
+  });
+
+  // Show toasts with delay between them
+  let delay = 500;
+  if(expired.length > 0) {
+    setTimeout(() => toast(`🚨 ${expired.length} document${expired.length>1?'s':''} EXPIRED! Check Expiry section.`, 'error'), delay);
+    delay += 2000;
+  }
+  if(expiringSoon.length > 0) {
+    setTimeout(() => toast(`⚠️ ${expiringSoon.length} document${expiringSoon.length>1?'s':''} expiring within 7 days!`, 'warn'), delay);
+    delay += 2000;
+  }
+  if(expiringThisMonth.length > 0) {
+    setTimeout(() => toast(`📅 ${expiringThisMonth.length} document${expiringThisMonth.length>1?'s':''} expiring this month.`, 'warn'), delay);
+  }
 }
 
 function togglePw(id, btn) {
@@ -1924,6 +2007,19 @@ function renderDashboard() {
   const overdueFollowups = allFollowups.filter(f=>!f.done&&f.dueDate&&new Date(f.dueDate)<new Date());
   if(overdueFollowups.length>0) {
     setTimeout(()=>toast('📌 '+overdueFollowups.length+' follow-up reminder'+(overdueFollowups.length>1?'s are':' is')+' overdue! Check Follow-ups page.','warn'),800);
+  }
+
+  // Expiry alert banner on dashboard
+  const todayD = new Date(); todayD.setHours(0,0,0,0);
+  const in7D = new Date(todayD.getTime()+7*86400000);
+  const expiredWorks = allWorks.filter(w=>{if(!w.expiryDate||w.status!=='done')return false;const d=new Date(w.expiryDate);d.setHours(0,0,0,0);return d<todayD;});
+  const urgentWorks = allWorks.filter(w=>{if(!w.expiryDate||w.status!=='done')return false;const d=new Date(w.expiryDate);d.setHours(0,0,0,0);return d>=todayD&&d<=in7D;});
+  const expiryBanner = document.getElementById('dashExpiryBanner');
+  if(expiryBanner) {
+    let bannerHtml = '';
+    if(expiredWorks.length>0) bannerHtml += `<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-weight:800;color:#dc2626;">🚨 ${expiredWorks.length} document${expiredWorks.length>1?'s':''} EXPIRED</span><button class="btn btn-sm" style="background:#dc2626;color:#fff;border:none;" onclick="showPage('expiry')">View →</button></div>`;
+    if(urgentWorks.length>0) bannerHtml += `<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-weight:800;color:#d97706;">⚠️ ${urgentWorks.length} document${urgentWorks.length>1?'s':''} expiring in 7 days</span><button class="btn btn-sm" style="background:#d97706;color:#fff;border:none;" onclick="showPage('expiry')">View →</button></div>`;
+    expiryBanner.innerHTML = bannerHtml;
   }
 
   document.getElementById('recentList').innerHTML=allWorks.slice(0,6).map(w=>`
@@ -3695,7 +3791,7 @@ function renderManageStaff(){
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--grayb);flex-wrap:wrap;gap:9px;">
       <div>
         <div style="font-weight:800;font-size:.93rem;">${esc(s.name)} <span class="badge ${s.role==='owner'?'bo':'bb'}" style="margin-left:5px;">${s.role==='owner'?'👑 Owner':'👤 Staff'}</span></div>
-        <div style="font-size:.78rem;color:var(--gray);margin-top:2px;">Username: <strong>${esc(s.username)}</strong></div>
+        <div style="font-size:.78rem;color:var(--gray);margin-top:2px;">Email: <strong>${esc(s.email||s.username||'—')}</strong></div>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
         <button class="btn btn-sm btn-outline" onclick="showResetPwd('${s._key}','${esc(s.name)}')">🔑 Reset Password</button>
@@ -3768,11 +3864,44 @@ function showChangePassword(){openModal('changePwdModal');}
 async function changePassword(){
   const op=document.getElementById('cp_old').value,np=document.getElementById('cp_new').value,cp=document.getElementById('cp_confirm').value;
   if(!op||!np||!cp){toast('Fill all fields','error');return;}
-  if(op!==currentUser.password){toast('Current password incorrect','error');return;}
-  if(np.length<4){toast('New password min 4 chars','error');return;}
+  if(np.length<6){toast('New password min 6 characters','error');return;}
   if(np!==cp){toast('New passwords do not match','error');return;}
-  try{await dbUpd('staff/'+currentUser.key,{password:np});currentUser.password=np;toast('Password changed! ✅','success');closeModal('changePwdModal');['cp_old','cp_new','cp_confirm'].forEach(id=>document.getElementById(id).value='');}
-  catch(e){toast('Error: '+e.message,'error');}
+  try {
+    if(window.fbAuth && window.fbAuth.currentUser) {
+      const user = window.fbAuth.currentUser;
+      const cred = firebase.auth.EmailAuthProvider.credential(user.email, op);
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(np);
+      toast('Password changed! ✅','success');
+    } else {
+      if(op !== currentUser.password){ toast('Current password incorrect','error'); return; }
+      await dbUpd('staff/'+currentUser.key,{password:np});
+      currentUser.password = np;
+      toast('Password changed! ✅','success');
+    }
+    closeModal('changePwdModal');
+    ['cp_old','cp_new','cp_confirm'].forEach(id=>document.getElementById(id).value='');
+  } catch(e) {
+    const msg = e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'
+      ? 'Current password is incorrect.' : 'Error: '+e.message;
+    toast(msg,'error');
+  }
+}
+
+async function forgotPassword(){
+  const email = document.getElementById('loginUser').value.trim();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast('Enter your email address in the field above first','error'); return;
+  }
+  if(!window.fbAuth){ toast('Firebase Auth not available','error'); return; }
+  try {
+    await window.fbAuth.sendPasswordResetEmail(email);
+    toast('Reset email sent to '+email+' — check your inbox! ✅','success');
+  } catch(e) {
+    const msg = e.code==='auth/user-not-found' ? 'No account found with this email.'
+      : 'Error: '+e.message;
+    toast(msg,'error');
+  }
 }
 
 // ============================================================
@@ -4640,6 +4769,44 @@ function viewWorkHistory(key) {
 // ============================================================
 // BACKUP REMINDER
 // ============================================================
+// ── Full DB JSON Backup ──
+async function exportFullDBBackup() {
+  try {
+    toast('Preparing full backup...','warn');
+    const allData = await dbGet('/');
+    if(!allData){ toast('No data to backup','error'); return; }
+    const json = JSON.stringify(allData, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toLocaleDateString('en-IN').replace(/[/]/g,'-');
+    a.href = url; a.download = `NandanLegal_FullBackup_${date}.json`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    markBackupDone();
+    toast('Full backup downloaded! ✅','success');
+  } catch(e){ toast('Backup failed: '+e.message,'error'); }
+}
+
+// ── Full DB JSON Backup ──
+async function exportFullDBBackup() {
+  try {
+    toast('Preparing full backup...','warn');
+    const allData = await dbGet('/');
+    if(!allData){ toast('No data to backup','error'); return; }
+    const json = JSON.stringify(allData, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toLocaleDateString('en-IN').replace(/[/]/g,'-');
+    a.href = url; a.download = `NandanLegal_FullBackup_${date}.json`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    markBackupDone();
+    toast('Full backup downloaded! \u2705','success');
+  } catch(e){ toast('Backup failed: '+e.message,'error'); }
+}
+
 function checkBackupReminder() {
   try {
     const last = localStorage.getItem('officeOS_lastBackup');
