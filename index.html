@@ -865,7 +865,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
                 <option value="Canara">Canara</option>
               </select>
               <select class="pay-emp-sel" style="display:none;flex:1;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()"/>
               <button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button>
             </div>
           </div>
@@ -1316,7 +1316,9 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     </div>
     <div class="field" id="partialDescField" style="display:none;">
       <label>What was completed? *</label>
-      <input type="text" id="partialDesc" placeholder="e.g. Insurance done, Fitness pending"/>
+      <div id="partialCheckboxes" style="margin-bottom:8px;"></div>
+      <input type="text" id="partialDesc" placeholder="Or type manually (e.g. Insurance done, Fitness pending)" style="font-size:.85rem;"/>
+      <div class="hint">Tick the items that are done, or type manually below.</div>
     </div>
     <!-- Multiple documents -->
     <div class="field">
@@ -2011,6 +2013,8 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page==='newWork') initNewWorkDate();
+  // Reset New Work form when navigating AWAY from it
+  if(page !== 'newWork') resetNewWorkForm();
   const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend};
   if(renders[page]) renders[page]();
   closeSidebar();
@@ -2118,6 +2122,19 @@ function renderDashboard() {
 
 // Set date default when new work page loads — called from showPage
 function initNewWorkDate(){const el=document.getElementById('w_date');if(el)el.value=new Date().toISOString().split('T')[0];}
+
+function resetNewWorkForm() {
+  try {
+    ['w_name','w_clientName','w_phone','w_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['w_workValue','w_amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const remDiv=document.getElementById('remainingBal'); if(remDiv) remDiv.style.display='none';
+    resetVWRows();
+    // Reset pay modes to a single blank row
+    const pml=document.getElementById('payModeList');
+    if(pml) pml.innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
+    initNewWorkDate();
+  } catch(e) {}
+}
 // Live clock in topbar
 function startClock(){
   const el=document.getElementById('topbarClock');
@@ -2192,6 +2209,24 @@ function calcRemaining() {
   const wv = parseFloat(document.getElementById('w_workValue').value)||0;
   const received = parseFloat(document.getElementById('w_amount').value)||0;
   const div = document.getElementById('remainingBal');
+
+  // Also validate payment modes sum vs amount received
+  const payAmts = [...document.querySelectorAll('.pay-amt-inp')].map(i=>parseFloat(i.value)||0);
+  const paySum = payAmts.reduce((s,v)=>s+v,0);
+  const diff = received - paySum;
+
+  if(received > 0 && paySum > 0 && Math.abs(diff) > 0.5) {
+    div.style.display='block';
+    if(diff > 0) {
+      div.style.background='var(--yl)'; div.style.color='var(--o)';
+      div.textContent = `⚠️ Payment modes short by ${inr(diff)} — total modes (${inr(paySum)}) < amount received (${inr(received)})`;
+    } else {
+      div.style.background='var(--rl)'; div.style.color='var(--r)';
+      div.textContent = `❌ Payment modes exceed by ${inr(-diff)} — total modes (${inr(paySum)}) > amount received (${inr(received)})`;
+    }
+    return;
+  }
+
   if(wv>0 && received>wv) {
     div.style.display='block';
     div.style.background='var(--gl)'; div.style.color='var(--g)';
@@ -2369,6 +2404,16 @@ async function _doSubmitWork() {
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
   if(!payRows.length){toast('Select at least one payment mode','error');return;}
   if(payRows.some(r=>r.mode==='UPI'&&!r.bank)){toast('Select bank for UPI payment','error');return;}
+  // Validate payment modes sum == amount received (skip for Unpaid-only works)
+  const hasNonUnpaid = payRows.some(r=>r.mode!=='Unpaid'&&r.mode!=='ExcessPaid');
+  if(hasNonUnpaid && totalPaid > 0) {
+    const paySum = payRows.filter(r=>r.mode!=='Unpaid'&&r.mode!=='ExcessPaid').reduce((s,r)=>s+r.amount,0);
+    const nonUnpaidReceived = parseFloat(document.getElementById('w_amount').value)||0;
+    if(nonUnpaidReceived > 0 && Math.abs(paySum - nonUnpaidReceived) > 0.5) {
+      toast(`Payment modes total (${inr(paySum)}) must equal amount received (${inr(nonUnpaidReceived)})`, 'error');
+      return;
+    }
+  }
 
   const totalPaid = payRows.reduce((s,r)=>s+r.amount,0);
   const remaining = workValue>0 ? Math.max(0,workValue-totalPaid) : 0;
@@ -2765,11 +2810,11 @@ function searchClientHistory(){
     <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${list.filter(w=>w.payMode==='Unpaid').length}</div></div>
     <div class="sc yellow"><div class="sl">Total Paid</div><div class="sv">${inr(totalAmt)}</div></div>
   </div>
-  <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+  <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Vehicle(s)</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
     ${list.map(w=>`<tr>
       <td><span class="wnum">#${w.workNum}</span></td>
+      <td style="font-size:.8rem;font-weight:700;">${esc(w.vehicles||w.vehicle)}</td>
       <td>${wtBadge(w)}</td>
-      <td style="font-size:.8rem;">${esc(w.vehicles||w.vehicle)}</td>
       <td>${payBadge(w)}</td>
       <td><span class="badge ${w.status==='done'?'bg':(w.status==='partial'?'by':'bb')}">${w.status==='done'?'✅ Done':(w.status==='partial'?'⏳ Partial':'🔄 Open')}</span></td>
       <td style="font-size:.8rem;">${fmtDate(w.date)}</td>
@@ -2909,15 +2954,49 @@ function openCloseWork(key){
   const bankSel = document.getElementById('closingBank');
   bankSel.value = '';
   if(w) {
-    // Try to infer best pre-fill: if paid via UPI use that bank, else use payMode mapping
     const mode = w.payMode||'';
     const bank = w.bank||'';
     if(mode==='Cash') bankSel.value='Cash';
     else if(mode==='UPI' && bank) bankSel.value=bank;
     else if(['HDFC','SBI','Kotak','ICICI','Canara','Cash'].includes(bank)) bankSel.value=bank;
   }
+  // Populate partial completion checkboxes from vehicleWorkItems (Bug C + E)
+  const cbBox = document.getElementById('partialCheckboxes');
+  cbBox.innerHTML = '';
+  document.getElementById('partialDesc').value = '';
+  if(w) {
+    try {
+      const items = JSON.parse(w.vehicleWorkItems||'[]');
+      const prevDone = (w.partialDesc||'').split(',').map(s=>s.trim().toLowerCase());
+      // Find items not yet marked done
+      const pendingItems = items.filter(r => r.vehicle && r.workType && !prevDone.some(d=>d.includes(r.vehicle.toLowerCase())));
+      if(pendingItems.length > 0) {
+        cbBox.innerHTML = pendingItems.map((r,i)=>`
+          <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--graylite);border-radius:var(--rads);margin-bottom:6px;cursor:pointer;font-size:.88rem;">
+            <input type="checkbox" id="pcb_${i}" value="${esc(r.vehicle)} — ${wtLabelPlain(r.workType)}" onchange="updatePartialDescFromCheckboxes()" style="width:16px;height:16px;"/>
+            <span><strong>${esc(r.vehicle)}</strong> — ${wtLabelPlain(r.workType)}</span>
+          </label>`).join('');
+        // Bug E: if only 1 item left, disable Partial button, force Full Completion
+        if(pendingItems.length === 1) {
+          document.getElementById('completePartialBtn').disabled = true;
+          document.getElementById('completePartialBtn').title = 'Only 1 item left — use Full Completion';
+          document.getElementById('completePartialBtn').style.opacity = '0.4';
+          setCompleteType('full');
+        } else {
+          document.getElementById('completePartialBtn').disabled = false;
+          document.getElementById('completePartialBtn').title = '';
+          document.getElementById('completePartialBtn').style.opacity = '';
+        }
+      }
+    } catch(e) { cbBox.innerHTML = ''; }
+  }
   closeModal('workDetailModal');
   openModal('closeWorkModal');
+}
+
+function updatePartialDescFromCheckboxes() {
+  const checked = [...document.querySelectorAll('#partialCheckboxes input[type=checkbox]:checked')].map(cb=>cb.value);
+  if(checked.length > 0) document.getElementById('partialDesc').value = checked.join(', ');
 }
 
 async function completeWork() {
@@ -3681,7 +3760,19 @@ function searchOspWork() {
 
 function selectOspWork(w, el) {
   ospSelectedWork = w;
-  document.getElementById('ospWorkLabel').textContent=`Work #${w.workNum} — ${w.ownerName||w.clientName} — ${w.vehicles||w.vehicle} — ${wtLabel(w.workType)}`;
+  // For multi-vehicle works, show a vehicle selector
+  const vehicles = (w.vehicles||w.vehicle||'').split(',').map(v=>v.trim()).filter(Boolean);
+  let vehicleNote = esc(w.vehicles||w.vehicle);
+  if(vehicles.length > 1) {
+    vehicleNote = `<div style="margin-top:6px;">
+      <label style="font-size:.8rem;font-weight:700;">Select Vehicle for this Expense:</label>
+      <select id="ospVehicleSel" style="width:100%;margin-top:4px;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
+        <option value="">— All Vehicles —</option>
+        ${vehicles.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  document.getElementById('ospWorkLabel').innerHTML=`<strong>Work #${w.workNum}</strong> — ${esc(w.ownerName||w.clientName)} — ${esc(w.workType?wtLabelPlain(w.workType):'')}${vehicleNote}`;
   document.getElementById('ospEntryForm').style.display='block';
   if(el) { document.querySelectorAll('#ospSearchResult div[onclick]').forEach(d=>d.style.background='var(--graylite)'); el.style.background='var(--pl)'; }
 }
@@ -3696,21 +3787,26 @@ async function saveOspSpend() {
   const now = new Date();
   const dateStr = dateVal?new Date(dateVal).toLocaleDateString('en-IN'):now.toLocaleDateString('en-IN');
   const w = ospSelectedWork;
+  // Use selected vehicle if picker was shown (multi-vehicle work)
+  const vehicleSel = document.getElementById('ospVehicleSel');
+  const selectedVehicle = vehicleSel ? (vehicleSel.value || w.vehicles||w.vehicle) : (w.vehicles||w.vehicle);
   try {
     // Save as expense in ledger (cash debit)
-    await _sb.from('ledger').insert({
+    const ledgerResult = await _sb.from('ledger').insert({
       bank:'Cash', type:'debit', amount:amt,
       date:dateStr, timestamp:now.getTime(),
-      work_ref:`#${w.workNum} — ${w.ownerName||w.clientName}`,
+      work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${selectedVehicle}`,
       description:`Office Inside Spend: ${reason}`,
-      by:currentUser.name, auto_entry:true, ospEntry:true
+      by:currentUser.name, auto_entry:true
     });
-    // Save in officeSpend node for history
-    await _sb.from('office_spend').insert({
-      workKey:w._key, workNum:w.workNum,
-      ownerName:w.ownerName||w.clientName, vehicle:w.vehicles||w.vehicle,
-      amount:amt, reason, date:dateStr, timestamp:now.getTime(), by:currentUser.name
+    if(ledgerResult.error) throw ledgerResult.error;
+    // Save in officeSpend node for history (snake_case columns)
+    const ospResult = await _sb.from('office_spend').insert({
+      work_key: w._key, work_num: w.workNum,
+      owner_name: w.ownerName||w.clientName, vehicle: selectedVehicle,
+      amount: amt, reason, date: dateStr, timestamp: now.getTime(), by: currentUser.name
     });
+    if(ospResult.error) throw ospResult.error;
     toast(`✅ Expense of ₹${amt} saved against Work #${w.workNum}`,'success');
     document.getElementById('ospAmount').value='';
     document.getElementById('ospReason').value='';
@@ -3993,7 +4089,7 @@ async function clientTrack(){
   const openW=works.filter(w=>w.status==='open').length;
   const doneW=works.filter(w=>w.status==='done').length;
   const today=new Date();
-  const expiring=works.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today).sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
+  const expiring=works.filter(w=>w.status==='done'&&w.expiryDate&&new Date(w.expiryDate)>=today).sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
   let html='';
   html+='<div style="background:var(--pl);border-radius:var(--rads);padding:13px;margin-bottom:14px;text-align:center;">';
   html+='<div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:3px;">Your Client ID</div>';
@@ -4024,9 +4120,9 @@ async function clientTrack(){
     html+='<span style="font-weight:800;font-size:.8rem;color:'+sc+';">'+st+'</span></div>';
     html+='<div style="font-size:.78rem;color:var(--gray);display:flex;gap:12px;flex-wrap:wrap;">';
     html+='<span>'+esc(w.vehicle)+'</span><span>'+esc(w.date)+'</span><span>Work #'+w.workNum+'</span>';
-    if(w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
+    if(w.status==='done' && w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
     html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div>';
-    if(w.status==='done' && w.receiptPhoto) {
+    if(w.status==='done') {
       html+='<div style="margin-top:8px;">';
       html+='<button onclick="downloadClientDoc(\''+w._key+'\','+w.workNum+')" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1e3a6e,#2563eb);color:#fff;padding:7px 16px;border-radius:20px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.3);">⬇️ Download Your Papers (PDF)</button>';
       html+='</div>';
@@ -4082,7 +4178,7 @@ function openImgInTab(src){
 // ── Generate & download branded 2-page PDF for client ──
 async function downloadClientDoc(workKey, workNum) {
   const w = allWorks.find(x => x._key === workKey);
-  if(!w || !w.receiptPhoto){ toast('No document found','error'); return; }
+  if(!w){ toast('Work not found','error'); return; }
 
   toast('Generating PDF...', 'warn');
 
