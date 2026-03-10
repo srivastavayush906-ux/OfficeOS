@@ -1940,6 +1940,7 @@ function togglePw(id, btn) {
 function doLogout() {
   if(!confirm('Are you sure you want to logout?')) return;
   clearTimeout(lockTimer);
+  try { localStorage.removeItem('nl_session'); } catch(e) {}
   currentUser=null; allWorks=[];allStaff=[];allLedger=[];allSalary=[];allFollowups=[];allCash=[];allAttendance=[];
 
   document.getElementById('mainApp').classList.remove('show');
@@ -2229,10 +2230,23 @@ function vwTypeChange(sel) {
   const tfrom = row.querySelector('.wtype-tfrom');
   const tto = row.querySelector('.wtype-tto');
   const dltype = row.querySelector('.wtype-dltype');
+  const vehicleInput = row.querySelector('.vehicle-input');
   spec.style.display = sel.value==='Others' ? 'block' : 'none';
   tfrom.style.display = sel.value==='Transfer' ? 'block' : 'none';
   tto.style.display = sel.value==='Transfer' ? 'block' : 'none';
   if(dltype) dltype.style.display = sel.value==='DrivingLicense' ? 'block' : 'none';
+  // DL is person-based, not vehicle-based — hide vehicle input
+  if(vehicleInput) {
+    if(sel.value==='DrivingLicense') {
+      vehicleInput.style.display='none';
+      vehicleInput.placeholder='N/A';
+      vehicleInput.value='DL';
+    } else {
+      vehicleInput.style.display='';
+      vehicleInput.placeholder='e.g. UP32AB1234';
+      if(vehicleInput.value==='DL') vehicleInput.value='';
+    }
+  }
 }
 
 function addVWRow() {
@@ -2347,7 +2361,7 @@ async function _doSubmitWork() {
 
   // Validations
   if(!ownerName){toast('Enter owner name','error');return;}
-  if(!vwRows.length||!vwRows[0].vehicle){toast('Enter at least one vehicle number','error');return;}
+  if(!vwRows.length||(!vwRows[0].vehicle&&vwRows[0].workType!=='DrivingLicense')){toast('Enter at least one vehicle number','error');return;}
   if(vwRows.some(r=>r.vehicle&&!r.workType)){toast('Select work type for each vehicle','error');return;}
   if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
   if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
@@ -2464,7 +2478,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Date</span><span class="value">'+w.date+'</span></div>'
     +'<div class="row"><span class="label">Amount Paid</span><span class="value">&#8377;'+inr(w.totalPaid||w.amount||0)+'</span></div>'+(w.remainingBalance>0?'<div class="row"><span class="label" style="color:red;">Balance Due</span><span class="value" style="color:red;font-weight:bold;">&#8377;'+inr(w.remainingBalance)+'</span></div>':'')+(w.receiptPhoto?'<div class="row"><span class="label">Document</span><span class="value"><a href="#" onclick="openImgInTab(\''+w.receiptPhoto+'\')" style="color:#2563eb;text-decoration:underline;">📄 View Document</a></span></div>':'')
     +'<div class="row"><span class="label">Payment</span><span class="value">'+w.payMode+'</span></div>'
-    +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':'In Progress')+'</span></div>'
+    +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':w.status==='partial'?'Partial Completion':'In Progress')+'</span></div>'
     +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+fmtDate(w.expiryDate)+'</span></div>':'')
     +'<div class="footer">Thank you! Keep this Unique ID to track your work.</div>'
     +'<br/><button onclick="window.print()" style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">Print</button>'
@@ -2729,7 +2743,7 @@ function renderExpiry(){
 function searchClientHistory(){
   const q=document.getElementById('chSearch').value.trim().toLowerCase();
   if(!q){toast('Enter phone or vehicle number','error');return;}
-  const list=allWorks.filter(w=>w.phone?.includes(q)||w.vehicle?.toLowerCase().includes(q)||w.clientName?.toLowerCase().includes(q)||String(w.workNum)===q||w.clientId?.toLowerCase()===q);
+  const list=allWorks.filter(w=>w.phone?.includes(q)||w.vehicle?.toLowerCase().includes(q)||(w.vehicles||'').toLowerCase().includes(q)||w.clientName?.toLowerCase().includes(q)||w.ownerName?.toLowerCase().includes(q)||String(w.workNum)===q||w.clientId?.toLowerCase()===q);
   const el=document.getElementById('chResult');
   if(!list.length){el.innerHTML='<div class="nd">No works found for this search</div>';return;}
   const totalAmt=list.reduce((s,w)=>s+(w.amount||0),0);
@@ -2739,7 +2753,7 @@ function searchClientHistory(){
   <div style="background:var(--pl);border-radius:var(--rad);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div>
       <div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:3px;">Client ID</div>
-      <div style="font-size:1.5rem;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--p);letter-spacing:2px;">${esc(cid)}</div>
+      <div style="font-size:1.5rem;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--p);letter-spacing:2px;cursor:pointer;" title="Click to copy" onclick="navigator.clipboard.writeText('${esc(cid)}').then(()=>toast('Client ID copied! ✅','success'))">${esc(cid)} <span style="font-size:.75rem;font-weight:600;color:var(--gray);">📋</span></div>
     </div>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-sm btn-success" onclick="waClientId('${esc(clientPhone)}','${esc(cid)}','${esc(list[0]?.clientName||'')}')">📱 Send Client ID via WhatsApp</button>
@@ -2780,7 +2794,7 @@ function viewWork(key){
       ${w.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="closeModal('workDetailModal');openCloseWork('${key}')">✅ Complete Work</button>`:''}
     </div>
     <div class="di"><div class="dl">Work #</div><div class="dv"><strong>#${w.workNum}</strong></div></div>
-    <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag">${esc(w.clientId||'—')}</span></div></div>
+    <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag" style="cursor:pointer;" title="Click to copy" onclick="navigator.clipboard.writeText('${esc(w.clientId||'')}').then(()=>toast('Client ID copied! ✅','success'))">${esc(w.clientId||'—')}</span></div></div>
     <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
     ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client at Office</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
     <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
@@ -2854,7 +2868,7 @@ async function saveEditWork(){
   const phone=document.getElementById('ew_phone').value.trim();
   const type=document.getElementById('ew_type').value;
   const workValue=parseFloat(document.getElementById('ew_workValue').value)||0;
-  const amount=parseFloat(document.getElementById('ew_amount').value)||0;
+  const amount=Math.max(0, parseFloat(document.getElementById('ew_amount').value)||0);
   const notes=document.getElementById('ew_notes').value.trim();
   const othersSpec=document.getElementById('ew_othersSpec').value.trim();
   const transferFrom=document.getElementById('ew_transferFrom').value.trim();
@@ -2887,12 +2901,21 @@ function openCloseWork(key){
   const w=allWorks.find(x=>x._key===key);
   const needsExpiry=w&&['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(w.workType);
   document.getElementById('expiryField').style.display=needsExpiry?'block':'none';
-  ['expiryDate','closingBank','receiptAmount','closeNotes'].forEach(id=>document.getElementById(id).value='');
+  ['expiryDate','receiptAmount','closeNotes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('receiptPhoto').value='';
   document.getElementById('receiptPreviewBox').style.display='none';
   document.getElementById('receiptPreviewImg').src='';
-  document.getElementById('receiptPreviewBox').style.display='none';
-  document.getElementById('receiptPreviewImg').src='';
+  // Pre-fill bank from work's original payment source
+  const bankSel = document.getElementById('closingBank');
+  bankSel.value = '';
+  if(w) {
+    // Try to infer best pre-fill: if paid via UPI use that bank, else use payMode mapping
+    const mode = w.payMode||'';
+    const bank = w.bank||'';
+    if(mode==='Cash') bankSel.value='Cash';
+    else if(mode==='UPI' && bank) bankSel.value=bank;
+    else if(['HDFC','SBI','Kotak','ICICI','Canara','Cash'].includes(bank)) bankSel.value=bank;
+  }
   closeModal('workDetailModal');
   openModal('closeWorkModal');
 }
@@ -2902,10 +2925,10 @@ async function completeWork() {
   const w = allWorks.find(x=>x._key===closeWorkKey);
   if(!w){toast('Work not found — please try again','error');return;}
   const bank = document.getElementById('closingBank').value;
-  const amt = parseFloat(document.getElementById('receiptAmount').value)||0;
+  const amt = Math.max(0, parseFloat(document.getElementById('receiptAmount').value)||0);
   const notes = document.getElementById('closeNotes').value.trim();
   const expiry = document.getElementById('expiryDate').value;
-  const miscAmt = parseFloat(document.getElementById('miscAmount').value)||0;
+  const miscAmt = Math.max(0, parseFloat(document.getElementById('miscAmount').value)||0);
   const miscRsn = document.getElementById('miscReason').value.trim();
   const isPartial = closeWorkType==='partial';
   const partialDesc = isPartial ? document.getElementById('partialDesc').value.trim() : '';
@@ -3631,7 +3654,13 @@ function renderOfficeSpend() {
 function searchOspWork() {
   const veh = document.getElementById('ospVehicle').value.trim().toUpperCase();
   if(!veh){toast('Enter vehicle number','error');return;}
-  const matches = allWorks.filter(w=>(w.vehicles||w.vehicle||'').toUpperCase().includes(veh)&&w.status!=='done');
+  const matches = allWorks.filter(w=>{
+    if(w.status==='done') return false;
+    const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
+    // Check full string and also each individual vehicle (handles spaces around commas)
+    if(vehStr.includes(veh)) return true;
+    return vehStr.split(',').map(v=>v.trim()).some(v=>v.includes(veh)||veh.includes(v));
+  });
   const res = document.getElementById('ospSearchResult');
   if(!matches.length){
     res.innerHTML=`<div style="background:var(--rl);padding:10px;border-radius:var(--rads);color:var(--r);font-weight:700;">No open works found for "${veh}"</div>`;
@@ -4184,24 +4213,49 @@ async function downloadClientDoc(workKey, workNum) {
 
     // Load image
     let imgData = w.receiptPhoto;
-    if(imgData.startsWith('http')) {
+    let imgLoaded = true;
+    if(imgData && imgData.startsWith('http')) {
       // For Storage URLs, fetch as base64
       try {
         const resp = await fetch(imgData);
+        if(!resp.ok) throw new Error('HTTP '+resp.status);
         const blob = await resp.blob();
         imgData = await new Promise(res => {
           const r = new FileReader();
           r.onload = () => res(r.result);
           r.readAsDataURL(blob);
         });
-      } catch(e){ toast('Could not load image','error'); return; }
+      } catch(e){
+        imgLoaded = false;
+        console.warn('Could not load document image:', e);
+      }
+    } else if(!imgData) {
+      imgLoaded = false;
     }
 
-    // Detect format
-    const fmt = imgData.includes('image/png') ? 'PNG' : 'JPEG';
-    // Fill page with image, keeping aspect ratio
-    const margin = 10;
-    doc.addImage(imgData, fmt, margin, margin, PW-margin*2, PH-margin*2, '', 'FAST');
+    if(imgLoaded && imgData) {
+      // Detect format
+      const fmt = imgData.includes('image/png') ? 'PNG' : 'JPEG';
+      // Fill page with image, keeping aspect ratio
+      const margin = 10;
+      try {
+        doc.addImage(imgData, fmt, margin, margin, PW-margin*2, PH-margin*2, '', 'FAST');
+      } catch(e) {
+        imgLoaded = false;
+      }
+    }
+    if(!imgLoaded) {
+      // Fallback: show a "document not available" message on page 2
+      doc.setFillColor(248,248,248);
+      doc.rect(15, 30, PW-30, 80, 'F');
+      doc.setTextColor(150,150,150);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(13);
+      doc.text('Document image not available', PW/2, 70, {align:'center'});
+      doc.setFontSize(9);
+      doc.text('The uploaded document could not be retrieved.', PW/2, 82, {align:'center'});
+      doc.text('Please contact Nandan Legal Services for a copy.', PW/2, 90, {align:'center'});
+    }
 
     // ── Auto-name and download ──
     const wtype = (w.workType||'Doc').replace(/[^a-zA-Z0-9]/g,'_');
@@ -4227,7 +4281,17 @@ function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
 const wtPlainLabels={'Insurance':'Insurance','Chalaan-Online':'Chalaan (Online)','Chalaan-Court':'Chalaan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others','DrivingLicense':'Driving License'};
 function wtLabelPlain(t){return wtPlainLabels[t]||t||'—';}
-function wtBadge(w){return `<span class="badge ${wtClasses[w.workType]||'bgr'}">${wtLabel(w.workType)}</span>`;}
+function wtBadge(w){
+  try {
+    const items = JSON.parse(w.vehicleWorkItems||'[]');
+    if(items.length > 1) {
+      // Deduplicate work types for badge display
+      const types = [...new Set(items.map(r=>r.workType).filter(Boolean))];
+      return types.map(t=>`<span class="badge ${wtClasses[t]||'bgr'}" style="margin-bottom:2px;display:inline-block;">${wtLabel(t)}</span>`).join(' ');
+    }
+  } catch(e) {}
+  return `<span class="badge ${wtClasses[w.workType]||'bgr'}">${wtLabel(w.workType)}</span>`;
+}
 function payBadge(w){
   if(w.payMode==='Cash') return `<span class="badge bg">💵 Cash</span>`;
   if(w.payMode==='UPI') return `<span class="badge bb">📱 UPI · ${esc(w.bank||'')}</span>`;
