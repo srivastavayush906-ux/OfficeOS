@@ -1014,19 +1014,6 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       </div>
     </div>
 
-    <!-- DUES PAGE -->
-    <div class="page" id="page-dues">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">💳 Pending Dues</div>
-          <div id="duesSummaryBadge"></div>
-        </div>
-        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">All works where client has not paid the full amount.</p>
-        <div class="stats-row" id="duesStats" style="margin-bottom:14px;"></div>
-        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Owner</th><th>Vehicle</th><th>Type</th><th>Work Value</th><th>Paid</th><th>Due</th><th>Date</th><th>Action</th></tr></thead><tbody id="duesBody"></tbody></table></div>
-      </div>
-    </div>
-
     <!-- COMBINED BALANCE -->
     <div class="page" id="page-combinedBalance">
       <div class="card">
@@ -1706,8 +1693,6 @@ window.addEventListener('DOMContentLoaded', () => {
   ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
   // Check backup reminder on load
   setTimeout(checkBackupReminder, 4000);
-  // Activity listeners for app lock
-  ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
 });
 
 async function checkFirstRun() {
@@ -1896,6 +1881,7 @@ async function loginSuccess() {
   await _sb.from('access_log').insert({name:currentUser.name,role:currentUser.role,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}).then(()=>{}).catch(()=>{});
   await loadAllData();
   showPage('dashboard');
+  startClock();
   // Check expiry notifications after data loads
   setTimeout(checkExpiryNotifications, 1500);
 }
@@ -3971,7 +3957,7 @@ function renderSalary(){
 // ============================================================
 async function renderAccessLog(){
   const {data} = await _sb.from('access_log').select('*').order('timestamp',{ascending:false});
-  const logs=data?Object.entries(data).map(([k,v])=>({...v,_key:k})):[];
+  const logs = (data||[]).map(r=>({...r, _key:r.id}));
   logs.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   document.getElementById('accessLogBody').innerHTML=logs.length===0?'<tr><td colspan="4" class="nd">No records</td></tr>':logs.map(l=>`<tr>
     <td><strong>${esc(l.name)}</strong></td>
@@ -4883,14 +4869,14 @@ function renderAttendance() {
 let allPins = [];
 async function loadPins() {
   const {data} = await _sb.from('pins').select('*').order('timestamp',{ascending:false});
-  allPins = data ? Object.entries(data).map(([k,v])=>({...v,_key:k})) : [];
+  allPins = (data||[]).map(r=>({...r, _key:r.id}));
   allPins.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   renderPins();
 }
 async function loadPinsDashboard() {
   // Just update dashboard if it exists
   const {data} = await _sb.from('pins').select('*').order('timestamp',{ascending:false});
-  allPins = data ? Object.entries(data).map(([k,v])=>({...v,_key:k})) : [];
+  allPins = (data||[]).map(r=>({...r, _key:r.id}));
   allPins.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
 }
 function renderPins() {
