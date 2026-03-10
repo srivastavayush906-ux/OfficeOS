@@ -4307,32 +4307,56 @@ async function downloadClientDoc(workKey, workNum) {
     // ── PAGE 2: Document image ──
     doc.addPage();
 
-    // Load image
+    // Load image using Supabase SDK (bypasses CORS, works with private buckets)
     let imgData = w.receiptPhoto;
-    let imgLoaded = true;
-    if(imgData && imgData.startsWith('http')) {
-      // For Storage URLs, fetch as base64
+    let imgLoaded = false;
+
+    if(imgData) {
       try {
-        const resp = await fetch(imgData);
-        if(!resp.ok) throw new Error('HTTP '+resp.status);
-        const blob = await resp.blob();
-        imgData = await new Promise(res => {
-          const r = new FileReader();
-          r.onload = () => res(r.result);
-          r.readAsDataURL(blob);
-        });
-      } catch(e){
+        if(imgData.startsWith('http')) {
+          // Extract storage path from full Supabase public URL
+          // URL format: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+          const storageMarker = '/object/public/receipts/';
+          const markerIdx = imgData.indexOf(storageMarker);
+          if(markerIdx !== -1) {
+            const storagePath = imgData.substring(markerIdx + storageMarker.length);
+            const { data: blob, error: dlErr } = await _sb.storage.from('receipts').download(storagePath);
+            if(dlErr) throw dlErr;
+            imgData = await new Promise((res, rej) => {
+              const r = new FileReader();
+              r.onload = () => res(r.result);
+              r.onerror = rej;
+              r.readAsDataURL(blob);
+            });
+            imgLoaded = true;
+          } else {
+            // Fallback: try Canvas approach for external URLs
+            imgData = await new Promise((res, rej) => {
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                c.getContext('2d').drawImage(img, 0, 0);
+                res(c.toDataURL('image/jpeg', 0.85));
+              };
+              img.onerror = rej;
+              img.src = w.receiptPhoto;
+            });
+            imgLoaded = true;
+          }
+        } else if(imgData.startsWith('data:')) {
+          // Already base64
+          imgLoaded = true;
+        }
+      } catch(e) {
         imgLoaded = false;
         console.warn('Could not load document image:', e);
       }
-    } else if(!imgData) {
-      imgLoaded = false;
     }
 
     if(imgLoaded && imgData) {
-      // Detect format
       const fmt = imgData.includes('image/png') ? 'PNG' : 'JPEG';
-      // Fill page with image, keeping aspect ratio
       const margin = 10;
       try {
         doc.addImage(imgData, fmt, margin, margin, PW-margin*2, PH-margin*2, '', 'FAST');
@@ -4341,16 +4365,20 @@ async function downloadClientDoc(workKey, workNum) {
       }
     }
     if(!imgLoaded) {
-      // Fallback: show a "document not available" message on page 2
+      // Fallback: show a message on page 2
       doc.setFillColor(248,248,248);
       doc.rect(15, 30, PW-30, 80, 'F');
       doc.setTextColor(150,150,150);
       doc.setFont('helvetica','normal');
       doc.setFontSize(13);
-      doc.text('Document image not available', PW/2, 70, {align:'center'});
+      doc.text('Document image could not be embedded.', PW/2, 70, {align:'center'});
       doc.setFontSize(9);
-      doc.text('The uploaded document could not be retrieved.', PW/2, 82, {align:'center'});
-      doc.text('Please contact Nandan Legal Services for a copy.', PW/2, 90, {align:'center'});
+      doc.text('Please open your document separately using the link below.', PW/2, 82, {align:'center'});
+      // Also open the original document URL in a new tab so user can access it
+      if(w.receiptPhoto && w.receiptPhoto.startsWith('http')) {
+        window.open(w.receiptPhoto, '_blank');
+        toast('Document opened in a new tab ✅', 'success');
+      }
     }
 
     // ── Auto-name and download ──
