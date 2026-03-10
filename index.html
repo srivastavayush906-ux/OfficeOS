@@ -2389,7 +2389,6 @@ async function _doSubmitWork() {
   if(vwRows.some(r=>r.vehicle&&!r.workType)){toast('Select work type for each vehicle','error');return;}
   if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
   if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
-  if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
   if(!payRows.length){toast('Select at least one payment mode','error');return;}
   if(payRows.some(r=>r.mode==='UPI'&&!r.bank)){toast('Select bank for UPI payment','error');return;}
@@ -2529,7 +2528,7 @@ function showWhatsAppPopup(name, phone, uid, workType, dlLicenseType='') {
   const wtDisplay = wtLabel(workType)+(dlLicenseType?' — '+dlLicenseType:'');
   document.getElementById("wa_workType").textContent = wtDisplay;
   const siteUrl = "https://nandanlegalservices.in/";
-  const msg = "Hello "+name+"! Your work ("+wtDisplay+") has been registered with our office.\n\nYour Client ID: *"+uid+"*\n\nTrack all your works and document expiry dates anytime here:\n"+siteUrl+"\n\nJust enter your Client ID on the website.\n\nView your details at our website: "+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
+  const msg = "Hello "+name+"! 🙏\n\nYour work ("+wtDisplay+") has been successfully registered with Nandan Legal Services.\n\n📋 *Client ID: "+uid+"*\n\nYou can track your work status and document expiry dates anytime by visiting our website and entering your Client ID:\n👉 "+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
 }
@@ -2727,7 +2726,8 @@ async function saveMarkPaid() {
   try {
     await _sb.from('works').update(toSnake({
       payMode, bank: payMode==='UPI'?bank:'',
-      amount, paidLaterDate: now.toLocaleDateString('en-IN'),
+      amount, remainingBalance: 0,
+      paidLaterDate: now.toLocaleDateString('en-IN'),
       paidLaterTime: now.toLocaleTimeString('en-IN'),
       paidLaterBy: currentUser.name
     })).eq('id', markPaidWorkKey);
@@ -2912,16 +2912,22 @@ async function saveEditWork(){
   if(!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
   const remaining=workValue>0?Math.max(0,workValue-amount):0;
   try {
+    // If phone changed, look up (or create) the correct Client ID for the new number
+    let newClientId = w.clientId;
+    if(phone !== w.phone) {
+      newClientId = await getOrCreateClientId(phone);
+    }
     await _sb.from('works').update(toSnake({
       ownerName, clientName, vehicle:vehicles.split(',')[0].trim(),
       vehicles, phone, workType:type,
+      clientId: newClientId,
       othersSpecify:type==='Others'?othersSpec:'',
       dlLicenseType:type==='DrivingLicense'?(document.getElementById('ew_dlLicenseType').value.trim()):'',
       transferFrom:type==='Transfer'?transferFrom:'',
       transferTo:type==='Transfer'?transferTo:'',
       workValue, totalPaid:amount, amount, remainingBalance:remaining, notes
     })).eq('id', editingWorkKey);
-    toast('Work updated! ✅','success');
+    toast('Work updated! ✅'+(phone!==w.phone?' Client ID updated to match new number.':''),'success');
     closeModal('editWorkModal');
     await loadAllData();
     renderWorkTable();
@@ -3102,8 +3108,8 @@ async function completeWork() {
     // WhatsApp — single block, after all data saved
     if(w.phone) {
       const compMsg = isPartial
-        ? `Hello ${w.ownerName||w.clientName}! Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been partially completed.\n\nCompleted: ${partialDesc}\n\nClient ID: *${w.clientId||'—'}*\n\nView your details at our website: https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`
-        : `Hello ${w.ownerName||w.clientName}! ✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been completed!\n${w.expiryDate?'\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\nClient ID: *${w.clientId||'—'}*\n\nView your details at our website: https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`;
+        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\nYour work (#${w.workNum} — ${wtLabel(w.workType)}) has been *partially completed* at Nandan Legal Services.\n\n✅ Completed: ${partialDesc}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack your work status anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`
+        : `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${w.expiryDate?'\n\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack your work status anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`;
       const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
     }
@@ -3805,7 +3811,7 @@ async function saveOspSpend() {
       date:dateStr, timestamp:now.getTime(),
       work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${selectedVehicle}`,
       description:`Office Inside Spend: ${reason}`,
-      by:currentUser.name, auto_entry:true
+      by:currentUser.name, auto_entry:true, osp_entry:true
     });
     if(ledgerResult.error) throw ledgerResult.error;
     // Reload data and show success
@@ -3928,7 +3934,7 @@ async function saveSalary(){
   if(!name||!amount||isNaN(amount)){toast('Fill all required fields','error');return;}
   const now=new Date();
   try{
-    await _sb.from('ledger').insert({staffName:name,amount,mode,bank,paidBy:currentUser.name,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()});
+    await _sb.from('ledger').insert(toSnake({staffName:name,amount,mode,bank,paidBy:currentUser.name,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}));
     // Auto ledger debit for salary
     await _sb.from('ledger').insert({bank,type:'debit',amount,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),work_ref:'',description:`Salary paid to ${name}`,by:currentUser.name,auto_entry:true});
     toast('Salary recorded','success');
@@ -3957,7 +3963,7 @@ function renderSalary(){
 // ============================================================
 async function renderAccessLog(){
   const {data} = await _sb.from('access_log').select('*').order('timestamp',{ascending:false});
-  const logs = (data||[]).map(r=>({...r, _key:r.id}));
+  const logs=(data||[]).map(r=>({...r,_key:r.id}));
   logs.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   document.getElementById('accessLogBody').innerHTML=logs.length===0?'<tr><td colspan="4" class="nd">No records</td></tr>':logs.map(l=>`<tr>
     <td><strong>${esc(l.name)}</strong></td>
@@ -4573,7 +4579,7 @@ function followupTab(tab, btn) {
 }
 function waClientId(phone, clientId, name) {
   if(!phone) { toast('No phone number','error'); return; }
-  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with our office is:\n\n*'+clientId+'*\n\nUse this ID on our website to track all your works and document expiry dates anytime.\n\nView your details at our website: https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services';
+  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with Nandan Legal Services is:\n\n📋 *'+clientId+'*\n\nUse this ID to track all your works and document expiry dates anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
@@ -4597,7 +4603,7 @@ async function saveFollowup() {
   if(!note) { toast('Enter a reminder note','error'); return; }
   const now = new Date();
   try {
-    await _sb.from('followups').insert({note, dueDate, workRef, priority, done:false, createdBy:currentUser.name, date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(), doneBy:'', doneAt:0});
+    await _sb.from('followups').insert(toSnake({note, dueDate, workRef, priority, done:false, createdBy:currentUser.name, date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(), doneBy:'', doneAt:0}));
     toast('Reminder saved! 📌','success');
     closeModal('addFollowupModal');
     await loadAllData();
@@ -4670,7 +4676,7 @@ async function saveCashEntry() {
       type: type==='in'?'credit':'debit',
       amount, date:fmtD, timestamp:now.getTime(),
       description:desc, by:currentUser.name,
-      auto_entry:false, manualCash:true
+      auto_entry:false, manual_cash:true
     });
     toast('Cash entry saved ✅','success');
     closeModal('addCashModal');
@@ -4680,9 +4686,6 @@ async function saveCashEntry() {
 }
 function renderCashTracker(){
   // Auto-build cash tracker from Cash ledger entries
-  const cashEntries = allLedger.filter(l=>l.bank==='Cash').sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
-  // Also include manual cash entries from allCash
-  const manualEntries = allCash ? (Array.isArray(allCash)?allCash:Object.entries(allCash).map(([k,v])=>({...v,_key:k}))) : [];
   
   let balance = 0;
   const rows = [];
@@ -4821,7 +4824,7 @@ async function markAttendance() {
   const already = allAttendance.find(a=>a.staffKey===currentUser.key&&a.date===todayStr);
   if(already) { toast('Attendance already marked for today ✅','warn'); return; }
   try {
-    await _sb.from('attendance').insert({staffKey:currentUser.key,staffName:currentUser.name,date:todayStr,time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()});
+    await _sb.from('attendance').insert(toSnake({staffKey:currentUser.key,staffName:currentUser.name,date:todayStr,time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}));
     toast('Attendance marked ✅','success');
     await loadAllData();
     renderAttendance();
@@ -4869,14 +4872,14 @@ function renderAttendance() {
 let allPins = [];
 async function loadPins() {
   const {data} = await _sb.from('pins').select('*').order('timestamp',{ascending:false});
-  allPins = (data||[]).map(r=>({...r, _key:r.id}));
+  allPins = (data||[]).map(r=>({...r,_key:r.id}));
   allPins.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   renderPins();
 }
 async function loadPinsDashboard() {
   // Just update dashboard if it exists
   const {data} = await _sb.from('pins').select('*').order('timestamp',{ascending:false});
-  allPins = (data||[]).map(r=>({...r, _key:r.id}));
+  allPins = (data||[]).map(r=>({...r,_key:r.id}));
   allPins.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
 }
 function renderPins() {
