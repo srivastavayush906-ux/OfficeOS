@@ -2131,18 +2131,6 @@ function startClock(){
   tick(); setInterval(tick,1000);
 }
 // Live clock in topbar
-function startClock(){
-  const el=document.getElementById('topbarClock');
-  if(!el) return;
-  const tick=()=>{
-    const n=new Date();
-    const h=String(n.getHours()).padStart(2,'0');
-    const m=String(n.getMinutes()).padStart(2,'0');
-    const s=String(n.getSeconds()).padStart(2,'0');
-    el.textContent=h+':'+m+':'+s;
-  };
-  tick(); setInterval(tick,1000);
-}
 
 // ── New Work helpers ──────────────────────────────────────────
 function addVehicleRow() {
@@ -2693,7 +2681,7 @@ async function saveMarkPaid() {
       amount, paidLaterDate: now.toLocaleDateString('en-IN'),
       paidLaterTime: now.toLocaleTimeString('en-IN'),
       paidLaterBy: currentUser.name
-    });
+    })).eq('id', markPaidWorkKey);
     // Auto ledger credit
     const ledgerBank = payMode==='Cash' ? 'Cash' : bank;
     await _sb.from('ledger').insert({
@@ -3189,17 +3177,6 @@ function showAmtHint(inp) {
 }
 
 // Format number input with Indian commas as hint below field
-function showAmtHint(inp) {
-  const v = parseFloat(inp.value);
-  let hint = inp.parentNode.querySelector('.amt-hint');
-  if(!hint){
-    hint=document.createElement('div');
-    hint.className='amt-hint';
-    hint.style='font-size:.73rem;color:var(--p);font-weight:800;margin-top:3px;letter-spacing:.3px;';
-    inp.parentNode.appendChild(hint);
-  }
-  hint.textContent=(!isNaN(v)&&v>0)?'= '+inr(v):'';
-}
 
 // Indian number formatting (1,35,000 style)
 function inr(n){
@@ -3741,13 +3718,6 @@ async function renderOspHistory() {
 function shiftSummaryDate(delta){
   const el=document.getElementById('summaryDate');
   const d=new Date(el.value||new Date());
-  d.setDate(d.getDate()+delta);
-  el.value=d.toISOString().split('T')[0];
-  renderSummary();
-}
-function shiftSummaryDate(delta){
-  const el=document.getElementById('summaryDate');
-  const d=new Date(el.value||new Date().toISOString().split('T')[0]);
   d.setDate(d.getDate()+delta);
   el.value=d.toISOString().split('T')[0];
   renderSummary();
@@ -4354,38 +4324,6 @@ function showFirebaseRulesGuide() {
 // ============================================================
 // FIREBASE AUTH HELPERS
 // ============================================================
-function showFirebaseRulesGuide() {
-  const rules = JSON.stringify({
-    rules: {
-      staff:{".read":"auth != null",".write":"auth != null"},
-      works:{".read":"auth != null",".write":"auth != null"},
-      ledger:{".read":"auth != null",".write":"auth != null"},
-      salary:{".read":"auth != null",".write":"auth != null"},
-      clients:{".read":true,".write":"auth != null"},
-      accessLog:{".read":"auth != null",".write":"auth != null"},
-      followups:{".read":"auth != null",".write":"auth != null"},
-      cashEntries:{".read":"auth != null",".write":"auth != null"},
-      attendance:{".read":"auth != null",".write":"auth != null"},
-      pins:{".read":"auth != null",".write":"auth != null"},
-      counter:{".read":"auth != null",".write":"auth != null"}
-    }
-  }, null, 2);
-  const modal = document.createElement('div');
-  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:24px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;">
-    <h3 style="margin:0 0 8px;font-family:'Baloo 2',sans-serif;color:#1a56db;">🔒 Activate Full Database Security</h3>
-    <p style="font-size:.85rem;color:#6b7280;margin:0 0 14px;">1. Go to Firebase Console → Realtime Database → Rules tab<br/>2. Replace everything with these rules<br/>3. Click Publish<br/><br/>After this, only logged-in staff can access your data.</p>
-    <div style="background:#1e1e1e;border-radius:10px;padding:14px;margin-bottom:14px;overflow-x:auto;">
-      <pre id="rulesText" style="margin:0;font-size:.72rem;color:#9cdcfe;white-space:pre;font-family:monospace;">${rules}</pre>
-    </div>
-    <p style="font-size:.78rem;color:#16a34a;font-weight:700;margin:0 0 14px;">✅ Clients can still track their works. Only raw database access is locked.</p>
-    <div style="display:flex;gap:8px;">
-      <button onclick="navigator.clipboard.writeText(document.getElementById('rulesText').textContent).then(()=>toast('Copied!','success'))" class="btn btn-primary" style="flex:1;">📋 Copy Rules</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-gray">Close</button>
-    </div>
-  </div>`;
-  document.body.appendChild(modal);
-}
 
 // ============================================================
 // CLIENT ID SYSTEM
