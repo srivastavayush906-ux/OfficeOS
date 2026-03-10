@@ -1337,7 +1337,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     </div>
     <div class="field" id="expiryField" style="display:none;"><label>Paper Expiry Date *</label><input type="date" id="expiryDate"/><div class="hint">Required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div></div>
     <div class="field"><label>Payment for This Work Was Made From *</label>
-      <select id="closingBank">
+      <select id="closingBank" onchange="closingBankChange(this)">
         <option value="">— Select Source —</option>
         <option value="Cash">💵 Cash</option>
         <option value="HDFC">HDFC Bank</option>
@@ -1345,6 +1345,10 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         <option value="Kotak">Kotak Mahindra Bank</option>
         <option value="ICICI">ICICI Bank</option>
         <option value="Canara">Canara Bank</option>
+        <option value="Employee">👤 Employee</option>
+      </select>
+      <select id="closingEmployee" style="display:none;margin-top:6px;width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
+        <option value="">— Select Employee —</option>
       </select>
     </div>
     <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent to do this work" min="0" oninput="showAmtHint(this)"/></div>
@@ -2952,7 +2956,10 @@ function openCloseWork(key){
   document.getElementById('receiptPreviewImg').src='';
   // Pre-fill bank from work's original payment source
   const bankSel = document.getElementById('closingBank');
+  const empSel = document.getElementById('closingEmployee');
   bankSel.value = '';
+  empSel.style.display = 'none';
+  empSel.value = '';
   if(w) {
     const mode = w.payMode||'';
     const bank = w.bank||'';
@@ -2999,11 +3006,25 @@ function updatePartialDescFromCheckboxes() {
   if(checked.length > 0) document.getElementById('partialDesc').value = checked.join(', ');
 }
 
+function closingBankChange(sel) {
+  const empSel = document.getElementById('closingEmployee');
+  if(sel.value === 'Employee') {
+    empSel.style.display = 'block';
+    empSel.innerHTML = '<option value="">— Select Employee —</option>' +
+      allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+  } else {
+    empSel.style.display = 'none';
+    empSel.value = '';
+  }
+}
+
 async function completeWork() {
   const closeWorkKey = closingWorkId;
   const w = allWorks.find(x=>x._key===closeWorkKey);
   if(!w){toast('Work not found — please try again','error');return;}
-  const bank = document.getElementById('closingBank').value;
+  const bankRaw = document.getElementById('closingBank').value;
+  const empName = document.getElementById('closingEmployee').value;
+  const bank = bankRaw==='Employee' ? (empName ? `Employee: ${empName}` : 'Employee') : bankRaw;
   const amt = Math.max(0, parseFloat(document.getElementById('receiptAmount').value)||0);
   const notes = document.getElementById('closeNotes').value.trim();
   const expiry = document.getElementById('expiryDate').value;
@@ -3800,37 +3821,34 @@ async function saveOspSpend() {
       by:currentUser.name, auto_entry:true
     });
     if(ledgerResult.error) throw ledgerResult.error;
-    // Save in officeSpend node for history (snake_case columns)
-    const ospResult = await _sb.from('office_spend').insert({
-      work_key: w._key, work_num: w.workNum,
-      owner_name: w.ownerName||w.clientName, vehicle: selectedVehicle,
-      amount: amt, reason, date: dateStr, timestamp: now.getTime(), by: currentUser.name
-    });
-    if(ospResult.error) throw ospResult.error;
-    toast(`✅ Expense of ₹${amt} saved against Work #${w.workNum}`,'success');
+    // Reload data and show success
+    toast(`✅ Expense of ₹${inr(amt)} saved & deducted from Cash against Work #${w.workNum}`,'success');
     document.getElementById('ospAmount').value='';
     document.getElementById('ospReason').value='';
     ospSelectedWork=null;
     document.getElementById('ospEntryForm').style.display='none';
     document.getElementById('ospVehicle').value='';
     document.getElementById('ospSearchResult').innerHTML='';
-    await loadAllData();
+    await loadAllData();   // refreshes allLedger so Cash balance is updated everywhere
     renderOspHistory();
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
 let allOspSpend = [];
 async function renderOspHistory() {
-  const {data: ospData} = await _sb.from('office_spend').select('*').order('timestamp',{ascending:false});
-  allOspSpend = (ospData||[]).map(r=>({...toCamel(r),_key:r.id}));
+  // Read OSP entries from ledger (description starts with "Office Inside Spend:")
+  // allLedger is already loaded - filter it. Also do a fresh fetch to catch newly added.
+  const {data: ledData} = await _sb.from('ledger').select('*').order('timestamp',{ascending:false});
+  const ospEntries = (ledData||[]).map(r=>({...toCamel(r),_key:r.id}))
+    .filter(l => l.bank==='Cash' && l.type==='debit' && (l.description||'').startsWith('Office Inside Spend:'));
+  allOspSpend = ospEntries;
   const el = document.getElementById('ospHistory');
   if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
-  el.innerHTML=`<table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Vehicle</th><th>Reason</th><th>Amount</th><th>By</th></tr></thead><tbody>
+  el.innerHTML=`<table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>By</th></tr></thead><tbody>
     ${allOspSpend.map(s=>`<tr>
       <td style="font-size:.78rem;">${fmtDate(s.date)}</td>
-      <td style="font-size:.78rem;">#${s.workNum} — ${esc(s.ownerName)}</td>
-      <td style="font-size:.78rem;">${esc(s.vehicle)}</td>
-      <td style="font-size:.82rem;">${esc(s.reason)}</td>
+      <td style="font-size:.78rem;">${esc(s.workRef||'')}</td>
+      <td style="font-size:.82rem;">${esc((s.description||'').replace('Office Inside Spend:','').trim())}</td>
       <td style="font-weight:800;color:var(--r);">${inr(s.amount||0)}</td>
       <td style="font-size:.78rem;">${esc(s.by)}</td>
     </tr>`).join('')}
@@ -4083,7 +4101,7 @@ async function clientTrack(){
   document.getElementById('clientResult').innerHTML='<div style="color:var(--gray);font-size:.83rem;padding:8px;">Looking up...</div>';
   // Read from works table by clientId — Supabase public access
   const {data: rawData} = await _sb.from('works').select('*').eq('client_id', cid).order('timestamp',{ascending:false});
-  const works = (rawData||[]).map(r=>toCamel(r));
+  const works = (rawData||[]).map(r=>({...toCamel(r), _key:r.id}));
   if(!works.length){document.getElementById('clientResult').innerHTML='<div style="background:var(--rl);color:var(--r);padding:9px 13px;border-radius:var(--rads);font-weight:700;font-size:.83rem;">No works found for Client ID: '+esc(cid)+'</div>';return;}
   const w0=works[0];
   const openW=works.filter(w=>w.status==='open').length;
@@ -4177,7 +4195,14 @@ function openImgInTab(src){
 
 // ── Generate & download branded 2-page PDF for client ──
 async function downloadClientDoc(workKey, workNum) {
-  const w = allWorks.find(x => x._key === workKey);
+  // First try allWorks (staff view), then fetch directly from DB (client portal - no allWorks available)
+  let w = allWorks.find(x => x._key === workKey);
+  if(!w) {
+    try {
+      const {data} = await _sb.from('works').select('*').eq('id', workKey).single();
+      if(data) w = {...toCamel(data), _key:data.id};
+    } catch(e) {}
+  }
   if(!w){ toast('Work not found','error'); return; }
 
   toast('Generating PDF...', 'warn');
@@ -4417,6 +4442,21 @@ function wtBadge(w){
   return `<span class="badge ${wtClasses[w.workType]||'bgr'}">${wtLabel(w.workType)}</span>`;
 }
 function payBadge(w){
+  // Try to render all payment modes from the full payModes array
+  try {
+    const modes = JSON.parse(w.payModes||'[]');
+    if(modes.length > 0) {
+      return modes.map(m => {
+        if(m.mode==='Cash') return `<span class="badge bg" style="display:inline-block;margin-bottom:2px;">💵 Cash${m.amount>0?' · '+inr(m.amount):''}</span>`;
+        if(m.mode==='UPI') return `<span class="badge bb" style="display:inline-block;margin-bottom:2px;">📱 UPI · ${esc(m.bank||'')}${m.amount>0?' · '+inr(m.amount):''}</span>`;
+        if(m.mode==='Unpaid') return `<span class="badge br" style="display:inline-block;margin-bottom:2px;">⏳ Unpaid</span>`;
+        if(m.mode==='ExcessPaid') return `<span class="badge bo" style="display:inline-block;margin-bottom:2px;">➕ Excess</span>`;
+        if(m.mode==='Employee') return `<span class="badge bgr" style="display:inline-block;margin-bottom:2px;">👤 ${esc(m.employee||'Employee')}</span>`;
+        return `<span class="badge bgr" style="display:inline-block;margin-bottom:2px;">${esc(m.mode)}</span>`;
+      }).join(' ');
+    }
+  } catch(e) {}
+  // Fallback to single payMode field
   if(w.payMode==='Cash') return `<span class="badge bg">💵 Cash</span>`;
   if(w.payMode==='UPI') return `<span class="badge bb">📱 UPI · ${esc(w.bank||'')}</span>`;
   if(w.payMode==='Unpaid') return `<span class="badge br">⏳ Unpaid</span>`;
