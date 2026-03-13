@@ -243,23 +243,24 @@ input, select, textarea { font-family: inherit; outline: none; }
 }
 #sidebar nav a {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 18px;
+  padding: 8px 14px 8px 16px;
   color: rgba(255,255,255,.6);
-  font-size: .83rem; font-weight: 600;
-  border-left: 2px solid transparent;
+  font-size: .82rem; font-weight: 600;
+  border-left: 3px solid transparent;
   transition: all .15s; cursor: pointer;
   margin: 1px 8px 1px 0;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 10px 10px 0;
+  line-height: 1.4;
 }
 #sidebar nav a:hover {
-  background: rgba(255,255,255,.06);
+  background: rgba(255,255,255,.07);
   color: rgba(255,255,255,.9);
   border-left-color: rgba(165,180,252,.4);
 }
 #sidebar nav a.active {
-  background: rgba(99,102,241,.25);
+  background: rgba(99,102,241,.22);
   color: #fff;
-  border-left: 2px solid #818cf8;
+  border-left: 3px solid #818cf8;
   font-weight: 700;
 }
 #sidebar nav a .ico { font-size: .85rem; width: 18px; text-align: center; flex-shrink: 0; }
@@ -450,22 +451,25 @@ input, select, textarea { font-family: inherit; outline: none; }
 
 /* ═══════════ TABS ═══════════ */
 .tab-row {
-  display: flex; gap: 3px;
-  background: #f3f4f6; padding: 4px;
-  border-radius: 12px; width: fit-content;
+  display: flex; gap: 4px;
+  background: #f1f5f9; padding: 4px;
+  border-radius: 12px; width: 100%;
   margin-bottom: 18px; flex-wrap: wrap;
+  border: 1px solid #e2e8f0;
 }
 .tb {
-  padding: 6px 15px; border-radius: 9px;
-  font-weight: 700; font-size: .79rem;
+  padding: 7px 14px; border-radius: 9px;
+  font-weight: 700; font-size: .78rem;
   color: var(--text3); background: transparent;
   border: none; cursor: pointer; transition: all .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .tb.active {
   background: #fff; color: var(--p);
-  box-shadow: 0 1px 5px rgba(0,0,0,.1);
+  box-shadow: 0 1px 6px rgba(0,0,0,.12);
 }
-.tb:hover:not(.active) { color: var(--text2); background: rgba(255,255,255,.5); }
+.tb:hover:not(.active) { color: var(--text2); background: rgba(255,255,255,.6); }
 
 /* ═══════════ SEARCH BAR ═══════════ */
 .sbar { display: flex; gap: 9px; margin-bottom: 18px; flex-wrap: wrap; }
@@ -656,6 +660,240 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
 
 /* ═══════════ LINK FONT ═══════════ */
 body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
+
+/* ═══════════ UI IMPROVEMENTS ═══════════ */
+
+/* Better page title */
+#topbar h2 {
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--text); letter-spacing: -.4px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Improved card layout */
+.card {
+  border-radius: 16px;
+  padding: 20px 22px;
+  border: 1.5px solid #f1f5f9;
+}
+.card-title {
+  font-size: .95rem; font-weight: 800;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #f1f5f9;
+  margin-bottom: 18px;
+}
+
+/* Sidebar section headers - cleaner */
+#sidebar nav .ns {
+  padding: 16px 18px 4px;
+  font-size: .58rem; font-weight: 800;
+  color: rgba(255,255,255,.22);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+
+/* Sidebar user box - cleaner */
+#sidebar .ubox {
+  padding: 16px 16px 14px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  background: rgba(0,0,0,.25);
+}
+#sidebar .ubox .uname { font-weight: 800; font-size: .88rem; margin-bottom: 2px; }
+#sidebar .ubox .urole {
+  font-size: .68rem; color: rgba(255,255,255,.35);
+  margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px;
+}
+#sidebar .ubox button {
+  width: 100%; padding: 8px 12px;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.7);
+  border-radius: 9px; font-weight: 600;
+  font-size: .75rem; border: 1px solid rgba(255,255,255,.07);
+  cursor: pointer; transition: .15s; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+#sidebar .ubox button:hover { background: rgba(255,255,255,.13); color: #fff; }
+
+/* Stat cards - slightly smaller label on mobile */
+.sc { border-radius: 12px; padding: 14px 16px; }
+.sc .sl { font-size: .65rem; }
+.sc .sv { font-size: 1.45rem; }
+
+/* Better form spacing */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 540px) { .g2 { grid-template-columns: 1fr; gap: 10px; } }
+
+/* Verification pending card styling */
+.verification-card {
+  background: #fffdf0;
+  border: 2px solid #fcd34d;
+  border-radius: 14px; padding: 16px;
+  margin-bottom: 14px;
+  transition: box-shadow .15s;
+}
+.verification-card:hover { box-shadow: 0 4px 16px rgba(252,211,77,.3); }
+
+/* Better table on mobile - horizontal scroll hint */
+.ox { border-radius: 10px; border: 1px solid #f1f5f9; }
+
+/* Smooth status badges */
+.badge { border-radius: 8px; padding: 3px 10px; font-size: .7rem; }
+
+/* Content padding improvements */
+#content { padding: 20px 22px; }
+@media (min-width: 1200px) { #content { padding: 24px 30px; } }
+
+/* Sidebar scrollbar thinner */
+#sidebar::-webkit-scrollbar { width: 3px; }
+
+/* Better topbar */
+#topbar {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+}
+
+/* Page entry animation smoother */
+@keyframes pgIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Print improvements */
+@media print {
+  body::before { content: 'Nandan Legal Services'; display: block; font-size: 1.2rem; font-weight: 800; text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+  #sidebar, #topbar, #menuToggle, .btn, .tab-row, .sbar, .md-foot { display: none !important; }
+  #content { margin-left: 0 !important; }
+}
+
+/* ═══════════ PROFESSIONAL UI POLISH ═══════════ */
+
+/* Sidebar: gradient background, smoother */
+#sidebar {
+  background: linear-gradient(180deg, #1a1740 0%, #1e1b4b 60%, #1a1740 100%);
+}
+
+/* Sidebar logo icon pulse on hover */
+.sidebar-logo .logo-icon:hover {
+  box-shadow: 0 4px 16px rgba(99,102,241,.6);
+  transform: scale(1.05);
+  transition: all .2s;
+}
+
+/* Card hover effect */
+.card {
+  transition: box-shadow .18s;
+}
+
+/* Input focus ring more prominent */
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--p);
+  box-shadow: 0 0 0 3.5px rgba(79,70,229,.12);
+}
+
+/* Work number badge */
+.wnum {
+  background: var(--pl);
+  color: var(--pd);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: .78rem;
+}
+
+/* Section header line */
+.sh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Better modal scroll on mobile */
+.md {
+  max-height: 92vh;
+  scrollbar-width: thin;
+}
+
+/* Amount input: highlight on focus */
+input[type="number"]:focus {
+  border-color: var(--g);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.12);
+}
+
+/* Toast: slightly bigger */
+#toast-container {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: 9000;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: .86rem;
+  min-width: 220px;
+  max-width: 340px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18);
+  animation: toastIn .25s cubic-bezier(.34,1.56,.64,1);
+  display: flex; align-items: center; gap: 8px;
+}
+@keyframes toastIn { from { opacity:0; transform: translateX(20px) scale(.95); } to { opacity:1; transform: none; } }
+.toast.success { background: #064e3b; color: #d1fae5; }
+.toast.error { background: #7f1d1d; color: #fee2e2; }
+.toast.info { background: #1e3a5f; color: #dbeafe; }
+
+/* Table row hover: softer */
+.wt tbody tr:hover td { background: #f8faff; }
+
+/* Dues client cards: bigger spacing */
+#duesClientList .card {
+  border-left: 4px solid var(--r);
+  transition: box-shadow .15s, transform .15s;
+}
+#duesClientList .card:hover {
+  box-shadow: 0 6px 24px rgba(244,63,94,.1);
+  transform: translateY(-1px);
+}
+
+/* Stats row: min col width */
+.stats-row {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+/* Better button groups */
+.btn + .btn { margin-left: 0; }
+
+/* Sidebar badge animation */
+#sidebar nav a span[id^="badge-"] {
+  transition: transform .2s;
+}
+#sidebar nav a span[id^="badge-"]:not([style*="none"]) {
+  animation: badgePop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* Verification card: golden */
+.page#page-verification .card {
+  border-top: 3px solid var(--o);
+}
+
+/* Page title: with subtle icon */
+#topbar h2 {
+  font-size: 1.18rem;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  #content { padding: 14px 14px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .sc .sv { font-size: 1.25rem; }
+  .md { padding: 20px 16px; border-radius: 14px; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .card { padding: 14px 14px; }
+}
+
 </style>
 </head>
 <body>
@@ -712,6 +950,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <div class="ns">Main</div>
       <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">🏠</span> Dashboard</a>
       <a onclick="showPage('newWork')" id="nav-newWork"><span class="ico">➕</span> New Work</a>
+      <a onclick="showPage('verification')" id="nav-verification"><span class="ico">🔍</span> Verification <span id="badge-verification" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">📋</span> All Works</a>
       <a onclick="showPage('datewise')" id="nav-datewise"><span class="ico">📅</span> Date / Month Filter</a>
       <a onclick="showPage('overdue')" id="nav-overdue"><span class="ico">⚠️</span> Overdue Works <span id="badge-overdue" style="margin-left:auto;background:var(--r);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
@@ -721,7 +960,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <div class="ns">Finance</div>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger" class="owner-only-nav"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile" class="owner-only-nav"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('dues')" id="nav-dues" class="owner-only-nav"><span class="ico">💳</span> Dues</a>
+      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues (by Client)</a>
       <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">💰</span> Combined Balance</a>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> Office Inside Spend</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
@@ -736,6 +975,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
       <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">🕐</span> Attendance</a>
       <div id="ownerNav" style="display:none;">
         <div class="ns">Owner Only</div>
+        <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
         <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙️</span> Manage Staff</a>
         <a onclick="showFirebaseRulesGuide()" style="cursor:pointer;"><span class="ico">🔒</span> DB Security Setup</a>
       </div>
@@ -830,6 +1070,13 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
                   </select>
                   <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
                   <select class="wtype-dltype" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"><option value="">— License Type —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select>
+                  <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:4px;">
+                    <label style="font-size:.78rem;font-weight:700;color:var(--gray);">DL Expiry Date</label>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                      <input type="date" class="wtype-dlexpiry" style="flex:1;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
+                      <span style="font-size:.75rem;color:var(--gray);">⬅ Click to pick date</span>
+                    </div>
+                  </div>
                   <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
                   <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
                 </div>
@@ -879,6 +1126,27 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
 
     <!-- ALL WORKS -->
     <div class="page" id="page-allWork">
+
+    <!-- VERIFICATION PAGE -->
+    <div class="page" id="page-verification">
+      <div class="card">
+        <div class="sh">
+          <div class="card-title" style="margin:0;">🔍 Works Pending Verification</div>
+          <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
+        </div>
+        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
+        <div id="verificationList"></div>
+      </div>
+    </div>
+
+    <!-- REJECTED WORKS PAGE (owner only) -->
+    <div class="page" id="page-rejectedWorks">
+      <div class="card">
+        <div class="card-title">❌ Rejected Works</div>
+        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">Works that were rejected during verification. These are permanent records — add a new work if needed.</p>
+        <div id="rejectedWorksList"></div>
+      </div>
+    </div>
       <div class="card">
         <div class="sh"><div class="card-title" style="margin:0;">📋 All Works</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -954,15 +1222,34 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <!-- UDHARI -->
     <div class="page" id="page-udhari">
       <div class="card">
-        <div class="card-title">💸 Udhari — Work Done But Client Has Not Paid</div>
+        <div class="sh">
+          <div class="card-title" style="margin:0;">💸 Udhari — Pending Client Payments</div>
+        </div>
+        <div class="tab-row" style="margin-bottom:14px;">
+          <button class="tb active" onclick="setUdhariAge('all',this)">All</button>
+          <button class="tb" onclick="setUdhariAge('week',this)">Under 1 Week</button>
+          <button class="tb" onclick="setUdhariAge('month',this)">1 Week – 1 Month</button>
+          <button class="tb" onclick="setUdhariAge('year',this)">1 Month – 1 Year</button>
+          <button class="tb" onclick="setUdhariAge('old',this)">Over 1 Year</button>
+        </div>
+        <input type="hidden" id="udhariAgeFilter" value="all"/>
         <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Amount Due</th><th>Completed On</th><th>Action</th></tr></thead><tbody id="udhariBody"></tbody></table></div>
       </div>
     </div>
 
-    <!-- EXPIRY ALERTS -->
+    <!-- EXPIRY -->
     <div class="page" id="page-expiry">
       <div class="card">
-        <div class="card-title">🔔 Expiry Alerts — Papers Expiring in Next 30 Days</div>
+        <div class="sh">
+          <div class="card-title" style="margin:0;">🔔 Expiry</div>
+          <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()">📥 Export Excel</button>
+        </div>
+        <div class="tab-row" style="margin-bottom:14px;">
+          <button class="tb expiry-filter-btn active" id="expiryFilterBtn" onclick="setExpiryFilter('all',this)">All Upcoming</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('month',this)">Expiring This Month</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('week',this)">Expiring This Week</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('expired',this)">Already Expired</button>
+        </div>
         <div id="expiryList"></div>
       </div>
     </div>
@@ -995,7 +1282,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
           <button class="tb" onclick="filterLedger('Cash',this)">Cash</button>
           <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
         </div>
-        <div style="margin-bottom:10px;"><input type="text" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
+        <div style="margin-bottom:10px;"><input type="text" id="ledgerSearchInput" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
         <div class="ox"><table class="wt"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount (₹)</th><th>Linked Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
       </div>
@@ -1003,16 +1290,76 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
 
     <!-- DUES PAGE -->
     <div class="page" id="page-dues">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">💳 Pending Dues</div>
-          <div id="duesSummaryBadge"></div>
+      <!-- Search + Actions Bar -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="sh" style="flex-wrap:wrap;gap:10px;">
+          <div class="card-title" style="margin:0;">💳 Dues (by Client)</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-primary" onclick="openManualDueModal()">➕ Manual Entry</button>
+            <button class="btn btn-sm btn-outline" onclick="exportDuesExcel()">📊 Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="printDuesPage()">🖨️ Print PDF</button>
+          </div>
         </div>
-        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">All open works where client has not paid the full amount.</p>
-        <div class="stats-row" id="duesStats" style="margin-bottom:14px;"></div>
-        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Owner</th><th>Vehicle</th><th>Type</th><th>Work Value</th><th>Paid</th><th>Due</th><th>Date</th><th>Action</th></tr></thead><tbody id="duesBody"></tbody></table></div>
+        <div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;">
+          <input type="text" id="duesSearch" placeholder="🔍 Search by name, mobile, or Client ID…" oninput="renderDues()" style="flex:1;min-width:200px;padding:9px 13px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;"/>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="duesStats" style="margin-bottom:16px;"></div>
+
+      <!-- Client Dues List -->
+      <div id="duesClientList"></div>
+    </div>
+
+    <!-- Manual Due Entry Modal -->
+    <div class="mo" id="manualDueModal">
+      <div class="md" style="max-width:460px;">
+        <div class="md-title">➕ Manual Due Entry</div>
+        <button class="md-close" onclick="closeModal('manualDueModal')">✕</button>
+        <p style="font-size:.82rem;color:var(--gray);margin-bottom:16px;">Enter dues from before this system was set up. These will be saved under the client's ID.</p>
+        <div class="field">
+          <label>Mobile Number *</label>
+          <div style="display:flex;gap:8px;">
+            <input type="tel" id="md_phone" placeholder="10-digit mobile number" maxlength="10" oninput="lookupManualDueClient(this.value)" style="flex:1;"/>
+          </div>
+          <div id="md_clientLookup" style="margin-top:6px;font-size:.8rem;"></div>
+        </div>
+        <div class="field">
+          <label>Client Name *</label>
+          <input type="text" id="md_name" placeholder="Full name"/>
+        </div>
+        <div class="field" id="md_clientIdField" style="display:none;">
+          <label>Client ID <span style="color:var(--g);font-size:.75rem;font-weight:600;">auto-assigned</span></label>
+          <input type="text" id="md_clientId" placeholder="Will be auto-assigned" readonly style="background:#f9fafb;color:var(--gray);"/>
+        </div>
+        <div class="field">
+          <label>Amount Due (₹) *</label>
+          <input type="number" id="md_amount" placeholder="e.g. 2500" min="0"/>
+        </div>
+        <div class="field">
+          <label>Note (optional)</label>
+          <input type="text" id="md_note" placeholder="e.g. Old RC, Permit renewal 2023"/>
+        </div>
+        <div class="md-foot">
+          <button class="btn btn-gray" onclick="closeModal('manualDueModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveManualDue()">💾 Save Due</button>
+        </div>
       </div>
     </div>
+
+    <!-- Client Dues Detail Modal -->
+    <div class="mo" id="clientDuesModal">
+      <div class="md" style="max-width:600px;">
+        <div class="md-title" id="clientDuesModalTitle">Client Dues</div>
+        <button class="md-close" onclick="closeModal('clientDuesModal')">✕</button>
+        <div id="clientDuesModalBody"></div>
+        <div class="md-foot">
+          <button class="btn btn-gray" onclick="closeModal('clientDuesModal')">Close</button>
+        </div>
+      </div>
+    </div>
+
 
     <!-- COMBINED BALANCE -->
     <div class="page" id="page-combinedBalance">
@@ -1029,19 +1376,33 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="page" id="page-officeSpend">
       <div class="card">
         <div class="card-title">🧾 Office Inside Spend</div>
-        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Enter vehicle number to find linked open work and record an expense against it. Always deducted from Cash.</p>
+        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Record office expenses. Search by vehicle to link to an open work, or save as a general spend.</p>
         <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input type="text" id="ospVehicle" placeholder="Enter vehicle number e.g. UP32AB1234" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+          <input type="text" id="ospVehicle" placeholder="Enter vehicle number (optional)" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
           <button class="btn btn-primary" onclick="searchOspWork()">🔍 Search</button>
+          <button class="btn btn-outline" onclick="showOspFormDirect()">➕ Add Without Vehicle</button>
         </div>
         <div id="ospSearchResult" style="margin-bottom:16px;"></div>
         <div id="ospEntryForm" style="display:none;background:var(--pl);border-radius:var(--rads);padding:14px;">
           <div style="font-weight:800;margin-bottom:10px;" id="ospWorkLabel"></div>
           <div class="g2">
-            <div class="field"><label>Amount (₹) *</label><input type="number" id="ospAmount" placeholder="e.g. 150" min="0"/></div>
+            <div class="field"><label>Amount (₹) *</label><input type="number" id="ospAmount" placeholder="e.g. 150" min="0" oninput="showAmtHint(this)"/></div>
             <div class="field"><label>Reason *</label><input type="text" id="ospReason" placeholder="e.g. Petrol, Stamp fee, Photocopy"/></div>
           </div>
-          <div class="field"><label>Date</label><input type="date" id="ospDate"/></div>
+          <div class="g2">
+            <div class="field"><label>Who Spent? *</label>
+              <select id="ospWhoSpent">
+                <option value="">— Select Staff —</option>
+              </select>
+            </div>
+            <div class="field"><label>Date</label><input type="date" id="ospDate"/></div>
+          </div>
+          <div class="field">
+            <label>Receipts / Bills (optional)</label>
+            <input type="file" id="ospPdfFile" accept=".pdf,image/*" multiple onchange="previewOspFiles(this)"/>
+            <div class="hint">Attach PDF bills or photos. Multiple files allowed.</div>
+            <div id="ospFilePreview" style="margin-top:6px;font-size:.8rem;color:var(--gray);"></div>
+          </div>
           <button class="btn btn-primary" onclick="saveOspSpend()">💾 Save Expense</button>
         </div>
         <div style="margin-top:20px;">
@@ -1154,7 +1515,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="page" id="page-accessLog">
       <div class="card">
         <div class="card-title">📜 Access Log</div>
-        <div class="ox"><table class="wt"><thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Time</th></tr></thead><tbody id="accessLogBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Time</th><th>Location</th></tr></thead><tbody id="accessLogBody"></tbody></table></div>
       </div>
     </div>
 
@@ -1222,7 +1583,10 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="card">
       <div class="sh">
         <div class="card-title" style="margin:0;">🕐 Staff Attendance</div>
-        <button class="btn btn-primary btn-sm" onclick="markAttendance()">✅ Mark My Attendance</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="markAttendance()">✅ Mark Check-In</button>
+          <button class="btn btn-outline btn-sm" onclick="markLogout()">👋 Mark Check-Out</button>
+        </div>
       </div>
       <div class="tab-row">
         <button class="tb active" onclick="attendanceTab('today',this)">Today</button>
@@ -1322,7 +1686,14 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
         <div id="receiptSizeInfo" style="font-size:.75rem;color:var(--gray);font-weight:700;"></div>
       </div>
     </div>
-    <div class="field" id="expiryField" style="display:none;"><label>Paper Expiry Date *</label><input type="date" id="expiryDate"/><div class="hint">Required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div></div>
+    <div class="field" id="expiryField" style="display:none;">
+      <label>Paper Expiry Date *</label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="date" id="expiryDate" style="flex:1;"/>
+        <span style="font-size:.8rem;color:var(--p);font-weight:700;">⬅ Click here to pick date</span>
+      </div>
+      <div class="hint">Use the calendar only — required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div>
+    </div>
     <div class="field"><label>Payment for This Work Was Made From *</label>
       <select id="closingBank" onchange="closingBankChange(this)">
         <option value="">— Select Source —</option>
@@ -1351,6 +1722,64 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('closeWorkModal')">Cancel</button>
       <button class="btn btn-success" onclick="completeWork()">✅ Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT WORK MODAL -->
+<div class="mo" id="rejectWorkModal">
+  <div class="md" style="max-width:460px;">
+    <button class="md-close" onclick="closeModal('rejectWorkModal')">×</button>
+    <div class="md-title">❌ Reject Work</div>
+    <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Please provide a reason for rejecting this work. This is permanent.</p>
+    <div class="field"><label>Rejection Reason *</label><textarea id="rejectReason" placeholder="e.g. Duplicate entry, Wrong vehicle number, Missing info…" rows="3"></textarea></div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('rejectWorkModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmRejectWork()">❌ Confirm Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD WORK EXPENSE PAYMENT MODAL -->
+<div class="mo" id="addExpensePaymentModal">
+  <div class="md" style="max-width:480px;">
+    <button class="md-close" onclick="closeModal('addExpensePaymentModal')">×</button>
+    <div class="md-title">💸 Add Expense Payment</div>
+    <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;" id="expPayWorkLabel"></p>
+    <div id="expensePaymentRows">
+      <div class="exp-pay-row" style="background:var(--pl);border-radius:var(--rads);padding:12px;margin-bottom:10px;">
+        <div class="g2" style="margin-bottom:8px;">
+          <div class="field" style="margin:0;"><label>Amount (₹) *</label><input type="number" class="exp-amt" placeholder="e.g. 6000" min="0" oninput="showAmtHint(this)"/></div>
+          <div class="field" style="margin:0;"><label>Paid From *</label>
+            <select class="exp-bank">
+              <option value="">— Select Source —</option>
+              <option value="Cash">💵 Cash</option>
+              <option value="HDFC">HDFC Bank</option>
+              <option value="SBI">SBI</option>
+              <option value="Kotak">Kotak Mahindra Bank</option>
+              <option value="ICICI">ICICI Bank</option>
+              <option value="Canara">Canara Bank</option>
+              <option value="Employee">👤 Employee</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin:0;"><label>Employee (if paid by employee)</label>
+          <select class="exp-emp" style="display:none;width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"></select>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-outline" onclick="addExpensePaymentRow()" style="margin-bottom:14px;">＋ Add Another Payment</button>
+    <div class="field">
+      <label>Mark Work As</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-success" id="expPayFullBtn" onclick="setExpPayType('full')" style="flex:1;">✅ Full Completion</button>
+        <button class="btn btn-outline" id="expPayPartialBtn" onclick="setExpPayType('partial')" style="flex:1;">⏳ More Payments Pending</button>
+      </div>
+      <div class="hint" style="margin-top:6px;" id="expPayTypeHint">Full = work is done. Partial = more payments still to be made.</div>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('addExpensePaymentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpensePayment()">💾 Save Payment</button>
     </div>
   </div>
 </div>
@@ -1424,7 +1853,7 @@ body { font-family: 'Plus Jakarta Sans', 'Nunito', sans-serif; }
     <div class="field"><label>Full Name *</label><input type="text" id="ns_name"/></div>
     <div class="field"><label>Email *</label><input type="email" id="ns_user" placeholder="staff@gmail.com"/></div>
     <div class="field"><label>Password *</label><div class="pw-wrap"><input type="password" id="ns_pass" placeholder="Min 4 characters"/><button class="pw-eye" onclick="togglePw('ns_pass',this)" tabindex="-1">👁️</button></div></div>
-    <div class="field"><label>Role *</label><select id="ns_role"><option value="staff">Staff</option><option value="owner">Owner</option></select></div>
+    <div class="field"><label>Role *</label><select id="ns_role"><option value="staff">Staff</option><option value="manager">Manager</option><option value="owner">Owner</option></select></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('addStaffModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveStaff()">Add Staff</button>
@@ -1871,18 +2300,34 @@ async function loginSuccess() {
   document.getElementById('loginPage').classList.remove('show');
   document.getElementById('mainApp').classList.add('show');
   document.getElementById('sidebarName').textContent = currentUser.name;
-  document.getElementById('sidebarRole').textContent = currentUser.role==='owner'?'👑 Owner':'👤 Staff';
+  const roleLabel = currentUser.role==='owner'?'👑 Owner':currentUser.role==='manager'?'🔑 Manager':'👤 Staff';
+  document.getElementById('sidebarRole').textContent = roleLabel;
   document.getElementById('ownerNav').style.display = currentUser.role==='owner'?'block':'none';
-  // Hide financial pages from staff
+  // Show verification link for owner and manager
+  const verNav = document.getElementById('nav-verification');
+  if(verNav) verNav.style.display = ['owner','manager'].includes(currentUser.role)?'flex':'none';
+  // Hide financial pages from staff and manager
   document.querySelectorAll('.owner-only-nav').forEach(el=>{
     el.classList.toggle('hidden-staff', currentUser.role!=='owner');
   });
   const now = new Date();
-  await _sb.from('access_log').insert({name:currentUser.name,role:currentUser.role,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}).then(()=>{}).catch(()=>{});
+  // Try to get GPS location for access log
+  const logEntry = {name:currentUser.name, role:currentUser.role, date:now.toLocaleDateString('en-IN'), time:now.toLocaleTimeString('en-IN'), timestamp:now.getTime()};
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const loc = `${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
+        _sb.from('access_log').insert({...logEntry, location: loc}).then(()=>{}).catch(()=>{});
+      },
+      () => { _sb.from('access_log').insert({...logEntry, location:'—'}).then(()=>{}).catch(()=>{}); },
+      {timeout:5000}
+    );
+  } else {
+    _sb.from('access_log').insert({...logEntry, location:'—'}).then(()=>{}).catch(()=>{});
+  }
   await loadAllData();
   showPage('dashboard');
   startClock();
-  // Check expiry notifications after data loads
   setTimeout(checkExpiryNotifications, 1500);
 }
 
@@ -1954,13 +2399,15 @@ async function loadAllData() {
   allStaff = (s.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allLedger = (l.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allSalary = allLedger.filter(r=>r.description&&r.description.toLowerCase().includes('salary'));
-  const [fu,at] = await Promise.all([
+  const [fu,at,md] = await Promise.all([
     _sb.from('followups').select('*').order('timestamp', {ascending:false}),
-    _sb.from('attendance').select('*').order('timestamp', {ascending:false})
+    _sb.from('attendance').select('*').order('timestamp', {ascending:false}),
+    _sb.from('manual_dues').select('*').order('timestamp', {ascending:false}).catch(()=>({data:[]}))
   ]);
   allFollowups = (fu.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allCash = allLedger.filter(r=>r.bank==='Cash');
   allAttendance = (at.data||[]).map(r=>({...toCamel(r),_key:r.id}));
+  allManualDues = (md.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   updateSidebarBadges();
 }
 
@@ -1972,6 +2419,7 @@ function updateSidebarBadges() {
   const expiry = allWorks.filter(w=>{if(!w.expiryDate)return false;const d=new Date(w.expiryDate);return d>=today2&&d<=in30;}).length;
   const followupPending = allFollowups.filter(f=>!f.done).length;
   const followupOverdue = allFollowups.filter(f=>!f.done&&f.dueDate&&new Date(f.dueDate)<new Date()).length;
+  const pendingVerification = allWorks.filter(w=>w.status==='pending_verification').length;
   const setBadge = (id, count) => {
     const el = document.getElementById(id); if(!el) return;
     if(count>0){el.textContent=count;el.style.display='inline';}else{el.style.display='none';}
@@ -1980,7 +2428,7 @@ function updateSidebarBadges() {
   setBadge('badge-udhari', udhari);
   setBadge('badge-expiry', expiry);
   setBadge('badge-followup', followupPending);
-  // Turn badge red if any are overdue
+  setBadge('badge-verification', pendingVerification);
   const fbEl = document.getElementById('badge-followup');
   if(fbEl && followupOverdue>0) fbEl.style.background='var(--r)';
   else if(fbEl) fbEl.style.background='var(--p)';
@@ -1989,24 +2437,68 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry Alerts',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Pending Dues',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 Office Inside Spend',rejectedWorks:'❌ Rejected Works'};
+
+// Track current page for filter reset
+let currentActivePage = 'dashboard';
 
 function showPage(page) {
-  const ownerPages=['bankLedger','reconcile','combinedBalance','pnl','cashTracker','dues'];
+  const ownerPages=['bankLedger','reconcile','combinedBalance','pnl','cashTracker','rejectedWorks'];
+  const ownerManagerPages=['verification'];
   if(ownerPages.includes(page) && currentUser && currentUser.role!=='owner'){
-    toast('🔒 This section is restricted to Owner only','error'); return;
+    return; // silent — nav link is hidden anyway
   }
+  if(ownerManagerPages.includes(page) && currentUser && !['owner','manager'].includes(currentUser.role)){
+    return; // silent
+  }
+  // Auto-reset filters when leaving a page
+  if(currentActivePage !== page) {
+    resetPageFilters(currentActivePage);
+  }
+  currentActivePage = page;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));
   const pg=document.getElementById('page-'+page); if(pg) pg.classList.add('active');
   const nv=document.getElementById('nav-'+page); if(nv) nv.classList.add('active');
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
-  // Reset New Work form when navigating AWAY from it
   if(page !== 'newWork') resetNewWorkForm();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,verification:renderVerification,rejectedWorks:renderRejectedWorks};
   if(renders[page]) renders[page]();
   closeSidebar();
+}
+
+function resetPageFilters(page) {
+  try {
+    if(page==='allWork'){
+      const si=document.getElementById('searchInput'); if(si) si.value='';
+      const tf=document.getElementById('filterType'); if(tf) tf.value='';
+      const sf=document.getElementById('filterStatus'); if(sf) sf.value='';
+      const ff=document.getElementById('filterFrom'); if(ff) ff.value='';
+      const ft=document.getElementById('filterTo'); if(ft) ft.value='';
+    }
+    if(page==='udhari'){
+      const uf=document.getElementById('udhariAgeFilter'); if(uf) uf.value='all';
+    }
+    if(page==='dues'){
+      const ds=document.getElementById('duesSearch'); if(ds) ds.value='';
+    }
+    if(page==='bankLedger'){
+      const ls=document.getElementById('ledgerSearchInput'); if(ls) ls.value=''; ledgerSearchTerm='';
+    }
+    if(page==='clientHistory'){
+      const cs=document.getElementById('chSearch'); if(cs) cs.value='';
+      const cr=document.getElementById('chResult'); if(cr) cr.innerHTML='';
+    }
+    if(page==='datewise'){
+      // reset to today tab
+      currentDateTab='today';
+    }
+    if(page==='expiry'){
+      const ef=document.getElementById('expiryFilterBtn'); if(ef){ document.querySelectorAll('.expiry-filter-btn').forEach(b=>b.classList.remove('active')); ef.classList.add('active'); }
+      expiryFilter='all';
+    }
+  } catch(e){}
 }
 
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sideOverlay').classList.toggle('show');}
@@ -2026,19 +2518,31 @@ function renderDashboard() {
   const cashIn=cashLedger.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
   const cashOut=cashLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const cashBalance=cashOpening+cashIn-cashOut;
-  const pendingDue=allWorks.filter(w=>w.remainingBalance>0&&w.status!=='done').reduce((s,w)=>s+(w.remainingBalance||0),0);
+  const pendingDue=allWorks.filter(w=>(w.remainingBalance>0||w.payMode==='Unpaid')&&w.status==='done').reduce((s,w)=>{
+    if(w.payMode==='Unpaid') return s+(w.workValue||w.amount||0);
+    return s+(w.remainingBalance||0);
+  },0);
+  const pendingOpen=allWorks.filter(w=>w.remainingBalance>0&&w.status==='open').reduce((s,w)=>s+(w.remainingBalance||0),0);
   const todayStr=new Date().toLocaleDateString('en-IN');
-  const todayWorks=allWorks.filter(w=>w.date===todayStr);
+  const todayWorks=allWorks.filter(w=>w.date===todayStr&&w.status!=='pending_verification'&&w.status!=='rejected');
   const todayCollected=todayWorks.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
   const todayCount=todayWorks.length;
+  const getBankBal=(bank)=>{const e=allLedger.filter(l=>l.bank===bank);const o=e.filter(x=>x.type==='opening').reduce((s,x)=>s+(x.amount||0),0);const c=e.filter(x=>x.type==='credit').reduce((s,x)=>s+(x.amount||0),0);const d=e.filter(x=>x.type==='debit').reduce((s,x)=>s+(x.amount||0),0);return o+c-d;};
+  const bankList=['HDFC','SBI','Kotak','ICICI','Canara'];
+  const empMap2={};allLedger.filter(l=>l.employeeName).forEach(e=>{if(!empMap2[e.employeeName])empMap2[e.employeeName]=0;empMap2[e.employeeName]+=(e.amount||0);});
+  const empTotal2=Object.values(empMap2).reduce((s,v)=>s+v,0);
+  const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
   document.getElementById('dashStats').innerHTML=`
     <div class="sc"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${open}</div></div>
     <div class="sc red"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
     <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${udhari}</div></div>
-    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">Cash in Hand</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
-    ${pendingDue>0?`<div class="sc red"><div class="sl">Pending Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
+    ${pendingVerifCount>0?`<div class="sc" style="border:2px solid var(--o);cursor:pointer;" onclick="showPage('verification')"><div class="sl">⏳ Awaiting Verification</div><div class="sv" style="color:var(--o);">${pendingVerifCount}</div></div>`:''}
+    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'}">${inr(cashBalance)}</div></div>
+    ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''} "><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'}">${inr(bal)}</div></div>`;}).join('')}
+    ${empTotal2>0?`<div class="sc orange" style="cursor:pointer;" onclick="showPage('combinedBalance')"><div class="sl">👤 With Employees</div><div class="sv" style="color:#d97706;">${inr(empTotal2)}</div></div>`:''}
+    ${pendingDue>0?`<div class="sc red"><div class="sl">Pending Client Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
     <div class="sc"><div class="sl">Today's Works</div><div class="sv">${todayCount}</div></div>
     <div class="sc green"><div class="sl">Today's Collection</div><div class="sv">${inr(todayCollected)}</div></div>
   `;
@@ -2141,7 +2645,7 @@ function startClock(){
 
 // ── New Work helpers ──────────────────────────────────────────
 function addVehicleRow() {
-  const list = document.getElementById('vehicleList');
+  const list = document.getElementById('vehicleWorkList');
   const row = document.createElement('div');
   row.className = 'vehicle-row';
   row.style = 'display:flex;gap:8px;margin-bottom:6px;';
@@ -2254,11 +2758,13 @@ function vwTypeChange(sel) {
   const tfrom = row.querySelector('.wtype-tfrom');
   const tto = row.querySelector('.wtype-tto');
   const dltype = row.querySelector('.wtype-dltype');
+  const dlExpiryWrap = row.querySelector('.wtype-dlexpiry-wrap');
   const vehicleInput = row.querySelector('.vehicle-input');
   spec.style.display = sel.value==='Others' ? 'block' : 'none';
   tfrom.style.display = sel.value==='Transfer' ? 'block' : 'none';
   tto.style.display = sel.value==='Transfer' ? 'block' : 'none';
   if(dltype) dltype.style.display = sel.value==='DrivingLicense' ? 'block' : 'none';
+  if(dlExpiryWrap) dlExpiryWrap.style.display = sel.value==='DrivingLicense' ? 'block' : 'none';
   // DL is person-based, not vehicle-based — hide vehicle input
   if(vehicleInput) {
     if(sel.value==='DrivingLicense') {
@@ -2317,6 +2823,7 @@ function getVWRows() {
     workType: row.querySelector('.wtype-sel').value,
     othersSpecify: row.querySelector('.wtype-spec').value.trim(),
     dlLicenseType: row.querySelector('.wtype-dltype')?.value.trim()||'',
+    dlExpiryDate: row.querySelector('.wtype-dlexpiry')?.value||'',
     transferFrom: row.querySelector('.wtype-tfrom').value.trim(),
     transferTo: row.querySelector('.wtype-tto').value.trim(),
   })).filter(r => r.vehicle || r.workType);
@@ -2345,6 +2852,7 @@ function resetVWRows() {
         </select>
         <input type="text" class="wtype-spec" placeholder="Specify..." style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
         <select class="wtype-dltype" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"><option value="">— License Type —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select>
+        <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:4px;"><label style="font-size:.78rem;font-weight:700;color:var(--gray);">DL Expiry Date</label><div style="display:flex;align-items:center;gap:6px;margin-top:2px;"><input type="date" class="wtype-dlexpiry" style="flex:1;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/><span style="font-size:.75rem;color:var(--gray);">⬅ Click to pick date</span></div></div>
         <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
         <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:4px;width:100%;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/>
       </div>
@@ -2431,10 +2939,10 @@ async function _doSubmitWork() {
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
     amount: totalPaid, notes,
-    status:'open', takenBy:currentUser.name, takenByKey:currentUser.key,
+    status:'pending_verification', takenBy:currentUser.name, takenByKey:currentUser.key,
     date: dateStr, time: now.toLocaleTimeString('en-IN'), timestamp: now.getTime(),
     completedBy:'', completedDate:'', closingBank:'', receiptAmount:0, closeNotes:'',
-    receiptPhoto:'', expiryDate:'', miscExpense:0, miscReason:'', partialDesc:''
+    receiptPhoto:'', expiryDate: primaryRow.workType==='DrivingLicense'?(primaryRow.dlExpiryDate||''):'', miscExpense:0, miscReason:'', partialDesc:''
   };
 
   try {
@@ -2454,7 +2962,7 @@ async function _doSubmitWork() {
         employee_name: pr.mode==='Employee'?pr.employee:''
       });
     }
-    toast(`✅ Work #${workNum} saved! Client ID: ${clientId}`,'success');
+    toast(`✅ Work #${workNum} saved! Sent to Verification. Client ID: ${clientId}`,'success');
     // Reset form
     document.getElementById('w_name').value='';
     document.getElementById('w_clientName').value='';
@@ -2540,7 +3048,8 @@ function renderWorkTable(){
   const search=document.getElementById('searchInput').value.trim().toLowerCase();
   const fType=document.getElementById('filterType').value;
   const fStatus=document.getElementById('filterStatus').value;
-  let list=allWorks;
+  // Exclude works pending verification or rejected from All Works
+  let list=allWorks.filter(w=>w.status!=='pending_verification'&&w.status!=='rejected');
   if(search) list=list.filter(w=>(w.clientName||'').toLowerCase().includes(search)||(w.ownerName||'').toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||(w.vehicles||'').toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
   if(fType) list=list.filter(w=>w.workType===fType);
   if(fStatus) list=list.filter(w=>w.status===fStatus);
@@ -2598,36 +3107,306 @@ function renderDateWise(){
   const now=new Date();
   if(currentDateTab==='today'){
     const todayStr=now.toLocaleDateString('en-IN');
-    list=allWorks.filter(w=>w.date===todayStr);
+    list=allWorks.filter(w=>w.date===todayStr&&w.status!=='pending_verification'&&w.status!=='rejected');
   } else if(currentDateTab==='date'){
     const val=document.getElementById('datePickerSingle').value;
     if(!val){document.getElementById('dateTableBody').innerHTML='<tr><td colspan="10" class="nd">Select a date</td></tr>';document.getElementById('dateStats').innerHTML='';return;}
     const sel=new Date(val).toLocaleDateString('en-IN');
-    list=allWorks.filter(w=>w.date===sel);
+    list=allWorks.filter(w=>w.date===sel&&w.status!=='pending_verification'&&w.status!=='rejected');
   } else {
     const m=parseInt(document.getElementById('monthSel').value);
     const y=parseInt(document.getElementById('yearSel').value);
-    list=allWorks.filter(w=>{if(!w.timestamp)return false;const d=new Date(w.timestamp);return d.getMonth()===m&&d.getFullYear()===y;});
+    list=allWorks.filter(w=>{if(!w.timestamp)return false;const d=new Date(w.timestamp);return d.getMonth()===m&&d.getFullYear()===y&&w.status!=='pending_verification'&&w.status!=='rejected';});
   }
   const done=list.filter(w=>w.status==='done').length;
   const totalAmt=list.reduce((s,w)=>s+(w.amount||0),0);
+  // Work type breakdown
+  const typeCount={};
+  list.forEach(w=>{const t=wtLabel(w.workType);typeCount[t]=(typeCount[t]||0)+1;});
+  const typeSummary=Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<div class="sc"><div class="sl">${t}</div><div class="sv">${c}</div></div>`).join('');
+  const isMonth = currentDateTab==='month';
   document.getElementById('dateStats').innerHTML=`
-    <div class="sc"><div class="sl">Works</div><div class="sv">${list.length}</div></div>
+    <div class="sc"><div class="sl">Total Works</div><div class="sv">${list.length}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${list.length-done}</div></div>
     <div class="sc yellow"><div class="sl">Total Collected</div><div class="sv">${inr(totalAmt)}</div></div>
+    ${typeSummary}
+    ${isMonth?`<div style="margin-top:12px;width:100%;display:flex;justify-content:flex-end;"><button class="btn btn-sm btn-outline" onclick="printDateWise()">🖨️ Print Report</button></div>`:''}
   `;
   const tbody=document.getElementById('dateTableBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="10" class="nd">No works for this period</td></tr>';return;}
   tbody.innerHTML=list.map(w=>`<tr>
     <td><span class="wnum">#${w.workNum}</span></td><td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
-    <td><strong>${esc(w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
+    <td><strong>${esc(w.clientName||w.ownerName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
     <td style="font-weight:700;">${esc(w.vehicle)}</td><td>${wtBadge(w)}</td><td>${payBadge(w)}</td>
     <td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span></td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
     <td style="font-size:.77rem;color:var(--gray);">${esc(w.time)}</td>
     <td><button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button></td>
   </tr>`).join('');
+}
+
+function printDateWise() {
+  window.print();
+}
+
+// ============================================================
+// VERIFICATION SYSTEM
+// ============================================================
+let rejectingWorkKey = null;
+
+function renderVerification() {
+  const list = allWorks.filter(w=>w.status==='pending_verification');
+  const el = document.getElementById('verificationList');
+  const badge = document.getElementById('verificationBadgeCount');
+  if(badge){ if(list.length>0){badge.textContent=list.length+' pending';badge.style.display='inline';}else{badge.style.display='none';} }
+  if(!list.length){
+    el.innerHTML='<div class="nd" style="padding:40px;text-align:center;">✅ No works pending verification</div>';
+    return;
+  }
+  el.innerHTML = list.map(w=>{
+    const canVerify = currentUser.role==='owner' || (currentUser.role==='manager' && w.takenByKey!==currentUser.key);
+    return `<div style="background:var(--pl);border-radius:var(--rad);padding:16px;margin-bottom:14px;border:2px solid var(--o);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div>
+          <span class="wnum" style="font-size:1rem;">#${w.workNum}</span>
+          <span style="background:#fff3cd;color:#856404;border-radius:8px;padding:2px 10px;font-size:.75rem;font-weight:700;margin-left:8px;">⏳ Pending Verification</span>
+        </div>
+        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> on ${fmtDate(w.date)} at ${esc(w.time||'')}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:14px;">
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Phone</div><div style="font-weight:700;">${esc(w.phone)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle(s)</div><div style="font-weight:700;font-family:monospace;">${esc(w.vehicles||w.vehicle)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Type</div><div>${wtBadge(w)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Payment</div><div>${payBadge(w)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Value</div><div style="font-weight:800;color:var(--g);">${inr(w.workValue||0)}</div></div>
+      </div>
+      ${w.notes?`<div style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">📝 ${esc(w.notes)}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${canVerify
+          ? `<button class="btn btn-success" onclick="verifyWork('${w._key}')">✅ Verify & Move to All Works</button>
+             <button class="btn btn-danger" onclick="openRejectWork('${w._key}')">❌ Reject</button>`
+          : `<div style="font-size:.82rem;color:var(--gray);padding:8px 0;">⚠️ You cannot verify your own work</div>`
+        }
+        <button class="btn btn-outline btn-sm" onclick="viewWork('${w._key}')">View Details</button>
+        ${(currentUser.role==='owner'||(w.takenByKey===currentUser.key&&w.status==='pending_verification'))
+          ? `<button class="btn btn-gray btn-sm" onclick="openEditWork('${w._key}')">✏️ Edit</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function verifyWork(key) {
+  if(!confirm('Verify this work and move it to All Works?')) return;
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+  if(currentUser.role==='manager' && w.takenByKey===currentUser.key){
+    toast('You cannot verify your own work','error'); return;
+  }
+  try {
+    await _sb.from('works').update({status:'open', verified_by:currentUser.name, verified_at:Date.now()}).eq('id',key);
+    toast('✅ Work verified and moved to All Works!','success');
+    await loadAllData();
+    renderVerification();
+    updateSidebarBadges();
+  } catch(e){toast('Error: '+e.message,'error');}
+}
+
+function openRejectWork(key) {
+  rejectingWorkKey = key;
+  document.getElementById('rejectReason').value = '';
+  openModal('rejectWorkModal');
+}
+
+async function confirmRejectWork() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  if(!reason){toast('Please enter a rejection reason','error');return;}
+  const w = allWorks.find(x=>x._key===rejectingWorkKey);
+  if(!w) return;
+  try {
+    await _sb.from('works').update({
+      status:'rejected',
+      rejection_reason: reason,
+      rejected_by: currentUser.name,
+      rejected_at: Date.now()
+    }).eq('id', rejectingWorkKey);
+    toast('Work rejected','success');
+    closeModal('rejectWorkModal');
+    rejectingWorkKey = null;
+    await loadAllData();
+    renderVerification();
+    updateSidebarBadges();
+  } catch(e){toast('Error: '+e.message,'error');}
+}
+
+function renderRejectedWorks() {
+  if(currentUser.role!=='owner'){document.getElementById('rejectedWorksList').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
+  const list = allWorks.filter(w=>w.status==='rejected');
+  const el = document.getElementById('rejectedWorksList');
+  if(!list.length){el.innerHTML='<div class="nd" style="padding:40px;">No rejected works</div>';return;}
+  el.innerHTML = list.map(w=>`
+    <div style="background:#fff5f5;border:2px solid #fca5a5;border-radius:var(--rad);padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div>
+          <span class="wnum">#${w.workNum}</span>
+          <span style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:2px 10px;font-size:.75rem;font-weight:700;margin-left:8px;">❌ Rejected</span>
+        </div>
+        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> · Rejected by <strong>${esc(w.rejectedBy||'—')}</strong></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle</div><div style="font-family:monospace;font-weight:700;">${esc(w.vehicles||w.vehicle)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Type</div><div>${wtBadge(w)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Date</div><div style="font-size:.82rem;">${fmtDate(w.date)}</div></div>
+      </div>
+      <div style="background:#fee2e2;border-radius:var(--rads);padding:10px 14px;">
+        <div style="font-size:.72rem;font-weight:800;color:#dc2626;text-transform:uppercase;margin-bottom:3px;">Rejection Reason</div>
+        <div style="font-size:.85rem;font-weight:700;">${esc(w.rejectionReason||'—')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ============================================================
+// MULTIPLE EXPENSE PAYMENTS PER WORK
+// ============================================================
+let expPayWorkKey = null;
+let expPayType = 'full';
+
+function openAddExpensePayment(key) {
+  expPayWorkKey = key;
+  expPayType = 'full';
+  const w = allWorks.find(x=>x._key===key);
+  document.getElementById('expPayWorkLabel').textContent = w ? `Work #${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}` : '';
+  // Reset to one row
+  document.getElementById('expensePaymentRows').innerHTML = buildExpPayRow();
+  setExpPayType('full');
+  // Populate employee selects
+  setTimeout(()=>{
+    document.querySelectorAll('#expensePaymentRows .exp-bank').forEach(sel=>{
+      sel.addEventListener('change', function(){ toggleExpEmpSelect(this); });
+    });
+    document.querySelectorAll('#expensePaymentRows .exp-emp').forEach(sel=>{
+      populateEmployeeSelect(sel);
+    });
+  }, 100);
+  openModal('addExpensePaymentModal');
+}
+
+function buildExpPayRow() {
+  return `<div class="exp-pay-row" style="background:var(--pl);border-radius:var(--rads);padding:12px;margin-bottom:10px;position:relative;">
+    <button onclick="removeExpPayRow(this)" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--r);font-size:1.1rem;cursor:pointer;line-height:1;">×</button>
+    <div class="g2" style="margin-bottom:8px;">
+      <div class="field" style="margin:0;"><label>Amount (₹) *</label><input type="number" class="exp-amt" placeholder="e.g. 6000" min="0" oninput="showAmtHint(this)"/></div>
+      <div class="field" style="margin:0;"><label>Paid From *</label>
+        <select class="exp-bank" onchange="toggleExpEmpSelect(this)">
+          <option value="">— Select Source —</option>
+          <option value="Cash">💵 Cash</option>
+          <option value="HDFC">HDFC Bank</option>
+          <option value="SBI">SBI</option>
+          <option value="Kotak">Kotak Mahindra Bank</option>
+          <option value="ICICI">ICICI Bank</option>
+          <option value="Canara">Canara Bank</option>
+          <option value="Employee">👤 Employee</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin:0;display:none;" class="exp-emp-wrap">
+      <label>Employee Name</label>
+      <select class="exp-emp" style="width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"></select>
+    </div>
+  </div>`;
+}
+
+function addExpensePaymentRow() {
+  const container = document.getElementById('expensePaymentRows');
+  const div = document.createElement('div');
+  div.innerHTML = buildExpPayRow();
+  const row = div.firstElementChild;
+  container.appendChild(row);
+  const empSel = row.querySelector('.exp-emp');
+  if(empSel) populateEmployeeSelect(empSel);
+  const bankSel = row.querySelector('.exp-bank');
+  if(bankSel) bankSel.addEventListener('change', function(){ toggleExpEmpSelect(this); });
+}
+
+function removeExpPayRow(btn) {
+  const rows = document.querySelectorAll('#expensePaymentRows .exp-pay-row');
+  if(rows.length<=1){toast('At least one payment row required','warn');return;}
+  btn.closest('.exp-pay-row').remove();
+}
+
+function toggleExpEmpSelect(bankSel) {
+  const row = bankSel.closest('.exp-pay-row');
+  const empWrap = row.querySelector('.field.exp-emp-wrap') || row.querySelector('[class*="exp-emp-wrap"]');
+  // Find the emp field by looking for the div with exp-emp
+  const empDiv = row.querySelectorAll('.field')[1]; // second field in g2 is bank, but emp is separate
+  const allFields = row.querySelectorAll('.field');
+  allFields.forEach(f=>{ if(f.querySelector('.exp-emp')) f.style.display = bankSel.value==='Employee'?'block':'none'; });
+}
+
+function populateEmployeeSelect(sel) {
+  sel.innerHTML = '<option value="">— Select Employee —</option>' +
+    allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+}
+
+function setExpPayType(type) {
+  expPayType = type;
+  document.getElementById('expPayFullBtn').className = type==='full'?'btn btn-success':'btn btn-outline';
+  document.getElementById('expPayPartialBtn').className = type==='partial'?'btn btn-primary':'btn btn-outline';
+  document.getElementById('expPayTypeHint').textContent = type==='full'
+    ? 'Full = work is completely done. Will mark work as Completed.'
+    : 'Partial = more payments still expected. Work stays as Partially Completed.';
+}
+
+async function saveExpensePayment() {
+  const w = allWorks.find(x=>x._key===expPayWorkKey);
+  if(!w) return;
+  const rows = [...document.querySelectorAll('#expensePaymentRows .exp-pay-row')];
+  const payments = rows.map(row=>{
+    const amt = parseFloat(row.querySelector('.exp-amt')?.value)||0;
+    const bank = row.querySelector('.exp-bank')?.value||'';
+    const empFields = row.querySelectorAll('.field');
+    let emp = '';
+    empFields.forEach(f=>{ if(f.querySelector('.exp-emp')) emp = f.querySelector('.exp-emp')?.value||''; });
+    return {amt, bank, emp};
+  }).filter(p=>p.amt>0&&p.bank);
+  if(!payments.length){toast('Add at least one payment with amount and source','error');return;}
+  if(payments.some(p=>!p.bank)){toast('Select payment source for all rows','error');return;}
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN');
+  try {
+    // Save each payment as separate ledger debit
+    let totalNewAmt = 0;
+    for(const p of payments) {
+      const ledBank = p.bank==='Employee'?'Employee':p.bank;
+      await _sb.from('ledger').insert({
+        bank: ledBank, type:'debit', amount:p.amt,
+        date: dateStr, timestamp: now.getTime(),
+        work_ref: `#${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}`,
+        description: `Work expense${expPayType==='partial'?' [Partial payment]':''}: ${wtLabel(w.workType)}`,
+        by: currentUser.name, auto_entry: true,
+        employee_name: p.bank==='Employee'?p.emp:''
+      });
+      totalNewAmt += p.amt;
+    }
+    // Update work status
+    const newReceiptTotal = (w.receiptAmount||0) + totalNewAmt;
+    const newStatus = expPayType==='full'?'done':'partial';
+    await _sb.from('works').update(toSnake({
+      status: newStatus,
+      receiptAmount: newReceiptTotal,
+      completedBy: expPayType==='full'?currentUser.name:(w.completedBy||''),
+      completedDate: expPayType==='full'?dateStr:(w.completedDate||''),
+      completedTime: expPayType==='full'?now.toLocaleTimeString('en-IN'):(w.completedTime||''),
+      completedTimestamp: expPayType==='full'?now.getTime():(w.completedTimestamp||0),
+    })).eq('id', expPayWorkKey);
+    toast(`✅ ${payments.length} payment${payments.length>1?'s':''} saved! Work marked as ${expPayType==='full'?'Completed':'Partially Completed'}.`,'success');
+    closeModal('addExpensePaymentModal');
+    expPayWorkKey = null;
+    await loadAllData();
+    renderDashboard();
+  } catch(e){toast('Error: '+e.message,'error');}
 }
 
 // ============================================================
@@ -2652,15 +3431,35 @@ function renderOverdue(){
 // ============================================================
 // UDHARI
 // ============================================================
+function setUdhariAge(val, btn) {
+  document.getElementById('udhariAgeFilter').value = val;
+  document.querySelectorAll('#page-udhari .tb').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderUdhari();
+}
+
 function renderUdhari(){
-  // Section A: Work taken as Unpaid (full udhari) — now done, nothing collected
+  const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
+  const now = Date.now();
   const pureUdhari = allWorks.filter(w=>w.status==='done' && w.payMode==='Unpaid');
-  // Section B: Work done, partial payment collected, remaining balance still due
   const partialDue = allWorks.filter(w=>w.status==='done' && w.payMode!=='Unpaid' && (w.remainingBalance||0)>0);
+  let allDue = [...pureUdhari, ...partialDue];
+
+  // Age filter
+  if(ageFilter!=='all') {
+    allDue = allDue.filter(w=>{
+      const age = now - (w.completedTimestamp||w.timestamp||0);
+      const days = age/86400000;
+      if(ageFilter==='week') return days<7;
+      if(ageFilter==='month') return days>=7&&days<30;
+      if(ageFilter==='year') return days>=30&&days<365;
+      if(ageFilter==='old') return days>=365;
+      return true;
+    });
+  }
 
   const tbody = document.getElementById('udhariBody');
-
-  const makeRow = (w, sectionTag) => `<tr>
+  const makeRow = (w) => `<tr>
     <td><span class="wnum">#${w.workNum}</span></td>
     <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
     <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
@@ -2674,26 +3473,11 @@ function renderUdhari(){
     </td>
   </tr>`;
 
-  const sectionHeader = (title, color, count) => `<tr>
-    <td colspan="8" style="background:${color};font-weight:800;font-size:.8rem;padding:7px 14px;color:#374151;border-radius:6px;">
-      ${title} <span style="background:#fff;padding:2px 8px;border-radius:10px;font-size:.75rem;margin-left:6px;">${count}</span>
-    </td></tr>`;
-
-  if(!pureUdhari.length && !partialDue.length){
-    tbody.innerHTML='<tr><td colspan="8" class="nd">✅ No pending dues — all clients have paid</td></tr>';
+  if(!allDue.length){
+    tbody.innerHTML=`<tr><td colspan="8" class="nd">✅ No pending dues${ageFilter!=='all'?' for this time period':' — all clients have paid'}</td></tr>`;
     return;
   }
-
-  let html = '';
-  if(pureUdhari.length){
-    html += sectionHeader('💸 Full Udhari — Work done, nothing collected yet','#fef3c7', pureUdhari.length);
-    html += pureUdhari.map(w=>makeRow(w,'udhari')).join('');
-  }
-  if(partialDue.length){
-    html += sectionHeader('⚠️ Partial Due — Work done, some amount still pending','#fff0f3', partialDue.length);
-    html += partialDue.map(w=>makeRow(w,'partial')).join('');
-  }
-  tbody.innerHTML = html;
+  tbody.innerHTML = allDue.map(w=>makeRow(w)).join('');
 }
 
 // ============================================================
@@ -2752,24 +3536,72 @@ async function saveMarkPaid() {
 // ============================================================
 // EXPIRY ALERTS
 // ============================================================
+let expiryFilter = 'all';
+
+function setExpiryFilter(filter, btn) {
+  expiryFilter = filter;
+  document.querySelectorAll('.expiry-filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderExpiry();
+}
+
 function renderExpiry(){
-  const today=new Date(); const in30=new Date(today.getTime()+30*86400000);
-  const list=allWorks.filter(w=>{if(!w.expiryDate)return false;const d=new Date(w.expiryDate);return d>=today&&d<=in30;});
+  const today=new Date(); today.setHours(0,0,0,0);
+  const in7=new Date(today.getTime()+7*86400000);
+  const in30=new Date(today.getTime()+30*86400000);
+  // All works with expiry date
+  let allExpiry = allWorks.filter(w=>w.expiryDate);
+  let list;
+  if(expiryFilter==='all') {
+    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today);
+  } else if(expiryFilter==='month') {
+    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in30;});
+  } else if(expiryFilter==='week') {
+    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in7;});
+  } else if(expiryFilter==='expired') {
+    list = allExpiry.filter(w=>new Date(w.expiryDate)<today);
+  } else {
+    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today);
+  }
   list.sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
   const el=document.getElementById('expiryList');
-  if(!list.length){el.innerHTML='<div class="nd" style="padding:30px;">✅ No papers expiring in the next 30 days</div>';return;}
+  if(!list.length){el.innerHTML=`<div class="nd" style="padding:30px;">✅ No papers ${expiryFilter==='expired'?'expired':'expiring'} for this filter</div>`;return;}
   el.innerHTML=list.map(w=>{
-    const d=new Date(w.expiryDate); const days=Math.ceil((d-today)/86400000);
-    return `<div class="expiry-alert ${days<=7?'':'warn'}" onclick="viewWork('${w._key}')">
+    const d=new Date(w.expiryDate);
+    const diffMs = d-today;
+    const days=Math.ceil(diffMs/86400000);
+    const isExpired = days<0;
+    const urgentClass = isExpired?'expiry-alert':days<=7?'expiry-alert':'expiry-alert warn';
+    return `<div class="${urgentClass}" onclick="viewWork('${w._key}')">
       <div>
         <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicle)}</span></div>
         <div style="font-size:.78rem;margin-top:2px;">${wtLabel(w.workType)} · Phone: ${esc(w.phone)}</div>
       </div>
       <div style="text-align:right;">
         <div style="font-weight:800;font-size:.95rem;">Expires: ${fmtDate(w.expiryDate)}</div>
-        <span class="badge ${days<=7?'br':'by'}" style="margin-top:4px;">${days} day${days===1?'':'s'} left</span>
+        <span class="badge ${isExpired?'br':days<=7?'br':'by'}" style="margin-top:4px;">${isExpired?`Expired ${Math.abs(days)}d ago`:`${days} day${days===1?'':'s'} left`}</span>
       </div>
-    </div>`;}).join('');
+    </div>`;
+  }).join('');
+}
+
+function exportExpiryExcel() {
+  const today=new Date(); today.setHours(0,0,0,0);
+  let list;
+  if(expiryFilter==='all') list=allWorks.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today);
+  else if(expiryFilter==='month'){const in30=new Date(today.getTime()+30*86400000);list=allWorks.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today&&new Date(w.expiryDate)<=in30);}
+  else if(expiryFilter==='week'){const in7=new Date(today.getTime()+7*86400000);list=allWorks.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today&&new Date(w.expiryDate)<=in7);}
+  else if(expiryFilter==='expired') list=allWorks.filter(w=>w.expiryDate&&new Date(w.expiryDate)<today);
+  else list=allWorks.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today);
+  list.sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
+  const data = list.map(w=>{
+    const d=new Date(w.expiryDate); const diffMs=d-today; const days=Math.ceil(diffMs/86400000);
+    return {'Owner Name':w.ownerName||w.clientName,'Phone':w.phone,'Vehicle':w.vehicles||w.vehicle,'Work Type':wtLabel(w.workType),'Expiry Date':fmtDateExcel(w.expiryDate),'Days Left':days,'Client ID':w.clientId||''};
+  });
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Expiry');
+  XLSX.writeFile(wb,`Expiry_${expiryFilter}_${new Date().toLocaleDateString('en-IN').replace(/\//g,'-')}.xlsx`);
 }
 
 // ============================================================
@@ -3274,6 +4106,16 @@ function fmtDate(d) {
   return d;
 }
 
+// Excel-safe date format: DD/MM/YYYY
+function fmtDateExcel(d) {
+  if(!d) return '';
+  const parts = String(d).split('/');
+  if(parts.length===3) return `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`;
+  const dt = new Date(d);
+  if(!isNaN(dt)) return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+  return d;
+}
+
 // Format number input with Indian commas on blur
 function formatNumberInput(inp) {
   const v = parseFloat(inp.value);
@@ -3309,40 +4151,301 @@ function inr(n){
 
 
 // ============================================================
-// DUES PAGE
+// DUES PAGE — CLIENT GROUPED
 // ============================================================
+let allManualDues = [];
+
 function renderDues() {
-  const dueWorks = allWorks.filter(w=>w.remainingBalance>0||
-    (w.workValue>0&&(w.totalPaid||w.amount||0)<w.workValue));
-  const totalDue = dueWorks.reduce((s,w)=>s+(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0))),0);
-  const totalWV = dueWorks.reduce((s,w)=>s+(w.workValue||0),0);
-  const totalPd = dueWorks.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
-  document.getElementById('duesStats').innerHTML=`
-    <div class="sc red"><div class="sl">Total Due</div><div class="sv">${inr(totalDue)}</div></div>
-    <div class="sc"><div class="sl">Works Pending</div><div class="sv">${dueWorks.length}</div></div>
-    <div class="sc green"><div class="sl">Total Collected</div><div class="sv">${inr(totalPd)}</div></div>
-    <div class="sc"><div class="sl">Total Work Value</div><div class="sv">${inr(totalWV)}</div></div>
-  `;
-  const tbody = document.getElementById('duesBody');
-  if(!dueWorks.length){tbody.innerHTML='<tr><td colspan="9" class="nd" style="color:var(--g);">🎉 No pending dues! All clients have paid in full.</td></tr>';return;}
-  tbody.innerHTML = dueWorks.map(w=>{
+  const searchRaw = (document.getElementById('duesSearch')?.value||'').trim().toLowerCase();
+
+  // All due works (excluding pending/rejected)
+  const dueWorks = allWorks.filter(w=>
+    w.status!=='pending_verification' && w.status!=='rejected' &&
+    (w.remainingBalance>0 || (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue))
+  );
+
+  // Group by phone number (primary key) or clientId
+  const clientMap = {}; // key = phone or clientId
+
+  // Add works-based dues
+  for(const w of dueWorks) {
+    const phone = (w.phone||'').replace(/\D/g,'');
+    const key = w.clientId || phone || (w.ownerName||w.clientName||'unknown').toLowerCase();
+    if(!clientMap[key]) clientMap[key] = {
+      name: w.ownerName||w.clientName||'—',
+      phone: w.phone||'',
+      clientId: w.clientId||'',
+      works: [], manualEntries: [], totalDue: 0
+    };
     const due = w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0));
-    return `<tr>
-      <td><span class="wnum">#${w.workNum}</span></td>
-      <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.72rem;color:var(--gray);">${esc(w.phone)}</span></td>
-      <td style="font-size:.8rem;">${esc(w.vehicles||w.vehicle)}</td>
-      <td>${wtBadge(w)}</td>
-      <td style="font-weight:700;">${inr(w.workValue||0)}</td>
-      <td style="color:var(--g);font-weight:700;">${inr(w.totalPaid||w.amount||0)}</td>
-      <td style="color:var(--r);font-weight:800;">${inr(due)}</td>
-      <td style="font-size:.78rem;">${fmtDate(w.date)}</td>
-      <td>
-        <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp reminder">📱</button>
-        <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
-      </td>
-    </tr>`;
+    clientMap[key].works.push({...w, _due: due});
+    clientMap[key].totalDue += due;
+    if(!clientMap[key].clientId && w.clientId) clientMap[key].clientId = w.clientId;
+  }
+
+  // Add manual dues
+  for(const m of allManualDues) {
+    const phone = (m.phone||'').replace(/\D/g,'');
+    const key = m.clientId || phone || (m.name||'unknown').toLowerCase();
+    if(!clientMap[key]) clientMap[key] = {
+      name: m.name||'—',
+      phone: m.phone||'',
+      clientId: m.clientId||'',
+      works: [], manualEntries: [], totalDue: 0
+    };
+    clientMap[key].manualEntries.push(m);
+    clientMap[key].totalDue += (m.amount||0);
+    if(!clientMap[key].clientId && m.clientId) clientMap[key].clientId = m.clientId;
+    if(!clientMap[key].name || clientMap[key].name==='—') clientMap[key].name = m.name||'—';
+    if(!clientMap[key].phone && m.phone) clientMap[key].phone = m.phone;
+  }
+
+  let clients = Object.values(clientMap).filter(c=>c.totalDue>0);
+
+  // Search filter
+  if(searchRaw) {
+    clients = clients.filter(c=>
+      c.name.toLowerCase().includes(searchRaw) ||
+      c.phone.includes(searchRaw) ||
+      (c.clientId||'').toLowerCase().includes(searchRaw)
+    );
+  }
+
+  // Sort by total due desc
+  clients.sort((a,b)=>b.totalDue - a.totalDue);
+
+  // Stats
+  const totalDue = clients.reduce((s,c)=>s+c.totalDue,0);
+  const totalClients = clients.length;
+  const totalWorks = clients.reduce((s,c)=>s+c.works.length,0);
+  const totalManual = clients.reduce((s,c)=>s+c.manualEntries.length,0);
+  document.getElementById('duesStats').innerHTML=`
+    <div class="sc red"><div class="sl">Total Outstanding</div><div class="sv">${inr(totalDue)}</div></div>
+    <div class="sc"><div class="sl">Clients with Dues</div><div class="sv">${totalClients}</div></div>
+    <div class="sc orange"><div class="sl">Works Pending</div><div class="sv">${totalWorks}</div></div>
+    <div class="sc"><div class="sl">Manual Entries</div><div class="sv">${totalManual}</div></div>
+  `;
+
+  const container = document.getElementById('duesClientList');
+  if(!clients.length) {
+    container.innerHTML=`<div class="card" style="text-align:center;padding:40px;color:var(--gray);font-size:.95rem;">🎉 No pending dues${searchRaw?' matching your search':''}!</div>`;
+    return;
+  }
+
+  container.innerHTML = clients.map(c => {
+    const worksCount = c.works.length;
+    const manualCount = c.manualEntries.length;
+    const subtext = [];
+    if(worksCount) subtext.push(`${worksCount} work${worksCount>1?'s':''}`);
+    if(manualCount) subtext.push(`${manualCount} manual entr${manualCount>1?'ies':'y'}`);
+    return `<div class="card" style="margin-bottom:12px;padding:16px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="font-weight:800;font-size:.97rem;">${esc(c.name)}</div>
+            ${c.clientId?`<span class="badge bb" style="font-size:.68rem;cursor:pointer;" onclick="navigator.clipboard?.writeText('${esc(c.clientId)}');toast('Client ID copied','success')" title="Click to copy">${esc(c.clientId)} 📋</span>`:''}
+          </div>
+          <div style="font-size:.78rem;color:var(--gray);margin-top:3px;">
+            ${c.phone?`📱 ${esc(c.phone)}`:''}
+            ${c.phone&&subtext.length?' · ':''}
+            ${subtext.join(' + ')}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <div style="text-align:right;">
+            <div style="font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Total Due</div>
+            <div style="font-size:1.3rem;font-weight:800;color:var(--r);font-family:'Sora',sans-serif;">${inr(c.totalDue)}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            ${c.phone?`<button class="btn btn-sm btn-success" onclick="event.stopPropagation();window.open('https://wa.me/91${c.phone.replace(/\D/g,'')}?text=${encodeURIComponent('Hello '+c.name+', your pending dues amount is ₹'+c.totalDue.toLocaleString('en-IN')+'. Please clear your dues at Nandan Legal Services. Thank you.')}','_blank')" title="WhatsApp">📱</button>`:''}
+            <button class="btn btn-sm btn-primary" onclick="showClientDuesDetail(${JSON.stringify(c).replace(/"/g,'&quot;')})">👁️ View</button>
+          </div>
+        </div>
+      </div>
+      ${c.works.length>0?`<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">${c.works.slice(0,4).map(w=>`<span style="font-size:.72rem;background:#f3f4f6;padding:3px 8px;border-radius:6px;color:var(--text2);">#${w.workNum} — ${inr(w._due)}</span>`).join('')}${c.works.length>4?`<span style="font-size:.72rem;color:var(--gray);">+${c.works.length-4} more</span>`:''}</div>`:''}
+    </div>`;
   }).join('');
 }
+
+function showClientDuesDetail(c) {
+  document.getElementById('clientDuesModalTitle').textContent = `💳 ${c.name} — Due Details`;
+  let html = '';
+
+  // Work-based dues
+  if(c.works && c.works.length) {
+    html += `<div style="font-weight:800;font-size:.88rem;margin-bottom:10px;color:var(--text2);">📋 From Works (${c.works.length})</div>`;
+    html += `<div class="ox" style="margin-bottom:16px;"><table class="wt"><thead><tr><th>#</th><th>Work Type</th><th>Vehicle</th><th>Work Value</th><th>Paid</th><th>Due</th><th>Date</th><th></th></tr></thead><tbody>`;
+    html += c.works.map(w=>`<tr>
+      <td><span class="wnum">#${w.workNum}</span></td>
+      <td>${wtBadge(w)}</td>
+      <td style="font-size:.78rem;">${esc(w.vehicles||w.vehicle||'—')}</td>
+      <td>${inr(w.workValue||0)}</td>
+      <td style="color:var(--g);">${inr(w.totalPaid||w.amount||0)}</td>
+      <td style="color:var(--r);font-weight:800;">${inr(w._due)}</td>
+      <td style="font-size:.75rem;">${fmtDate(w.date)}</td>
+      <td><button class="btn btn-sm btn-outline" onclick="closeModal('clientDuesModal');viewWork('${w._key}')">Open</button></td>
+    </tr>`).join('');
+    html += `</tbody></table></div>`;
+  }
+
+  // Manual entries
+  if(c.manualEntries && c.manualEntries.length) {
+    html += `<div style="font-weight:800;font-size:.88rem;margin-bottom:10px;color:var(--text2);">📝 Manually Entered (${c.manualEntries.length})</div>`;
+    html += `<div class="ox" style="margin-bottom:16px;"><table class="wt"><thead><tr><th>Amount Due</th><th>Note</th><th>Entered On</th><th></th></tr></thead><tbody>`;
+    html += c.manualEntries.map(m=>`<tr>
+      <td style="color:var(--r);font-weight:800;">${inr(m.amount||0)}</td>
+      <td style="font-size:.82rem;">${esc(m.note||'No note')}</td>
+      <td style="font-size:.75rem;">${fmtDate(m.date||'')}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteManualDue('${m._key}')">🗑️</button></td>
+    </tr>`).join('');
+    html += `</tbody></table></div>`;
+  }
+
+  // Total
+  const total = (c.works||[]).reduce((s,w)=>s+w._due,0) + (c.manualEntries||[]).reduce((s,m)=>s+(m.amount||0),0);
+  html += `<div style="display:flex;justify-content:flex-end;padding-top:12px;border-top:2px solid var(--grayb);">
+    <div style="text-align:right;">
+      <div style="font-size:.75rem;color:var(--gray);font-weight:700;">TOTAL OUTSTANDING</div>
+      <div style="font-size:1.5rem;font-weight:800;color:var(--r);font-family:'Sora',sans-serif;">${inr(total)}</div>
+    </div>
+  </div>`;
+
+  document.getElementById('clientDuesModalBody').innerHTML = html;
+  openModal('clientDuesModal');
+}
+
+async function deleteManualDue(key) {
+  if(!confirm('Delete this manual due entry?')) return;
+  const {error} = await _sb.from('manual_dues').delete().eq('id', key);
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('Manual due deleted','success');
+  closeModal('clientDuesModal');
+  await loadAllData();
+  renderDues();
+}
+
+// Client ID lookup for manual due entry
+async function lookupManualDueClient(phone) {
+  phone = phone.replace(/\D/g,'');
+  const lookup = document.getElementById('md_clientLookup');
+  const nameField = document.getElementById('md_name');
+  const cidField = document.getElementById('md_clientId');
+  const cidFieldWrap = document.getElementById('md_clientIdField');
+  if(phone.length < 10) { lookup.innerHTML=''; return; }
+
+  // Search in allWorks for existing client with this phone
+  const existing = allWorks.find(w=>(w.phone||'').replace(/\D/g,'')=== phone);
+  if(existing) {
+    lookup.innerHTML=`<span style="color:var(--g);font-weight:700;">✅ Found: ${esc(existing.ownerName||existing.clientName)} — ${esc(existing.clientId||'')}</span>`;
+    nameField.value = existing.ownerName||existing.clientName||'';
+    cidField.value = existing.clientId||'';
+    cidFieldWrap.style.display = 'block';
+    return;
+  }
+
+  // Check manual_dues table too
+  const existingManual = allManualDues.find(m=>(m.phone||'').replace(/\D/g,'')=== phone);
+  if(existingManual) {
+    lookup.innerHTML=`<span style="color:var(--g);font-weight:700;">✅ Found (manual): ${esc(existingManual.name)} — ${esc(existingManual.clientId||'')}</span>`;
+    nameField.value = existingManual.name||'';
+    cidField.value = existingManual.clientId||'';
+    cidFieldWrap.style.display = 'block';
+    return;
+  }
+
+  // No client found — will create new client ID
+  lookup.innerHTML=`<span style="color:var(--o);font-weight:700;">🆕 New client — a Client ID will be auto-created</span>`;
+  cidFieldWrap.style.display = 'none';
+  cidField.value = '';
+}
+
+function openManualDueModal() {
+  ['md_phone','md_name','md_amount','md_note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('md_clientId').value='';
+  document.getElementById('md_clientIdField').style.display='none';
+  document.getElementById('md_clientLookup').innerHTML='';
+  openModal('manualDueModal');
+}
+
+async function saveManualDue() {
+  const phone = document.getElementById('md_phone').value.replace(/\D/g,'');
+  const name = document.getElementById('md_name').value.trim();
+  const amount = parseFloat(document.getElementById('md_amount').value)||0;
+  const note = document.getElementById('md_note').value.trim();
+  if(!phone){toast('Enter mobile number','error');return;}
+  if(phone.length!==10){toast('Mobile must be 10 digits','error');return;}
+  if(!name){toast('Enter client name','error');return;}
+  if(!amount){toast('Enter amount due','error');return;}
+
+  // Determine client ID
+  let clientId = document.getElementById('md_clientId').value.trim();
+
+  if(!clientId) {
+    // Check works again
+    const existingWork = allWorks.find(w=>(w.phone||'').replace(/\D/g,'')=== phone);
+    if(existingWork && existingWork.clientId) {
+      clientId = existingWork.clientId;
+    } else {
+      // Create new client ID
+      const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let id='C-';
+      for(let i=0;i<6;i++) id+=chars[Math.floor(Math.random()*chars.length)];
+      clientId = id;
+    }
+  }
+
+  const now = new Date();
+  const {error} = await _sb.from('manual_dues').insert({
+    phone, name, amount, note,
+    client_id: clientId,
+    date: now.toLocaleDateString('en-IN'),
+    timestamp: now.getTime(),
+    added_by: currentUser.name
+  });
+  if(error){toast('Error: '+error.message,'error');return;}
+  toast('✅ Manual due saved under ' + clientId, 'success');
+  closeModal('manualDueModal');
+  await loadAllData();
+  renderDues();
+}
+
+function exportDuesExcel() {
+  if(typeof XLSX==='undefined'){toast('Excel library not loaded','error');return;}
+  const searchRaw = (document.getElementById('duesSearch')?.value||'').trim().toLowerCase();
+  const rows = [];
+
+  // Works-based dues
+  const dueWorks = allWorks.filter(w=>
+    w.status!=='pending_verification' && w.status!=='rejected' &&
+    (w.remainingBalance>0 || (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue))
+  );
+  for(const w of dueWorks) {
+    const due = w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0));
+    const name = w.ownerName||w.clientName||'';
+    const phone = w.phone||'';
+    if(searchRaw && !name.toLowerCase().includes(searchRaw) && !phone.includes(searchRaw) && !(w.clientId||'').toLowerCase().includes(searchRaw)) continue;
+    rows.push({'Client ID':w.clientId||'','Name':name,'Phone':phone,'Type':'Work Due','Work #':w.workNum,'Work Type':wtLabelPlain(w.workType),'Vehicle':w.vehicles||w.vehicle||'','Work Value':w.workValue||0,'Paid':w.totalPaid||w.amount||0,'Amount Due':due,'Date':fmtDateExcel(w.date),'Note':''});
+  }
+
+  // Manual dues
+  for(const m of allManualDues) {
+    const phone = m.phone||'';
+    const name = m.name||'';
+    if(searchRaw && !name.toLowerCase().includes(searchRaw) && !phone.includes(searchRaw) && !(m.clientId||'').toLowerCase().includes(searchRaw)) continue;
+    rows.push({'Client ID':m.clientId||'','Name':name,'Phone':phone,'Type':'Manual Entry','Work #':'—','Work Type':'—','Vehicle':'—','Work Value':'—','Paid':'—','Amount Due':m.amount||0,'Date':fmtDateExcel(m.date||''),'Note':m.note||''});
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Dues');
+  XLSX.writeFile(wb, 'NandanLegal_Dues_'+new Date().toLocaleDateString('en-IN').replace(/\//g,'-')+'.xlsx');
+  toast('Excel exported ✅','success');
+}
+
+function printDuesPage() {
+  window.print();
+}
+
+
 
 // ============================================================
 // BANK LEDGER SEARCH
@@ -3741,16 +4844,32 @@ let ospSelectedWork = null;
 
 function renderOfficeSpend() {
   document.getElementById('ospDate').value = new Date().toISOString().split('T')[0];
+  const whoSel = document.getElementById('ospWhoSpent');
+  if(whoSel) {
+    whoSel.innerHTML = '<option value="">— Select Staff —</option>' +
+      allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+  }
   renderOspHistory();
+}
+
+function showOspFormDirect() {
+  ospSelectedWork = null;
+  document.getElementById('ospWorkLabel').innerHTML = '<em style="color:var(--gray);font-size:.85rem;">General Office Spend (not linked to a specific work)</em>';
+  document.getElementById('ospEntryForm').style.display = 'block';
+}
+
+function previewOspFiles(input) {
+  const preview = document.getElementById('ospFilePreview');
+  if(!input.files.length){preview.innerHTML='';return;}
+  preview.innerHTML = [...input.files].map(f=>`<div>📄 ${esc(f.name)} (${(f.size/1024).toFixed(1)} KB)</div>`).join('');
 }
 
 function searchOspWork() {
   const veh = document.getElementById('ospVehicle').value.trim().toUpperCase();
   if(!veh){toast('Enter vehicle number','error');return;}
   const matches = allWorks.filter(w=>{
-    if(w.status==='done') return false;
+    if(w.status==='done'||w.status==='pending_verification'||w.status==='rejected') return false;
     const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
-    // Check full string and also each individual vehicle (handles spaces around commas)
     if(vehStr.includes(veh)) return true;
     return vehStr.split(',').map(v=>v.trim()).some(v=>v.includes(veh)||veh.includes(v));
   });
@@ -3774,17 +4893,10 @@ function searchOspWork() {
 
 function selectOspWork(w, el) {
   ospSelectedWork = w;
-  // For multi-vehicle works, show a vehicle selector
   const vehicles = (w.vehicles||w.vehicle||'').split(',').map(v=>v.trim()).filter(Boolean);
   let vehicleNote = esc(w.vehicles||w.vehicle);
   if(vehicles.length > 1) {
-    vehicleNote = `<div style="margin-top:6px;">
-      <label style="font-size:.8rem;font-weight:700;">Select Vehicle for this Expense:</label>
-      <select id="ospVehicleSel" style="width:100%;margin-top:4px;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
-        <option value="">— All Vehicles —</option>
-        ${vehicles.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}
-      </select>
-    </div>`;
+    vehicleNote = `<div style="margin-top:6px;"><label style="font-size:.8rem;font-weight:700;">Select Vehicle for this Expense:</label><select id="ospVehicleSel" style="width:100%;margin-top:4px;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"><option value="">— All Vehicles —</option>${vehicles.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select></div>`;
   }
   document.getElementById('ospWorkLabel').innerHTML=`<strong>Work #${w.workNum}</strong> — ${esc(w.ownerName||w.clientName)} — ${esc(w.workType?wtLabelPlain(w.workType):'')}${vehicleNote}`;
   document.getElementById('ospEntryForm').style.display='block';
@@ -3792,63 +4904,82 @@ function selectOspWork(w, el) {
 }
 
 async function saveOspSpend() {
-  if(!ospSelectedWork){toast('No work selected','error');return;}
   const amt = parseFloat(document.getElementById('ospAmount').value)||0;
   const reason = document.getElementById('ospReason').value.trim();
   const dateVal = document.getElementById('ospDate').value;
+  const whoSpent = document.getElementById('ospWhoSpent').value;
   if(!amt){toast('Enter amount','error');return;}
   if(!reason){toast('Enter reason','error');return;}
+  if(!whoSpent){toast('Select who spent','error');return;}
   const now = new Date();
   const dateStr = dateVal?new Date(dateVal).toLocaleDateString('en-IN'):now.toLocaleDateString('en-IN');
   const w = ospSelectedWork;
-  // Use selected vehicle if picker was shown (multi-vehicle work)
   const vehicleSel = document.getElementById('ospVehicleSel');
-  const selectedVehicle = vehicleSel ? (vehicleSel.value || w.vehicles||w.vehicle) : (w.vehicles||w.vehicle);
+  const selectedVehicle = vehicleSel ? (vehicleSel.value || (w&&(w.vehicles||w.vehicle))||'') : (w&&(w.vehicles||w.vehicle))||'';
+  const workRef = w ? `#${w.workNum} — ${w.ownerName||w.clientName} / ${selectedVehicle}` : 'General Spend';
+  let fileUrls = [];
+  const fileInput = document.getElementById('ospPdfFile');
+  if(fileInput && fileInput.files.length) {
+    for(const file of fileInput.files) {
+      const ext = file.name.split('.').pop();
+      const fileName = `osp_${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+      const {data: uploadData, error: uploadErr} = await _sb.storage.from('receipts').upload(fileName, file);
+      if(!uploadErr && uploadData) {
+        const {data: urlData} = _sb.storage.from('receipts').getPublicUrl(fileName);
+        if(urlData?.publicUrl) fileUrls.push(urlData.publicUrl);
+      }
+    }
+  }
   try {
-    // Save as expense in ledger (cash debit)
     const ledgerResult = await _sb.from('ledger').insert({
       bank:'Cash', type:'debit', amount:amt,
       date:dateStr, timestamp:now.getTime(),
-      work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${selectedVehicle}`,
+      work_ref: workRef,
       description:`Office Inside Spend: ${reason}`,
-      by:currentUser.name, auto_entry:true, osp_entry:true
+      by: currentUser.name, auto_entry: true, osp_entry: true,
+      spent_by: whoSpent, logged_by: currentUser.name,
+      receipt_urls: fileUrls.length ? JSON.stringify(fileUrls) : null
     });
     if(ledgerResult.error) throw ledgerResult.error;
-    // Reload data and show success
-    toast(`✅ Expense of ₹${inr(amt)} saved & deducted from Cash against Work #${w.workNum}`,'success');
+    toast(`✅ Expense of ${inr(amt)} saved`,'success');
     document.getElementById('ospAmount').value='';
     document.getElementById('ospReason').value='';
+    document.getElementById('ospWhoSpent').value='';
+    document.getElementById('ospPdfFile').value='';
+    document.getElementById('ospFilePreview').innerHTML='';
     ospSelectedWork=null;
     document.getElementById('ospEntryForm').style.display='none';
     document.getElementById('ospVehicle').value='';
     document.getElementById('ospSearchResult').innerHTML='';
-    await loadAllData();   // refreshes allLedger so Cash balance is updated everywhere
-    renderOspHistory();
+    await loadAllData(); renderOspHistory();
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
 let allOspSpend = [];
 async function renderOspHistory() {
-  // Read OSP entries from ledger (description starts with "Office Inside Spend:")
-  // allLedger is already loaded - filter it. Also do a fresh fetch to catch newly added.
   const {data: ledData} = await _sb.from('ledger').select('*').order('timestamp',{ascending:false});
   const ospEntries = (ledData||[]).map(r=>({...toCamel(r),_key:r.id}))
-    .filter(l => l.bank==='Cash' && l.type==='debit' && (l.description||'').startsWith('Office Inside Spend:'));
+    .filter(l => l.ospEntry===true || (l.type==='debit' && (l.description||'').startsWith('Office Inside Spend:')));
   allOspSpend = ospEntries;
   const el = document.getElementById('ospHistory');
   if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
-  el.innerHTML=`<table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>By</th></tr></thead><tbody>
-    ${allOspSpend.map(s=>`<tr>
-      <td style="font-size:.78rem;">${fmtDate(s.date)}</td>
-      <td style="font-size:.78rem;">${esc(s.workRef||'')}</td>
-      <td style="font-size:.82rem;">${esc((s.description||'').replace('Office Inside Spend:','').trim())}</td>
-      <td style="font-weight:800;color:var(--r);">${inr(s.amount||0)}</td>
-      <td style="font-size:.78rem;">${esc(s.by)}</td>
-    </tr>`).join('')}
-  </tbody></table>`;
+  el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>Spent By</th><th>Logged By</th><th>Files</th></tr></thead><tbody>
+    ${allOspSpend.map(s=>{
+      let receiptLinks = '';
+      if(s.receiptUrls){try{const urls=JSON.parse(s.receiptUrls);receiptLinks=urls.map((u,i)=>`<a href="${esc(u)}" target="_blank" style="color:var(--p);font-size:.75rem;display:block;">📎 File ${i+1}</a>`).join('');}catch(e){}}
+      return `<tr>
+        <td style="font-size:.78rem;">${fmtDate(s.date)}</td>
+        <td style="font-size:.78rem;">${esc(s.workRef||'—')}</td>
+        <td style="font-size:.82rem;">${esc((s.description||'').replace('Office Inside Spend:','').trim())}</td>
+        <td style="font-weight:800;color:var(--r);">${inr(s.amount||0)}</td>
+        <td style="font-size:.8rem;font-weight:700;">${esc(s.spentBy||s.by||'—')}</td>
+        <td style="font-size:.78rem;color:var(--gray);">${esc(s.loggedBy||s.by||'—')}</td>
+        <td>${receiptLinks||'—'}</td>
+      </tr>`;
+    }).join('')}
+  </tbody></table></div>`;
 }
 
-// ============================================================
 // DAILY SUMMARY
 // ============================================================
 function shiftSummaryDate(delta){
@@ -3965,10 +5096,12 @@ async function renderAccessLog(){
   const {data} = await _sb.from('access_log').select('*').order('timestamp',{ascending:false});
   const logs=(data||[]).map(r=>({...r,_key:r.id}));
   logs.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-  document.getElementById('accessLogBody').innerHTML=logs.length===0?'<tr><td colspan="4" class="nd">No records</td></tr>':logs.map(l=>`<tr>
+  const roleBadge=(role)=>role==='owner'?`<span class="badge bo">👑 Owner</span>`:role==='manager'?`<span class="badge" style="background:#e0e7ff;color:#3730a3;">🔑 Manager</span>`:`<span class="badge bb">👤 Staff</span>`;
+  document.getElementById('accessLogBody').innerHTML=logs.length===0?'<tr><td colspan="5" class="nd">No records</td></tr>':logs.map(l=>`<tr>
     <td><strong>${esc(l.name)}</strong></td>
-    <td><span class="badge ${l.role==='owner'?'bo':'bb'}">${l.role==='owner'?'👑 Owner':'👤 Staff'}</span></td>
+    <td>${roleBadge(l.role)}</td>
     <td>${esc(l.date)}</td><td>${esc(l.time)}</td>
+    <td style="font-size:.75rem;">${l.location&&l.location!=='—'?`<a href="https://maps.google.com/?q=${esc(l.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 Map</a>`:'—'}</td>
   </tr>`).join('');
 }
 
@@ -3977,10 +5110,11 @@ async function renderAccessLog(){
 // ============================================================
 function renderManageStaff(){
   if(currentUser.role!=='owner'){document.getElementById('staffListContainer').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
+  const roleBadge=(role)=>role==='owner'?`<span class="badge bo" style="margin-left:5px;">👑 Owner</span>`:role==='manager'?`<span class="badge" style="margin-left:5px;background:#e0e7ff;color:#3730a3;">🔑 Manager</span>`:`<span class="badge bb" style="margin-left:5px;">👤 Staff</span>`;
   document.getElementById('staffListContainer').innerHTML=allStaff.length===0?'<p class="text-muted">No staff found.</p>':allStaff.map(s=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--grayb);flex-wrap:wrap;gap:9px;">
       <div>
-        <div style="font-weight:800;font-size:.93rem;">${esc(s.name)} <span class="badge ${s.role==='owner'?'bo':'bb'}" style="margin-left:5px;">${s.role==='owner'?'👑 Owner':'👤 Staff'}</span></div>
+        <div style="font-weight:800;font-size:.93rem;">${esc(s.name)} ${roleBadge(s.role)}</div>
         <div style="font-size:.78rem;color:var(--gray);margin-top:2px;">Email: <strong>${esc(s.email||s.username||'—')}</strong></div>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap;">
@@ -4152,9 +5286,9 @@ function exportWorksExcel(){
   try{localStorage.setItem('officeOS_lastBackup',Date.now());}catch(e){}
 
   if(typeof XLSX==='undefined'){toast('Excel library not loaded','error');return;}
-  const worksData=allWorks.map(w=>({'Work #':w.workNum,'Client ID':w.clientId||'','Owner Name':w.ownerName||w.clientName,'Client Name':w.clientName||'','Vehicle(s)':w.vehicles||w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:'')+(w.dlLicenseType?' — '+w.dlLicenseType:''),'Work Value':w.workValue||0,'Total Paid':w.totalPaid||w.amount||0,'Remaining Balance':w.remainingBalance||0,'Payment Mode':w.payMode,'Bank':w.bank||'','Status':w.status==='done'?'Completed':(w.status==='partial'?'Partial':'Open'),'Taken By':w.takenBy,'Date Taken':w.date,'Time':w.time,'Completed By':w.completedBy||'','Completed Date':w.completedDate||'','Expiry Date':w.expiryDate||'','Misc Expense':w.miscExpense||0,'Notes':w.notes||''}));
-  const ledgerData=allLedger.map(l=>({'Bank':l.bank,'Type':l.type,'Amount':l.amount||0,'Date':l.date,'Description':l.description||'','Linked Work':l.workRef||'','By':l.by||'','Auto Entry':l.autoEntry?'Yes':'No'}));
-  const salaryData=allSalary.map(s=>({'Staff Name':s.staffName,'Amount':s.amount||0,'Mode':s.mode,'Bank':s.bank||'','Paid By':s.paidBy,'Date':s.date,'Time':s.time||''}));
+  const worksData=allWorks.filter(w=>w.status!=='pending_verification'&&w.status!=='rejected').map(w=>({'Work #':w.workNum,'Client ID':w.clientId||'','Owner Name':w.ownerName||w.clientName,'Client Name':w.clientName||'','Vehicle(s)':w.vehicles||w.vehicle,'Phone':w.phone,'Work Type':w.workType+(w.othersSpecify?' — '+w.othersSpecify:'')+(w.dlLicenseType?' — '+w.dlLicenseType:''),'Work Value':w.workValue||0,'Total Paid':w.totalPaid||w.amount||0,'Remaining Balance':w.remainingBalance||0,'Payment Mode':w.payMode,'Bank':w.bank||'','Status':w.status==='done'?'Completed':(w.status==='partial'?'Partial':'Open'),'Taken By':w.takenBy,'Date Taken':fmtDateExcel(w.date),'Time':w.time,'Completed By':w.completedBy||'','Completed Date':fmtDateExcel(w.completedDate||''),'Expiry Date':fmtDateExcel(w.expiryDate||''),'Misc Expense':w.miscExpense||0,'Notes':w.notes||''}));
+  const ledgerData=allLedger.map(l=>({'Bank':l.bank,'Type':l.type,'Amount':l.amount||0,'Date':fmtDateExcel(l.date),'Description':l.description||'','Linked Work':l.workRef||'','By':l.by||'','Auto Entry':l.autoEntry?'Yes':'No'}));
+  const salaryData=allSalary.map(s=>({'Staff Name':s.staffName,'Amount':s.amount||0,'Mode':s.mode,'Bank':s.bank||'','Paid By':s.paidBy,'Date':fmtDateExcel(s.date),'Time':s.time||''}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(worksData),'Works');
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ledgerData),'Ledger');
@@ -4820,16 +5954,40 @@ function attendanceTab(tab, btn) {
 async function markAttendance() {
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-IN');
-  // Check if already marked today
-  const already = allAttendance.find(a=>a.staffKey===currentUser.key&&a.date===todayStr);
-  if(already) { toast('Attendance already marked for today ✅','warn'); return; }
+  const already = allAttendance.find(a=>a.staffKey===currentUser.key&&a.date===todayStr&&a.checkInTime);
+  if(already) { toast('Check-in already marked for today ✅','warn'); return; }
+  const doInsert = async (lat, lng) => {
+    const loc = (lat&&lng) ? `${lat.toFixed(5)},${lng.toFixed(5)}` : '—';
+    try {
+      await _sb.from('attendance').insert(toSnake({
+        staffKey:currentUser.key, staffName:currentUser.name,
+        date:todayStr, checkInTime:now.toLocaleTimeString('en-IN'),
+        checkOutTime:'', timestamp:now.getTime(), location:loc
+      }));
+      toast('✅ Check-in marked!','success');
+      await loadAllData(); renderAttendance();
+    } catch(e){toast('Error: '+e.message,'error');}
+  };
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos=>doInsert(pos.coords.latitude, pos.coords.longitude),
+      ()=>doInsert(null,null), {timeout:6000}
+    );
+  } else { doInsert(null,null); }
+}
+
+async function markLogout() {
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('en-IN');
+  const record = allAttendance.find(a=>a.staffKey===currentUser.key&&a.date===todayStr&&a.checkInTime&&!a.checkOutTime);
+  if(!record){toast('No check-in found for today, or already checked out','warn');return;}
   try {
-    await _sb.from('attendance').insert(toSnake({staffKey:currentUser.key,staffName:currentUser.name,date:todayStr,time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}));
-    toast('Attendance marked ✅','success');
-    await loadAllData();
-    renderAttendance();
+    await _sb.from('attendance').update({check_out_time:now.toLocaleTimeString('en-IN')}).eq('id',record._key);
+    toast('👋 Check-out marked!','success');
+    await loadAllData(); renderAttendance();
   } catch(e){toast('Error: '+e.message,'error');}
 }
+
 async function deleteAttendance(key) {
   if(!currentUser||currentUser.role!=='owner'){toast('Owner only','error');return;}
   if(!confirm('Remove this attendance record?')) return;
@@ -4849,19 +6007,25 @@ function renderAttendance() {
   const el = document.getElementById('attendanceBody');
   if(!list.length){el.innerHTML='<div class="nd">No attendance records for this period</div>';return;}
   if(attendanceTabCurrent==='month') {
-    // Group by staff
     const byStaff={};
     list.forEach(a=>{if(!byStaff[a.staffName])byStaff[a.staffName]=[];byStaff[a.staffName].push(a);});
     el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Days Present</th><th>Last Check-in</th></tr></thead><tbody>
       ${Object.entries(byStaff).map(([name,recs])=>`<tr>
         <td><strong>${esc(name)}</strong></td>
         <td><span class="badge bg">${recs.length} days</span></td>
-        <td style="font-size:.8rem;">${esc(recs[0]?.date)} · ${esc(recs[0]?.time)}</td>
+        <td style="font-size:.8rem;">${esc(recs[0]?.date)} · ${esc(recs[0]?.checkInTime||recs[0]?.time||'—')}</td>
       </tr>`).join('')}
     </tbody></table></div>`;
   } else {
-    el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Check-in Time</th>${currentUser&&currentUser.role==='owner'?'<th>Action</th>':''}</tr></thead><tbody>
-      ${list.map(a=>`<tr><td><strong>${esc(a.staffName)}</strong></td><td>${esc(a.time)}</td>${currentUser&&currentUser.role==='owner'?`<td><button class="btn btn-sm btn-danger" onclick="deleteAttendance('${a._key}')">🗑️</button></td>`:''}</tr>`).join('')}
+    const isOwner = currentUser&&currentUser.role==='owner';
+    el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Check-In</th><th>Check-Out</th><th>Location</th>${isOwner?'<th>Action</th>':''}</tr></thead><tbody>
+      ${list.map(a=>`<tr>
+        <td><strong>${esc(a.staffName)}</strong></td>
+        <td style="font-size:.82rem;color:var(--g);font-weight:700;">${esc(a.checkInTime||a.time||'—')}</td>
+        <td style="font-size:.82rem;color:${a.checkOutTime?'var(--r)':'var(--gray)'};font-weight:700;">${a.checkOutTime?esc(a.checkOutTime):'—'}</td>
+        <td style="font-size:.72rem;color:var(--gray);">${a.location&&a.location!=='—'?`<a href="https://maps.google.com/?q=${esc(a.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 View Map</a>`:'—'}</td>
+        ${isOwner?`<td><button class="btn btn-sm btn-danger" onclick="deleteAttendance('${a._key}')">🗑️</button></td>`:''}
+      </tr>`).join('')}
     </tbody></table></div>`;
   }
 }
