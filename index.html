@@ -1232,27 +1232,6 @@ input[type="number"]:focus {
 
     <!-- ALL WORKS -->
     <div class="page" id="page-allWork">
-
-    <!-- VERIFICATION PAGE -->
-    <div class="page" id="page-verification">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">🔍 Works Pending Verification</div>
-          <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
-        </div>
-        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
-        <div id="verificationList"></div>
-      </div>
-    </div>
-
-    <!-- REJECTED WORKS PAGE (owner only) -->
-    <div class="page" id="page-rejectedWorks">
-      <div class="card">
-        <div class="card-title">❌ Rejected Works</div>
-        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">Works that were rejected during verification. These are permanent records — add a new work if needed.</p>
-        <div id="rejectedWorksList"></div>
-      </div>
-    </div>
       <div class="card">
         <div class="sh"><div class="card-title" style="margin:0;">📋 All Works</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1288,6 +1267,27 @@ input[type="number"]:focus {
           <input type="date" id="filterTo" onchange="filterWorks()" title="To date" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;"/>
         </div>
         <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Payment</th><th>Status</th><th>By</th><th>Date</th><th>Action</th></tr></thead><tbody id="workTableBody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- VERIFICATION PAGE -->
+    <div class="page" id="page-verification">
+      <div class="card">
+        <div class="sh">
+          <div class="card-title" style="margin:0;">🔍 Works Pending Verification</div>
+          <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
+        </div>
+        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
+        <div id="verificationList"></div>
+      </div>
+    </div>
+
+    <!-- REJECTED WORKS PAGE (owner only) -->
+    <div class="page" id="page-rejectedWorks">
+      <div class="card">
+        <div class="card-title">❌ Rejected Works</div>
+        <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">Works that were rejected during verification. These are permanent records — add a new work if needed.</p>
+        <div id="rejectedWorksList"></div>
       </div>
     </div>
 
