@@ -958,38 +958,46 @@ input[type="number"]:focus {
       </div>
     </div>
     <nav>
+      <!-- MAIN: always visible -->
       <div class="ns">Main</div>
       <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">🏠</span> Dashboard</a>
       <a onclick="showPage('newWork')" id="nav-newWork"><span class="ico">➕</span> New Work</a>
       <a onclick="showPage('verification')" id="nav-verification"><span class="ico">🔍</span> Verification <span id="badge-verification" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">📋</span> All Works</a>
+      <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">📝</span> New Inquiry</a>
+      <a onclick="showPage('allInquiry')" id="nav-allInquiry"><span class="ico">📂</span> All Inquiries <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+
+      <!-- WORKS: detailed views -->
+      <div class="ns">Works</div>
       <a onclick="showPage('datewise')" id="nav-datewise"><span class="ico">📅</span> Date / Month Filter</a>
       <a onclick="showPage('overdue')" id="nav-overdue"><span class="ico">⚠️</span> Overdue Works <span id="badge-overdue" style="margin-left:auto;background:var(--r);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">⚖️</span> Client Balances <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('expiry')" id="nav-expiry"><span class="ico">🔔</span> Expiry Alerts <span id="badge-expiry" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('clientHistory')" id="nav-clientHistory"><span class="ico">👤</span> Client History</a>
+      <a onclick="showPage('followup')" id="nav-followup"><span class="ico">📌</span> Follow-ups <span id="badge-followup" style="margin-left:auto;background:var(--p);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+
+      <!-- FINANCE: owner-only items hidden for others -->
       <div class="ns">Finance</div>
+      <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">⚖️</span> Client Balances <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues (by Client)</a>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger" class="owner-only-nav"><span class="ico">🏦</span> Bank Ledger</a>
       <a onclick="showPage('reconcile')" id="nav-reconcile" class="owner-only-nav"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues (by Client)</a>
       <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">💰</span> Combined Balance</a>
-      <!-- Office Expenditure collapsible group -->
+      <a onclick="showPage('cashTracker')" id="nav-cashTracker" class="owner-only-nav"><span class="ico">💵</span> Cash in Hand</a>
+      <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
+
+      <!-- EXPENDITURE -->
       <div class="ns">Expenditure</div>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> RTO Inside Spend</a>
       <a onclick="showPage('officeExpenditure')" id="nav-officeExpenditure"><span class="ico">💼</span> Office Expenditure</a>
       <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
+
+      <!-- OFFICE: all owner-only -->
       <div class="ns">Office</div>
-      <a onclick="showPage('staff')" id="nav-staff"><span class="ico">👥</span> Staff & Salary</a>
-      <a onclick="showPage('performance')" id="nav-performance"><span class="ico">🏆</span> Staff Performance</a>
-      <a onclick="showPage('accessLog')" id="nav-accessLog"><span class="ico">📜</span> Access Log</a>
-      <div class="ns">Tools</div>
-      <a onclick="showPage('followup')" id="nav-followup"><span class="ico">📌</span> Follow-ups <span id="badge-followup" style="margin-left:auto;background:var(--p);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('cashTracker')" id="nav-cashTracker" class="owner-only-nav"><span class="ico">💵</span> Cash in Hand</a>
-      <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
+      <a onclick="showPage('staff')" id="nav-staff" class="owner-only-nav"><span class="ico">👥</span> Staff & Salary</a>
+      <a onclick="showPage('performance')" id="nav-performance" class="owner-only-nav"><span class="ico">🏆</span> Staff Performance</a>
+      <a onclick="showPage('accessLog')" id="nav-accessLog" class="owner-only-nav"><span class="ico">📜</span> Access Log</a>
       <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">🕐</span> Attendance</a>
-      <div class="ns">Inquiries</div>
-      <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">📝</span> Add Inquiry</a>
-      <a onclick="showPage('allInquiry')" id="nav-allInquiry"><span class="ico">📂</span> All Inquiries <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+
       <div id="ownerNav" style="display:none;">
         <div class="ns">Owner Only</div>
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
@@ -1174,7 +1182,7 @@ input[type="number"]:focus {
           <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
           <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
         </div>
-        <div id="remainingBal" style="display:none;background:var(--rl);border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:800;color:var(--r);font-size:.88rem;"></div>
+        <div id="remainingBal" style="display:none;border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:.88rem;"></div>
 
         <div class="field" style="margin-bottom:0;">
           <label>Payment Mode(s) <span style="color:var(--r);">*</span></label>
@@ -3019,7 +3027,7 @@ function calcRemaining() {
   const received = parseFloat(document.getElementById('w_amount').value)||0;
   const div = document.getElementById('remainingBal');
 
-  // Also validate payment modes sum vs amount received
+  // Validate payment modes sum vs amount received
   const payAmts = [...document.querySelectorAll('.pay-amt-inp')].map(i=>parseFloat(i.value)||0);
   const paySum = payAmts.reduce((s,v)=>s+v,0);
   const diff = received - paySum;
@@ -3027,23 +3035,29 @@ function calcRemaining() {
   if(received > 0 && paySum > 0 && Math.abs(diff) > 0.5) {
     div.style.display='block';
     if(diff > 0) {
-      div.style.background='var(--yl)'; div.style.color='var(--o)';
-      div.textContent = `⚠️ Payment modes short by ${inr(diff)} — total modes (${inr(paySum)}) < amount received (${inr(received)})`;
+      // Modes don't add up to received — short → YELLOW
+      div.style.background='#fefce8'; div.style.color='#92400e';
+      div.style.border='1.5px solid #fde68a';
+      div.textContent = `⚠️ Payment modes short by ${inr(diff)} — please account for the remaining amount`;
     } else {
-      div.style.background='var(--rl)'; div.style.color='var(--r)';
-      div.textContent = `❌ Payment modes exceed by ${inr(-diff)} — total modes (${inr(paySum)}) > amount received (${inr(received)})`;
+      // Modes exceed received amount → BLUE (informational, not an error)
+      div.style.background='#eff6ff'; div.style.color='#1d4ed8';
+      div.style.border='1.5px solid #bfdbfe';
+      div.textContent = `ℹ️ Payment modes exceed received amount by ${inr(-diff)}`;
     }
     return;
   }
+  div.style.border='none';
 
   if(wv>0 && received>wv) {
     div.style.display='block';
-    div.style.background='var(--gl)'; div.style.color='var(--g)';
-    div.textContent = `✅ Excess Paid: ${inr(received-wv)} extra received from client`;
+    div.style.background='#f0fdf4'; div.style.color='#166534';
+    div.textContent = `✅ Client paid ${inr(received-wv)} extra over work value`;
   } else if(wv>0 && received<wv) {
     div.style.display='block';
-    div.style.background='var(--rl)'; div.style.color='var(--r)';
-    div.textContent = `⚠️ Remaining Balance: ${inr(wv-received)} still to be collected`;
+    div.style.background='#fef2f2'; div.style.color='#be123c';
+    div.style.border='1.5px solid #fecaca';
+    div.textContent = `⚠️ Balance due: ${inr(wv-received)} still to collect from client`;
   } else { div.style.display='none'; }
 }
 
@@ -3529,7 +3543,12 @@ async function saveInquiry() {
       status: 'open',
       added_by: currentUser.name
     });
-    if(res.error) throw res.error;
+    if(res.error) {
+      if(res.error.message&&res.error.message.includes('row-level security')) {
+        throw new Error('RLS policy blocking insert. Run this SQL in Supabase:\nALTER TABLE inquiries DISABLE ROW LEVEL SECURITY;\n-- or --\nCREATE POLICY "allow_all" ON inquiries FOR ALL USING (true) WITH CHECK (true);');
+      }
+      throw res.error;
+    }
     toast(`✅ Inquiry I${nextNum} saved!`,'success');
     resetInquiryForm();
     updateInquiryBadge();
@@ -4037,9 +4056,24 @@ function renderUdhari(){
   const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
   const now = Date.now();
 
-  const pureUdhari = allWorks.filter(w=>w.status==='done' && w.payMode==='Unpaid');
-  const partialDue = allWorks.filter(w=>w.status==='done' && w.payMode!=='Unpaid' && (w.remainingBalance||0)>0);
-  const excessWorks = allWorks.filter(w=>w.status==='done' && (w.amount||0)>(w.workValue||0) && (w.workValue||0)>0);
+  // Pure unpaid (Udhari) — also include open/partial works with Unpaid mode
+  const pureUdhari = allWorks.filter(w=>
+    (w.status==='done'||w.status==='partial'||w.status==='open') &&
+    (w.payMode==='Unpaid' || w.payMode==='⏳ Unpaid / Due')
+  );
+  // Partial paid — done/partial status with remaining balance
+  const partialDue = allWorks.filter(w=>
+    (w.status==='done'||w.status==='partial') &&
+    w.payMode!=='Unpaid' && w.payMode!=='⏳ Unpaid / Due' &&
+    (w.remainingBalance||0)>0
+  );
+  // Excess: paid more than work value (only when workValue is set and > 0)
+  // Due: payMode=Unpaid OR has remainingBalance > 0 OR status=partial
+  const excessWorks = allWorks.filter(w=>
+    (w.status==='done'||w.status==='partial') &&
+    (w.workValue||0)>0 &&
+    (w.amount||w.totalPaid||0)>(w.workValue||0)
+  );
 
   let list;
   if(tabFilter==='excess') list=excessWorks;
