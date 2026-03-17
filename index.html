@@ -965,7 +965,7 @@ input[type="number"]:focus {
       <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">📋</span> All Works</a>
       <a onclick="showPage('datewise')" id="nav-datewise"><span class="ico">📅</span> Date / Month Filter</a>
       <a onclick="showPage('overdue')" id="nav-overdue"><span class="ico">⚠️</span> Overdue Works <span id="badge-overdue" style="margin-left:auto;background:var(--r);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">💸</span> Udhari <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+      <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">⚖️</span> Client Balances <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('expiry')" id="nav-expiry"><span class="ico">🔔</span> Expiry Alerts <span id="badge-expiry" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('clientHistory')" id="nav-clientHistory"><span class="ico">👤</span> Client History</a>
       <div class="ns">Finance</div>
@@ -987,6 +987,9 @@ input[type="number"]:focus {
       <a onclick="showPage('cashTracker')" id="nav-cashTracker" class="owner-only-nav"><span class="ico">💵</span> Cash in Hand</a>
       <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
       <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">🕐</span> Attendance</a>
+      <div class="ns">Inquiries</div>
+      <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">📝</span> Add Inquiry</a>
+      <a onclick="showPage('allInquiry')" id="nav-allInquiry"><span class="ico">📂</span> All Inquiries <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <div id="ownerNav" style="display:none;">
         <div class="ns">Owner Only</div>
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
@@ -1039,7 +1042,7 @@ input[type="number"]:focus {
       </div>
       <div class="g2">
         <div class="card"><div class="card-title">🔔 Expiring Soon (30 days)</div><div id="expirySnippet"></div></div>
-        <div class="card"><div class="card-title">💸 Udhari Pending</div><div id="udhariSnippet"></div></div>
+        <div class="card"><div class="card-title">⚖️ Client Balances Pending</div><div id="udhariSnippet"></div></div>
       </div>
       <div class="card" id="pinboardDashCard"><div class="card-title">📌 Pinboard</div><div id="pinsDash"></div></div>
     </div>
@@ -1182,9 +1185,8 @@ input[type="number"]:focus {
                 <option value="Cash">💵 Cash</option>
                 <option value="UPI">📱 UPI / Online</option>
                 <option value="Employee">👤 Employee (Taken by staff)</option>
-                <option value="Unpaid">⏳ Unpaid (Udhari)</option>
-                <option value="ExcessPaid">➕ Excess Paid</option>
-              </select>
+                <option value="Unpaid">⏳ Unpaid / Due</option>
+                              </select>
               <select class="pay-bank-sel" style="display:none;flex:1;">
                 <option value="">— Bank —</option>
                 <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
@@ -1240,6 +1242,12 @@ input[type="number"]:focus {
             <button class="btn btn-sm btn-gray" onclick="exportWorksPDF()">🖨️ Print / PDF</button>
           </div>
         </div>
+        <!-- Open / Closed toggle -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button class="tb active" id="allWorkOpenBtn" onclick="setAllWorkTab('open',this)" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:6px 16px;font-weight:700;font-size:.83rem;cursor:pointer;">🔄 Open Works</button>
+          <button class="tb" id="allWorkClosedBtn" onclick="setAllWorkTab('closed',this)" style="background:#f0fdf4;color:#166534;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 16px;font-weight:700;font-size:.83rem;cursor:pointer;">✅ Closed Works</button>
+        </div>
+        <input type="hidden" id="allWorkTabFilter" value="open"/>
         <div class="sbar">
           <input type="text" id="searchInput" placeholder="🔍 Search name, vehicle, #, Client ID, phone…" oninput="filterWorks()"/>
           <select id="filterType" onchange="filterWorks()">
@@ -1275,7 +1283,10 @@ input[type="number"]:focus {
       <div class="card">
         <div class="sh">
           <div class="card-title" style="margin:0;">🔍 Works Pending Verification</div>
-          <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
+            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
+          </div>
         </div>
         <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
         <div id="verificationList"></div>
@@ -1327,19 +1338,28 @@ input[type="number"]:focus {
 
     <!-- UDHARI -->
     <div class="page" id="page-udhari">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">💸 Udhari — Pending Client Payments</div>
+      <div style="background:linear-gradient(135deg,#7c3aed 0%,#c026d3 100%);border-radius:16px;padding:18px 22px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:800;">⚖️ Client Balances</div>
+          <div style="font-size:.78rem;opacity:.65;margin-top:2px;">Track dues, partial payments &amp; excess paid</div>
         </div>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()">🖨️ Print</button>
+      </div>
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="tb active" id="clientBalDueBtn" onclick="setClientBalTab('due',this)">⚠️ Due / Partial</button>
+          <button class="tb" id="clientBalExcessBtn" onclick="setClientBalTab('excess',this)">💚 Excess Paid</button>
+        </div>
+        <input type="hidden" id="clientBalTab" value="due"/>
         <div class="tab-row" style="margin-bottom:14px;">
-          <button class="tb active" onclick="setUdhariAge('all',this)">All</button>
+          <button class="tb active" onclick="setUdhariAge('all',this)">All Time</button>
           <button class="tb" onclick="setUdhariAge('week',this)">Under 1 Week</button>
           <button class="tb" onclick="setUdhariAge('month',this)">1 Week – 1 Month</button>
           <button class="tb" onclick="setUdhariAge('year',this)">1 Month – 1 Year</button>
           <button class="tb" onclick="setUdhariAge('old',this)">Over 1 Year</button>
         </div>
         <input type="hidden" id="udhariAgeFilter" value="all"/>
-        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Amount Due</th><th>Completed On</th><th>Action</th></tr></thead><tbody id="udhariBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead><tbody id="udhariBody"></tbody></table></div>
       </div>
     </div>
 
@@ -1786,10 +1806,84 @@ input[type="number"]:focus {
     </div>
   </div>
 
+  <!-- ===== INQUIRY PAGES ===== -->
+
+  <!-- ADD INQUIRY -->
+  <div class="page" id="page-addInquiry">
+    <div style="background:linear-gradient(135deg,#0f172a 0%,#6d28d9 100%);border-radius:16px;padding:20px 24px;margin-bottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.15rem;font-weight:800;">📝 Add Inquiry</div>
+        <div style="font-size:.8rem;opacity:.6;margin-top:3px;">Record a client inquiry or enquiry</div>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="resetInquiryForm()">🔄 Reset</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:26px;height:26px;border-radius:50%;background:#6d28d9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">1</div>
+        <div style="font-weight:800;font-size:.93rem;">Person Details</div>
+      </div>
+      <div class="g2">
+        <div class="field" style="margin-bottom:0;"><label>Owner / Inquirer Name *</label><input type="text" id="inq_ownerName" placeholder="Full name of the person"/></div>
+        <div class="field" style="margin-bottom:0;"><label>Phone Number *</label><input type="tel" id="inq_phone" placeholder="10-digit mobile" maxlength="10"/></div>
+      </div>
+      <div class="field" style="margin-top:12px;margin-bottom:0;"><label>Client Name <span style="font-size:.72rem;color:var(--gray);">(if different from owner)</span></label><input type="text" id="inq_clientName" placeholder="Person who came to office (optional)"/></div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:26px;height:26px;border-radius:50%;background:#6d28d9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">2</div>
+        <div style="font-weight:800;font-size:.93rem;">Inquiry Details</div>
+      </div>
+      <div class="field"><label>Vehicle Number <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label><input type="text" id="inq_vehicle" placeholder="e.g. UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="field"><label>Inquiry Subject *</label><input type="text" id="inq_subject" placeholder="e.g. Road Tax renewal, Insurance quote, RC transfer…"/><div class="hint">Short description of what they enquired about</div></div>
+      <div class="field" style="margin-bottom:0;"><label>Detailed Description <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label><textarea id="inq_desc" placeholder="Full details of the inquiry, client questions, specific requirements…" style="min-height:80px;"></textarea></div>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:26px;height:26px;border-radius:50%;background:#6d28d9;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">3</div>
+        <div style="font-weight:800;font-size:.93rem;">Date</div>
+      </div>
+      <div class="field" style="margin-bottom:0;"><label>Inquiry Date</label><input type="date" id="inq_date"/><div class="hint">Defaults to today</div></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveInquiry()" style="padding:14px;font-size:1rem;border-radius:12px;background:#6d28d9;box-shadow:0 4px 16px rgba(109,40,217,.35);">📝 Save Inquiry</button>
+  </div>
+
+  <!-- ALL INQUIRIES -->
+  <div class="page" id="page-allInquiry">
+    <div style="background:linear-gradient(135deg,#0f172a 0%,#6d28d9 100%);border-radius:16px;padding:18px 22px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:800;">📂 All Inquiries</div>
+        <div style="font-size:.78rem;opacity:.65;margin-top:2px;">View open and closed inquiries</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showPage('addInquiry')">➕ New</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()">🖨️ Print</button>
+      </div>
+    </div>
+    <div class="card">
+      <!-- Open/Closed toggle -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="tb active" id="inqOpenBtn" onclick="setInquiryTab('open',this)">🟢 Open Inquiries</button>
+        <button class="tb" id="inqClosedBtn" onclick="setInquiryTab('closed',this)">🔴 Closed Inquiries</button>
+      </div>
+      <input type="hidden" id="inqTabFilter" value="open"/>
+      <!-- Sort for closed -->
+      <div id="inqClosedSort" style="display:none;margin-bottom:10px;">
+        <select id="inqClosedSortSel" onchange="renderAllInquiry()" style="padding:7px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.84rem;">
+          <option value="all">All Closed</option>
+          <option value="done">Work Done by Us</option>
+          <option value="notdone">Work Not Done by Us</option>
+        </select>
+      </div>
+      <div class="sbar" style="margin-bottom:12px;">
+        <input type="text" id="inqSearch" placeholder="🔍 Search name, vehicle, subject…" oninput="renderAllInquiry()" style="flex:2;"/>
+      </div>
+      <div id="inqList"><div class="nd">Loading…</div></div>
+    </div>
+  </div>
+
   </div>
 </div>
 
-<!-- ===== MODALS ===== -->
 
 <!-- WORK DETAIL -->
 <div class="mo" id="workDetailModal">
@@ -1884,22 +1978,26 @@ input[type="number"]:focus {
       </div>
       <div class="hint">Use the calendar only — required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div>
     </div>
-    <div class="field"><label>Payment for This Work Was Made From *</label>
-      <select id="closingBank" onchange="closingBankChange(this)">
-        <option value="">— Select Source —</option>
-        <option value="Cash">💵 Cash</option>
-        <option value="HDFC">HDFC Bank</option>
-        <option value="SBI">SBI</option>
-        <option value="Kotak">Kotak Mahindra Bank</option>
-        <option value="ICICI">ICICI Bank</option>
-        <option value="Canara">Canara Bank</option>
-        <option value="Employee">👤 Employee</option>
-      </select>
-      <select id="closingEmployee" style="display:none;margin-top:6px;width:100%;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;">
-        <option value="">— Select Employee —</option>
-      </select>
+    <div class="field">
+      <label>Expense Payments for This Work *</label>
+      <div style="font-size:.75rem;color:var(--gray);margin-bottom:8px;">Add all expense payments made for this work (e.g. government fee, stamp, petrol)</div>
+      <div id="closePayList">
+        <div class="close-pay-row" style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;">
+          <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
+            <option value="">— Source —</option>
+            <option value="Cash">💵 Cash</option>
+            <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+            <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+            <option value="Canara">Canara</option>
+            <option value="Employee">👤 Employee</option>
+          </select>
+          <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
+          <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
+          <button class="btn btn-sm btn-outline" onclick="addClosePayRow()" style="padding:8px 10px;">＋</button>
+        </div>
+      </div>
+      <div class="hint">Click ＋ to add multiple expense payments. These go to Bank Ledger instantly.</div>
     </div>
-    <div class="field"><label>Amount Paid for This Work (₹)</label><input type="number" id="receiptAmount" placeholder="How much was spent to do this work" min="0" oninput="showAmtHint(this)"/></div>
     <!-- Miscellaneous expense -->
     <div style="background:var(--graylite);border-radius:var(--rads);padding:12px;margin-bottom:12px;">
       <div style="font-weight:800;font-size:.82rem;margin-bottom:8px;">➕ Miscellaneous Expense (optional)</div>
@@ -1912,6 +2010,27 @@ input[type="number"]:focus {
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('closeWorkModal')">Cancel</button>
       <button class="btn btn-success" onclick="completeWork()">✅ Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- END INQUIRY MODAL -->
+<div class="mo" id="endInquiryModal">
+  <div class="md" style="max-width:460px;">
+    <button class="md-close" onclick="closeModal('endInquiryModal')">×</button>
+    <div class="md-title">🔴 End Inquiry</div>
+    <p style="font-size:.85rem;color:var(--gray);margin:0 0 16px;">How was this inquiry resolved?</p>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <button class="btn" id="endInqDoneBtn" onclick="selectEndInqType('done')" style="flex:1;background:#dcfce7;color:#166534;border:2px solid #bbf7d0;font-weight:700;">✅ Work Done by Us</button>
+      <button class="btn" id="endInqNotBtn" onclick="selectEndInqType('notdone')" style="flex:1;background:#fee2e2;color:#be123c;border:2px solid #fecaca;font-weight:700;">❌ Not Done by Us</button>
+    </div>
+    <input type="hidden" id="endInqType" value=""/>
+    <div id="endInqReasonField" style="display:none;">
+      <div class="field"><label>Reason (why work not done?) *</label><textarea id="endInqReason" placeholder="e.g. Client went elsewhere, price disagreement, outside scope…" style="min-height:70px;"></textarea></div>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('endInquiryModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmEndInquiry()">🔴 End Inquiry</button>
     </div>
   </div>
 </div>
@@ -2187,7 +2306,7 @@ input[type="number"]:focus {
 <div class="mo" id="markPaidModal">
   <div class="md" style="max-width:420px;">
     <button class="md-close" onclick="closeModal('markPaidModal')">x</button>
-    <div class="md-title">💰 Mark Udhari as Paid</div>
+    <div class="md-title">💰 Mark Balance as Paid</div>
     <div style="background:var(--yl);border-radius:var(--rads);padding:11px 14px;margin-bottom:16px;font-weight:700;font-size:.88rem;" id="mp_clientName"></div>
     <div class="field">
       <label>Payment Mode *</label>
@@ -2497,8 +2616,13 @@ async function loginSuccess() {
   const verNav = document.getElementById('nav-verification');
   if(verNav) verNav.style.display = ['owner','manager'].includes(currentUser.role)?'flex':'none';
   // Hide financial pages from staff and manager
+  // Completely hide owner-only items for non-owners
   document.querySelectorAll('.owner-only-nav').forEach(el=>{
-    el.classList.toggle('hidden-staff', currentUser.role!=='owner');
+    el.style.display = currentUser.role==='owner' ? 'flex' : 'none';
+  });
+  // Hide manager-only items for staff
+  document.querySelectorAll('.manager-only-nav').forEach(el=>{
+    el.style.display = ['owner','manager'].includes(currentUser.role) ? 'flex' : 'none';
   });
   const now = new Date();
   // Try to get GPS location for access log
@@ -2601,6 +2725,7 @@ async function loadAllData() {
     allManualDues = (md.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   } catch(e) { allManualDues = []; }
   updateSidebarBadges();
+  updateInquiryBadge();
 }
 
 function updateSidebarBadges() {
@@ -2629,7 +2754,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'💸 Udhari',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries'};
 
 // Track current page for filter reset
 let currentActivePage = 'dashboard';
@@ -2655,7 +2780,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page !== 'newWork') resetNewWorkForm();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -2729,7 +2854,7 @@ function renderDashboard() {
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc"><div class="sl">Open</div><div class="sv">${open}</div></div>
     <div class="sc red"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
-    <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${udhari}</div></div>
+    <div class="sc orange"><div class="sl">Dues</div><div class="sv">${udhari}</div></div>
     ${pendingVerifCount>0?`<div class="sc" style="border:2px solid var(--o);cursor:pointer;" onclick="showPage('verification')"><div class="sl">⏳ Awaiting Verification</div><div class="sv" style="color:var(--o);">${pendingVerifCount}</div></div>`:''}
     <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'}">${inr(cashBalance)}</div></div>
     ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''} "><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'}">${inr(bal)}</div></div>`;}).join('')}
@@ -2791,7 +2916,7 @@ function renderDashboard() {
     </div>`;}).join('');
   // Udhari snippet
   const udList=allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid').slice(0,4);
-  document.getElementById('udhariSnippet').innerHTML=udList.length===0?'<div class="nd">No udhari pending</div>':udList.map(w=>`
+  document.getElementById('udhariSnippet').innerHTML=udList.length===0?'<div class="nd">No dues pending</div>':udList.map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);cursor:pointer;">
       <div><div style="font-weight:700;font-size:.87rem;">${esc(w.clientName)}</div>
       <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicle)}</div></div>
@@ -2816,7 +2941,7 @@ function resetNewWorkForm() {
     resetVWRows();
     // Reset pay modes to a single blank row
     const pml=document.getElementById('payModeList');
-    if(pml) pml.innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
+    if(pml) pml.innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
     initNewWorkDate();
   } catch(e) {}
 }
@@ -2857,8 +2982,7 @@ function addPayRow() {
     <option value="UPI">📱 UPI / Online</option>
     <option value="Employee">👤 Employee</option>
     <option value="Unpaid">⏳ Unpaid</option>
-    <option value="ExcessPaid">➕ Excess Paid</option>
-  </select>
+      </select>
   <select class="pay-bank-sel" style="display:none;flex:1;">
     <option value="">— Bank —</option>
     <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
@@ -3223,7 +3347,7 @@ async function _doSubmitWork() {
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
-    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option><option value="ExcessPaid">➕ Excess Paid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
+    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
@@ -3300,7 +3424,12 @@ function renderWorkTable(){
   const fType=document.getElementById('filterType').value;
   const fStatus=document.getElementById('filterStatus').value;
   // Exclude works pending verification or rejected from All Works
-  let list=allWorks.filter(w=>w.status!=='pending_verification'&&w.status!=='rejected');
+  const allWorkTab = document.getElementById('allWorkTabFilter')?.value||'open';
+  let list=allWorks.filter(w=>{
+    if(w.status==='pending_verification'||w.status==='rejected') return false;
+    if(allWorkTab==='closed') return w.status==='done';
+    return w.status!=='done'; // open = open + partial
+  });
   if(search) list=list.filter(w=>(w.clientName||'').toLowerCase().includes(search)||(w.ownerName||'').toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||(w.vehicles||'').toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
   if(fType) list=list.filter(w=>w.workType===fType);
   if(fStatus) list=list.filter(w=>w.status===fStatus);
@@ -3322,9 +3451,9 @@ function renderWorkTable(){
       return esc(w.vehicles||w.vehicle)+(w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:'')+(w.workType==='DrivingLicense'&&w.dlLicenseType?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.dlLicenseType)}</span>`:'');
     })()}</td>
     <td>${wtBadge(w)}</td>
-    <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>Due: ${inr(w.remainingBalance)}</span>`:''}</td>
+    <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>⚠️ Due: ${inr(w.remainingBalance)}</span>`:''}${(()=>{const excess=(w.amount||0)-(w.workValue||0);return excess>0?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:800;background:#dcfce7;padding:1px 6px;border-radius:10px;'>+${inr(excess)} Excess</span>`:'';})()} </td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
-    <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
+    <td style="font-size:.78rem;">${esc(w.takenBy)}${w.verifiedBy?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:700;'>✅ ${esc(w.verifiedBy)}</span>`:''}</td>
     <td style="font-size:.77rem;color:var(--gray);">${fmtDate(w.date)}<br/><span style="font-size:.7rem;">${esc(w.time||"")}</span></td>
     <td>
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
@@ -3338,6 +3467,194 @@ function renderWorkTable(){
   </tr>`).join('');
 }
 function filterWorks(){renderWorkTable();}
+
+function setAllWorkTab(val, btn) {
+  const el = document.getElementById('allWorkTabFilter');
+  if(el) el.value = val;
+  document.querySelectorAll('#allWorkOpenBtn,#allWorkClosedBtn').forEach(b=>{
+    b.classList.remove('active');
+    b.style.opacity = '0.6';
+  });
+  if(btn){ btn.classList.add('active'); btn.style.opacity = '1'; }
+  renderWorkTable();
+}
+
+// ============================================================
+// INQUIRY SYSTEM
+// ============================================================
+let allInquiries = [];
+let endingInquiryId = null;
+
+function renderAddInquiry() {
+  const d = document.getElementById('inq_date');
+  if(d && !d.value) d.value = new Date().toISOString().split('T')[0];
+}
+
+function resetInquiryForm() {
+  ['inq_ownerName','inq_phone','inq_clientName','inq_vehicle','inq_subject','inq_desc'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  const d = document.getElementById('inq_date');
+  if(d) d.value = new Date().toISOString().split('T')[0];
+}
+
+let _saveInquiryLock = false;
+async function saveInquiry() {
+  if(_saveInquiryLock){ toast('Already saving…','warn'); return; }
+  const ownerName = document.getElementById('inq_ownerName').value.trim();
+  const phone = document.getElementById('inq_phone').value.trim();
+  const subject = document.getElementById('inq_subject').value.trim();
+  if(!ownerName){ toast('Enter inquirer name','warn'); return; }
+  if(!phone || phone.length<10){ toast('Enter valid phone number','warn'); return; }
+  if(!subject){ toast('Enter inquiry subject','warn'); return; }
+  _saveInquiryLock = true;
+  const btn = document.querySelector('#page-addInquiry .btn-primary');
+  if(btn){ btn.textContent='⏳ Saving…'; btn.disabled=true; }
+  try {
+    const now = new Date();
+    // Get next inquiry number
+    const {data: existing} = await _sb.from('inquiries').select('inquiry_num').order('inquiry_num',{ascending:false}).limit(1);
+    const nextNum = ((existing&&existing[0]?.inquiry_num)||0) + 1;
+    const res = await _sb.from('inquiries').insert({
+      inquiry_num: nextNum,
+      owner_name: ownerName,
+      client_name: document.getElementById('inq_clientName').value.trim()||ownerName,
+      phone,
+      vehicle: document.getElementById('inq_vehicle').value.trim().toUpperCase(),
+      subject,
+      description: document.getElementById('inq_desc').value.trim(),
+      date: document.getElementById('inq_date').value || now.toISOString().split('T')[0],
+      date_display: now.toLocaleDateString('en-IN'),
+      timestamp: now.getTime(),
+      status: 'open',
+      added_by: currentUser.name
+    });
+    if(res.error) throw res.error;
+    toast(`✅ Inquiry I${nextNum} saved!`,'success');
+    resetInquiryForm();
+    updateInquiryBadge();
+  } catch(e){ toast('Error: '+e.message,'error'); }
+  finally {
+    _saveInquiryLock = false;
+    if(btn){ btn.textContent='📝 Save Inquiry'; btn.disabled=false; }
+  }
+}
+
+async function renderAllInquiry() {
+  const tab = document.getElementById('inqTabFilter')?.value||'open';
+  const q = (document.getElementById('inqSearch')?.value||'').toLowerCase();
+  const closedSort = document.getElementById('inqClosedSortSel')?.value||'all';
+  document.getElementById('inqClosedSort').style.display = tab==='closed'?'block':'none';
+
+  const {data, error} = await _sb.from('inquiries').select('*').order('timestamp',{ascending:false});
+  if(error){ document.getElementById('inqList').innerHTML='<div class="nd">Error loading inquiries</div>'; return; }
+  allInquiries = (data||[]);
+  let list = allInquiries.filter(i=>i.status===tab);
+  if(q) list=list.filter(i=>(i.owner_name||'').toLowerCase().includes(q)||(i.subject||'').toLowerCase().includes(q)||(i.vehicle||'').toLowerCase().includes(q)||(i.phone||'').includes(q));
+  if(tab==='closed' && closedSort!=='all') list=list.filter(i=>i.end_type===closedSort);
+
+  const el = document.getElementById('inqList');
+  if(!list.length){ el.innerHTML=`<div class="nd">No ${tab} inquiries found</div>`; return; }
+
+  el.innerHTML = list.map(inq=>`
+    <div style="background:${inq.status==='open'?'#f8fafc':'#fafafa'};border:1.5px solid ${inq.status==='open'?'#e0e7ff':'#e5e7eb'};border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="background:#6d28d9;color:#fff;border-radius:8px;padding:2px 10px;font-size:.78rem;font-weight:800;">I${inq.inquiry_num}</span>
+          <span style="background:${inq.status==='open'?'#dbeafe':'#fee2e2'};color:${inq.status==='open'?'#1d4ed8':'#be123c'};border-radius:20px;padding:2px 9px;font-size:.73rem;font-weight:700;">${inq.status==='open'?'🟢 Open':'🔴 Closed'}</span>
+          ${inq.end_type==='done'?'<span style="background:#dcfce7;color:#166534;border-radius:20px;padding:2px 9px;font-size:.73rem;font-weight:700;">✅ Work Done</span>':inq.end_type==='notdone'?'<span style="background:#fee2e2;color:#be123c;border-radius:20px;padding:2px 9px;font-size:.73rem;font-weight:700;">❌ Not Done</span>':''}
+        </div>
+        <span style="font-size:.73rem;color:var(--gray);">${esc(inq.date_display||inq.date||'—')} · by ${esc(inq.added_by||'—')}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
+        <div><div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Name</div><div style="font-weight:700;">${esc(inq.owner_name)}</div></div>
+        <div><div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Phone</div><div style="font-weight:600;">${esc(inq.phone)}</div></div>
+        ${inq.vehicle?`<div><div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Vehicle</div><div style="font-weight:700;font-family:monospace;">${esc(inq.vehicle)}</div></div>`:''}
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+        <div style="font-size:.73rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Subject</div>
+        <div style="font-weight:700;">${esc(inq.subject)}</div>
+        ${inq.description?`<div style="font-size:.82rem;color:var(--gray);margin-top:5px;">${esc(inq.description)}</div>`:''}
+        ${inq.end_reason?`<div style="font-size:.8rem;color:var(--r);margin-top:6px;font-style:italic;">Reason: ${esc(inq.end_reason)}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${inq.status==='open'?`<button class="btn btn-sm btn-danger" onclick="openEndInquiry('${inq.id}')">🔴 End Inquiry</button>`:''}
+        ${inq.phone?`<button class="btn btn-sm btn-outline" onclick="window.open('https://wa.me/91${esc(inq.phone)}?text='+encodeURIComponent('Hello ${esc(inq.owner_name)}! 🙏 Regarding your inquiry at Nandan Legal Services about: ${esc(inq.subject)}'),'_blank')">📱 WhatsApp</button>`:''}
+        ${currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="deleteInquiry('${inq.id}')">🗑️</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function setInquiryTab(val, btn) {
+  document.getElementById('inqTabFilter').value = val;
+  document.querySelectorAll('#inqOpenBtn,#inqClosedBtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('inqClosedSort').style.display = val==='closed'?'block':'none';
+  renderAllInquiry();
+}
+
+function openEndInquiry(id) {
+  endingInquiryId = id;
+  document.getElementById('endInqType').value = '';
+  document.getElementById('endInqReason').value = '';
+  document.getElementById('endInqReasonField').style.display = 'none';
+  document.querySelectorAll('#endInqDoneBtn,#endInqNotBtn').forEach(b=>b.style.outline='none');
+  openModal('endInquiryModal');
+}
+
+function selectEndInqType(type) {
+  document.getElementById('endInqType').value = type;
+  document.getElementById('endInqReasonField').style.display = type==='notdone'?'block':'none';
+  document.getElementById('endInqDoneBtn').style.outline = type==='done'?'3px solid #16a34a':'none';
+  document.getElementById('endInqNotBtn').style.outline = type==='notdone'?'3px solid #be123c':'none';
+}
+
+let _endInqLock = false;
+async function confirmEndInquiry() {
+  if(_endInqLock){ toast('Saving…','warn'); return; }
+  const type = document.getElementById('endInqType').value;
+  const reason = document.getElementById('endInqReason').value.trim();
+  if(!type){ toast('Select how inquiry was resolved','warn'); return; }
+  if(type==='notdone' && !reason){ toast('Enter reason for not doing the work','warn'); return; }
+  _endInqLock = true;
+  try {
+    const res = await _sb.from('inquiries').update({
+      status: 'closed',
+      end_type: type,
+      end_reason: reason||null,
+      ended_by: currentUser.name,
+      ended_at: Date.now()
+    }).eq('id', endingInquiryId);
+    if(res.error) throw res.error;
+    toast('Inquiry closed','success');
+    closeModal('endInquiryModal');
+    updateInquiryBadge();
+    renderAllInquiry();
+  } catch(e){ toast('Error: '+e.message,'error'); }
+  finally { _endInqLock = false; }
+}
+
+async function deleteInquiry(id) {
+  if(!confirm('Delete this inquiry permanently?')) return;
+  await _sb.from('inquiries').delete().eq('id',id);
+  toast('Deleted','success');
+  renderAllInquiry();
+  updateInquiryBadge();
+}
+
+async function updateInquiryBadge() {
+  try {
+    const {data} = await _sb.from('inquiries').select('id').eq('status','open');
+    const badge = document.getElementById('badge-inquiry');
+    if(badge){
+      const count = (data||[]).length;
+      badge.textContent = count;
+      badge.style.display = count>0?'inline':'none';
+    }
+  } catch(e){}
+}
+
+
 
 // ============================================================
 // DATE/MONTH FILTER
@@ -3367,7 +3684,20 @@ function renderDateWise(){
   } else {
     const m=parseInt(document.getElementById('monthSel').value);
     const y=parseInt(document.getElementById('yearSel').value);
-    list=allWorks.filter(w=>{if(!w.timestamp)return false;const d=new Date(w.timestamp);return d.getMonth()===m&&d.getFullYear()===y&&w.status!=='pending_verification'&&w.status!=='rejected';});
+    list=allWorks.filter(w=>{
+      // Use actual work date, not entry timestamp
+      if(!w.date)return false;
+      const parts=w.date.split('/');
+      let d;
+      if(parts.length===3){
+        // Indian format DD/MM/YYYY
+        d=new Date(parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0'));
+      } else {
+        d=new Date(w.date);
+      }
+      if(isNaN(d.getTime()))return false;
+      return d.getMonth()===m&&d.getFullYear()===y&&w.status!=='pending_verification'&&w.status!=='rejected';
+    });
   }
   const done=list.filter(w=>w.status==='done').length;
   const totalAmt=list.reduce((s,w)=>s+(w.amount||0),0);
@@ -3665,7 +3995,14 @@ async function saveExpensePayment() {
 // ============================================================
 function renderOverdue(){
   const now=Date.now();
-  const list=allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000);
+  // Use work date for overdue calculation, not entry timestamp
+  const list=allWorks.filter(w=>{
+    if(w.status==='open'||w.status==='partial'){
+      const d=w.date?new Date(w.date.split('/').length===3?w.date.split('/').reverse().join('-'):w.date):new Date(w.timestamp||0);
+      return (now-d.getTime())>7*86400000;
+    }
+    return false;
+  });
   const tbody=document.getElementById('overdueBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="9" class="nd">🎉 No overdue works!</td></tr>';return;}
   tbody.innerHTML=list.map(w=>`<tr class="ov-row">
@@ -3680,8 +4017,14 @@ function renderOverdue(){
 }
 
 // ============================================================
-// UDHARI
-// ============================================================
+// CLIENT BALANCES (formerly Udhari)
+function setClientBalTab(val, btn) {
+  document.getElementById('clientBalTab').value = val;
+  document.querySelectorAll('#clientBalDueBtn,#clientBalExcessBtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderUdhari();
+}
+
 function setUdhariAge(val, btn) {
   document.getElementById('udhariAgeFilter').value = val;
   document.querySelectorAll('#page-udhari .tb').forEach(b=>b.classList.remove('active'));
@@ -3690,16 +4033,21 @@ function setUdhariAge(val, btn) {
 }
 
 function renderUdhari(){
+  const tabFilter = document.getElementById('clientBalTab')?.value||'due';
   const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
   const now = Date.now();
+
   const pureUdhari = allWorks.filter(w=>w.status==='done' && w.payMode==='Unpaid');
   const partialDue = allWorks.filter(w=>w.status==='done' && w.payMode!=='Unpaid' && (w.remainingBalance||0)>0);
-  let allDue = [...pureUdhari, ...partialDue];
+  const excessWorks = allWorks.filter(w=>w.status==='done' && (w.amount||0)>(w.workValue||0) && (w.workValue||0)>0);
 
-  // Age filter
+  let list;
+  if(tabFilter==='excess') list=excessWorks;
+  else list=[...pureUdhari,...partialDue];
+
   if(ageFilter!=='all') {
-    allDue = allDue.filter(w=>{
-      const age = now - (w.completedTimestamp||w.timestamp||0);
+    list = list.filter(w=>{
+      const age = now-(w.completedTimestamp||w.timestamp||0);
       const days = age/86400000;
       if(ageFilter==='week') return days<7;
       if(ageFilter==='month') return days>=7&&days<30;
@@ -3710,25 +4058,33 @@ function renderUdhari(){
   }
 
   const tbody = document.getElementById('udhariBody');
-  const makeRow = (w) => `<tr>
-    <td><span class="wnum">#${w.workNum}</span></td>
-    <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
-    <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-    <td style="font-weight:700;font-size:.82rem;">${esc(w.vehicles||w.vehicle)}</td>
-    <td>${wtBadge(w)}</td>
-    <td style="font-weight:800;color:var(--r);">${inr(w.remainingBalance||w.amount||0)}</td>
-    <td style="font-size:.8rem;">${esc(w.completedDate||'—')}</td>
-    <td style="display:flex;gap:4px;flex-wrap:wrap;">
-      <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
-      <button class="btn btn-sm btn-success" onclick="openMarkPaid('${w._key}')">💰 Mark Paid</button>
-    </td>
-  </tr>`;
+  const isExcess = tabFilter==='excess';
 
-  if(!allDue.length){
-    tbody.innerHTML=`<tr><td colspan="8" class="nd">✅ No pending dues${ageFilter!=='all'?' for this time period':' — all clients have paid'}</td></tr>`;
+  const makeRow = (w) => {
+    const excess = Math.max(0,(w.amount||0)-(w.workValue||0));
+    const due = w.remainingBalance||w.amount||0;
+    return `<tr>
+      <td><span class="wnum">#${w.workNum}</span></td>
+      <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
+      <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
+      <td style="font-weight:700;font-size:.82rem;">${esc(w.vehicles||w.vehicle)}</td>
+      <td>${wtBadge(w)}</td>
+      <td style="font-weight:800;color:${isExcess?'#16a34a':'var(--r)'};">
+        ${isExcess?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;">+${inr(excess)} Excess</span>`:inr(due)}
+      </td>
+      <td style="font-size:.8rem;">${esc(w.completedDate||w.date||'—')}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
+        ${!isExcess?`<button class="btn btn-sm btn-success" onclick="openMarkPaid('${w._key}')">💰 Mark Paid</button>`:''}
+      </td>
+    </tr>`;
+  };
+
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="8" class="nd">✅ No entries found${ageFilter!=='all'?' for this period':''}</td></tr>`;
     return;
   }
-  tbody.innerHTML = allDue.map(w=>makeRow(w)).join('');
+  tbody.innerHTML = list.map(w=>makeRow(w)).join('');
 }
 
 // ============================================================
@@ -3880,7 +4236,7 @@ function searchClientHistory(){
   <div class="stats-row" style="margin-bottom:16px;">
     <div class="sc"><div class="sl">Total Works</div><div class="sv">${list.length}</div></div>
     <div class="sc green"><div class="sl">Completed</div><div class="sv">${list.filter(w=>w.status==='done').length}</div></div>
-    <div class="sc orange"><div class="sl">Udhari</div><div class="sv">${list.filter(w=>w.payMode==='Unpaid').length}</div></div>
+    <div class="sc orange"><div class="sl">Dues</div><div class="sv">${list.filter(w=>w.payMode==='Unpaid').length}</div></div>
     <div class="sc yellow"><div class="sl">Total Paid</div><div class="sv">${inr(totalAmt)}</div></div>
   </div>
   <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Vehicle(s)</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
@@ -3935,7 +4291,8 @@ function viewWork(key){
     ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
     <div class="di"><div class="dl">Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
 
-    <div class="di"><div class="dl">Taken By</div><div class="dv">${esc(w.takenBy)}</div></div>
+    <div class="di"><div class="dl">Added By</div><div class="dv">${esc(w.takenBy)}</div></div>
+    ${w.verifiedBy?`<div class="di"><div class="dl">Verified By</div><div class="dv" style="color:#16a34a;font-weight:700;">✅ ${esc(w.verifiedBy)}${w.verifiedAt?' · '+new Date(w.verifiedAt).toLocaleString('en-IN'):''}</div></div>`:''}
     ${w.status!=='open'?`<div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div><div class="di"><div class="dl">Completed Date</div><div class="dv">${esc(w.completedDate)}</div></div>`:''}
     ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">${inr(w.receiptAmount)} from ${esc(w.closingBank)}</div></div>`:''}
     ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
@@ -4025,7 +4382,20 @@ function openCloseWork(key){
   const w=allWorks.find(x=>x._key===key);
   const needsExpiry=w&&['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(w.workType);
   document.getElementById('expiryField').style.display=needsExpiry?'block':'none';
-  ['expiryDate','receiptAmount','closeNotes'].forEach(id=>document.getElementById(id).value='');
+  ['expiryDate','closeNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  // Reset multi-payment rows
+  const closePayList = document.getElementById('closePayList');
+  if(closePayList) closePayList.innerHTML = `<div class="close-pay-row" style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;">
+    <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
+      <option value="">— Source —</option><option value="Cash">💵 Cash</option>
+      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+      <option value="Canara">Canara</option><option value="Employee">👤 Employee</option>
+    </select>
+    <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
+    <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
+    <button class="btn btn-sm btn-outline" onclick="addClosePayRow()" style="padding:8px 10px;">＋</button>
+  </div>`;
   document.getElementById('receiptPhoto').value='';
   document.getElementById('receiptPreviewBox').style.display='none';
   document.getElementById('receiptPreviewImg').src='';
@@ -4081,34 +4451,64 @@ function updatePartialDescFromCheckboxes() {
   if(checked.length > 0) document.getElementById('partialDesc').value = checked.join(', ');
 }
 
-function closingBankChange(sel) {
-  const empSel = document.getElementById('closingEmployee');
+function closePaySrcChange(sel) {
+  const empSel = sel.parentElement.querySelector('.close-pay-emp');
+  if(!empSel) return;
   if(sel.value === 'Employee') {
     empSel.style.display = 'block';
-    empSel.innerHTML = '<option value="">— Select Employee —</option>' +
+    empSel.innerHTML = '<option value="">— Staff —</option>' +
       allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
   } else {
     empSel.style.display = 'none';
     empSel.value = '';
   }
 }
+// Keep old name for compatibility
+function closingBankChange(sel) { closePaySrcChange(sel); }
+
+function addClosePayRow() {
+  const list = document.getElementById('closePayList');
+  const row = document.createElement('div');
+  row.className = 'close-pay-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;';
+  row.innerHTML = `
+    <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
+      <option value="">— Source —</option>
+      <option value="Cash">💵 Cash</option>
+      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+      <option value="Canara">Canara</option>
+      <option value="Employee">👤 Employee</option>
+    </select>
+    <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
+    <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
+    <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.close-pay-row').remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function getClosePayRows() {
+  return [...document.querySelectorAll('.close-pay-row')].map(row=>{
+    const src = row.querySelector('.close-pay-src').value;
+    const emp = row.querySelector('.close-pay-emp').value;
+    const amt = parseFloat(row.querySelector('.close-pay-amt').value)||0;
+    return { bank: src==='Employee'?(emp?`Employee: ${emp}`:'Employee'):src, raw: src, emp, amt };
+  }).filter(r=>r.bank && r.amt>0);
+}
 
 async function completeWork() {
   const closeWorkKey = closingWorkId;
   const w = allWorks.find(x=>x._key===closeWorkKey);
   if(!w){toast('Work not found — please try again','error');return;}
-  const bankRaw = document.getElementById('closingBank').value;
-  const empName = document.getElementById('closingEmployee').value;
-  const bank = bankRaw==='Employee' ? 'Employee' : bankRaw;
-  const bankDisplay = bankRaw==='Employee' ? (empName ? `Employee: ${empName}` : 'Employee') : bankRaw;
-  const amt = Math.max(0, parseFloat(document.getElementById('receiptAmount').value)||0);
+  const payRows = getClosePayRows();
+  const amt = payRows.reduce((s,r)=>s+r.amt, 0);
+  const bankDisplay = payRows.length>0 ? payRows.map(r=>r.bank).join(', ') : '';
+  const bank = payRows.length>0 ? payRows[0].bank : '';
   const notes = document.getElementById('closeNotes').value.trim();
   const expiry = document.getElementById('expiryDate').value;
   const miscAmt = Math.max(0, parseFloat(document.getElementById('miscAmount').value)||0);
   const miscRsn = document.getElementById('miscReason').value.trim();
   const isPartial = closeWorkType==='partial';
   const partialDesc = isPartial ? document.getElementById('partialDesc').value.trim() : '';
-  if(!bank){toast('Select payment source','error');return;}
   if(isPartial&&!partialDesc){toast('Describe what was completed','error');return;}
 
   // Lock button to prevent double submit
@@ -4142,16 +4542,19 @@ async function completeWork() {
   try {
     // Use dbUpd (update only changed fields) — safer than dbSet which can fail on complex objects
     await _sb.from('works').update(toSnake(updates)).eq('id', closeWorkKey);
-    // Auto ledger debit for work expense
-    if(amt>0) {
-      await _sb.from('ledger').insert({
-        bank, type:'debit', amount:amt,
-        date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
-        work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}`,
-        description:`Work expense: ${wtLabel(w.workType)}${isPartial?' [Partial]':''} [Paid from: ${bankDisplay}]`,
-        by:currentUser.name, auto_entry:true,
-        employee_name: bankRaw==='Employee' ? empName : ''
-      });
+    // Auto ledger debit for each expense payment row
+    for(const pr of payRows) {
+      if(pr.amt>0) {
+        await _sb.from('ledger').insert({
+          bank: pr.raw==='Employee'?(pr.emp||'Employee'):pr.raw,
+          type:'debit', amount:pr.amt,
+          date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
+          work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}`,
+          description:`Work expense: ${wtLabel(w.workType)}${isPartial?' [Partial]':''} [${pr.bank}]`,
+          by:currentUser.name, auto_entry:true,
+          employee_name: pr.raw==='Employee' ? pr.emp : ''
+        });
+      }
     }
     // Misc expense → cash debit
     if(miscAmt>0) {
@@ -4479,7 +4882,7 @@ function renderDues() {
 
   const container = document.getElementById('duesClientList');
   if(!clients.length) {
-    container.innerHTML=`<div class="card" style="text-align:center;padding:40px;color:var(--gray);font-size:.95rem;">🎉 No pending dues${searchRaw?' matching your search':''}!</div>`;
+    container.innerHTML=`<div class="card" style="text-align:center;padding:40px;color:var(--gray);font-size:.95rem;">🎉 No entries found${searchRaw?' matching your search':''}!</div>`;
     return;
   }
 
@@ -5021,9 +5424,11 @@ function printReceipt(key) {
     ${w.workType==='Transfer'?`<tr><td>From</td><td>${esc(w.transferFrom)}</td></tr><tr><td>To</td><td>${esc(w.transferTo)}</td></tr>`:''}
     ${w.workValue?`<tr><td>Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
     <tr><td>Amount Paid</td><td class="total">${inr(w.totalPaid||w.amount||0)}</td></tr>
+    ${w.workValue?`<tr><td>Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
     ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:red;font-weight:bold;">${inr(w.remainingBalance)}</td></tr>`:''}
+    ${(()=>{const excess=(w.amount||0)-(w.workValue||0);return (excess>0&&(w.workValue||0)>0)?`<tr><td>Excess Received</td><td style="color:green;font-weight:bold;">+${inr(excess)}</td></tr>`:''})()}
     <tr><td>Payment Mode</td><td>${payInfo}</td></tr>
-    <tr><td>Status</td><td>${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial':'🔵 Open'}</td></tr>
+    <tr><td>Status</td><td>${w.status==='done'?'Paid / Completed':w.status==='partial'?'Partially Paid':'Unpaid / Open'}</td></tr>
     ${w.partialDesc?`<tr><td>Done</td><td>${esc(w.partialDesc)}</td></tr>`:''}
     ${w.miscExpense>0?`<tr><td>Misc Expense</td><td>${inr(w.miscExpense)} — ${esc(w.miscReason)}</td></tr>`:''}
     ${w.notes?`<tr><td>Notes</td><td>${esc(w.notes)}</td></tr>`:''}
@@ -5182,15 +5587,25 @@ async function saveOspSpend() {
     }
   }
   try {
-    const ledgerResult = await _sb.from('ledger').insert({
+    // Try with extended columns first; if schema cache error, retry without
+    let ledgerResult = await _sb.from('ledger').insert({
       bank:'Cash', type:'debit', amount:amt,
       date:dateStr, timestamp:now.getTime(),
       work_ref: workRef,
       description:`RTO Inside Spend: ${reason}`,
-      by: currentUser.name, auto_entry: true, osp_entry: true,
+      by: currentUser.name, auto_entry: true,
       spent_by: whoSpent, logged_by: currentUser.name,
       receipt_urls: fileUrls.length ? JSON.stringify(fileUrls) : null
     });
+    if(ledgerResult.error && ledgerResult.error.message&&ledgerResult.error.message.includes('schema cache')) {
+      ledgerResult = await _sb.from('ledger').insert({
+        bank:'Cash', type:'debit', amount:amt,
+        date:dateStr, timestamp:now.getTime(),
+        work_ref: workRef,
+        description:`RTO Inside Spend: ${reason}`,
+        by: currentUser.name, auto_entry: true
+      });
+    }
     if(ledgerResult.error) throw ledgerResult.error;
     toast(`✅ Expense of ${inr(amt)} saved`,'success');
     document.getElementById('ospAmount').value='';
@@ -5271,8 +5686,6 @@ async function saveOfficeExpenditure() {
       description: `Office Expenditure: ${purpose}`,
       by: currentUser.name,
       auto_entry: false,
-      osp_entry: false,
-      manual_cash: false,
       spent_by: currentUser.name,
       logged_by: currentUser.name,
       receipt_urls: remarks ? JSON.stringify({remarks}) : null
@@ -5801,30 +6214,61 @@ async function downloadClientDoc(workKey, workNum) {
 
     y += 4;
 
-    // Status badge
+    // Status badge — use plain ASCII only (jsPDF helvetica can't render emoji)
     const isPaid = w.payMode !== 'Unpaid' && (w.remainingBalance||0) === 0;
     const isPartial = w.status === 'partial' || (w.remainingBalance||0) > 0;
-    if(isPaid){
+    const excessAmt = (w.amount||0) - (w.workValue||0);
+    const hasExcess = excessAmt > 0 && (w.workValue||0) > 0;
+
+    if(isPaid && !hasExcess){
+      // PAID badge
       doc.setFillColor(34, 197, 94);
-      doc.roundedRect(15, y, 40, 10, 2, 2, 'F');
+      doc.roundedRect(15, y, 38, 10, 2, 2, 'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
       doc.setFontSize(9);
-      doc.text('✓  PAID', 35, y+6.5, {align:'center'});
+      doc.text('PAID IN FULL', 34, y+6.5, {align:'center'});
+    } else if(isPaid && hasExcess){
+      // PAID + excess
+      doc.setFillColor(34, 197, 94);
+      doc.roundedRect(15, y, 38, 10, 2, 2, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text('PAID IN FULL', 34, y+6.5, {align:'center'});
+      // Note excess
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(22,163,74);
+      doc.text('Advance: ' + inr(excessAmt) + ' excess received', 60, y+6.5);
     } else if(isPartial){
+      // PARTIALLY PAID badge
       doc.setFillColor(251, 146, 60);
-      doc.roundedRect(15, y, 55, 10, 2, 2, 'F');
+      doc.roundedRect(15, y, 68, 10, 2, 2, 'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
       doc.setFontSize(9);
-      doc.text('⚠  PARTIAL PAYMENT', 42, y+6.5, {align:'center'});
+      doc.text('PARTIALLY PAID', 49, y+6.5, {align:'center'});
+      // Show how much paid vs due
+      const paidAmt = w.totalPaid||w.amount||0;
+      const dueAmt = w.remainingBalance||0;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120,60,0);
+      doc.text('Paid: ' + inr(paidAmt) + '   Due: ' + inr(dueAmt), 90, y+6.5);
     } else {
+      // UNPAID badge
       doc.setFillColor(239, 68, 68);
-      doc.roundedRect(15, y, 45, 10, 2, 2, 'F');
+      doc.roundedRect(15, y, 38, 10, 2, 2, 'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
       doc.setFontSize(9);
-      doc.text('✗  UNPAID', 37, y+6.5, {align:'center'});
+      doc.text('UNPAID', 34, y+6.5, {align:'center'});
+      // Show amount due
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(180,0,0);
+      doc.text('Amount Due: ' + inr(w.workValue||w.amount||0), 60, y+6.5);
     }
 
     y += 22;
@@ -5974,17 +6418,17 @@ function payBadge(w){
         if(m.mode==='Cash') return `<span class="badge bg" style="display:inline-block;margin-bottom:2px;">💵 Cash${m.amount>0?' · '+inr(m.amount):''}</span>`;
         if(m.mode==='UPI') return `<span class="badge bb" style="display:inline-block;margin-bottom:2px;">📱 UPI · ${esc(m.bank||'')}${m.amount>0?' · '+inr(m.amount):''}</span>`;
         if(m.mode==='Unpaid') return `<span class="badge br" style="display:inline-block;margin-bottom:2px;">⏳ Unpaid</span>`;
-        if(m.mode==='ExcessPaid') return `<span class="badge bo" style="display:inline-block;margin-bottom:2px;">➕ Excess</span>`;
+        if(m.mode==='ExcessPaid') return ''; // hidden — excess shown separately
         if(m.mode==='Employee') return `<span class="badge bgr" style="display:inline-block;margin-bottom:2px;">👤 ${esc(m.employee||'Employee')}</span>`;
         return `<span class="badge bgr" style="display:inline-block;margin-bottom:2px;">${esc(m.mode)}</span>`;
-      }).join(' ');
+      }).filter(Boolean).join(' ');
     }
   } catch(e) {}
   // Fallback to single payMode field
   if(w.payMode==='Cash') return `<span class="badge bg">💵 Cash</span>`;
   if(w.payMode==='UPI') return `<span class="badge bb">📱 UPI · ${esc(w.bank||'')}</span>`;
   if(w.payMode==='Unpaid') return `<span class="badge br">⏳ Unpaid</span>`;
-  if(w.payMode==='ExcessPaid') return `<span class="badge bo">➕ Excess ₹${w.extraBalance||0}</span>`;
+  if(w.payMode==='ExcessPaid') return `<span class="badge bg">💵 Paid</span>`; // old data fallback — don't show "Excess"
   return `<span class="badge bgr">${esc(w.payMode)}</span>`;
 }
 
