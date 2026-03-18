@@ -1086,7 +1086,7 @@ input[type="number"]:focus {
           </div>
           <div style="font-size:.78rem;opacity:.65;margin-top:4px;padding-left:45px;">Work goes to Verification before appearing in All Works</div>
         </div>
-        <button onclick="resetNewWorkForm()" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">🔄 Reset</button>
+        <button onclick="resetNewWorkForm()" tabindex="-1" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">🔄 Reset</button>
       </div>
 
       <!-- ─── STEP 1: CLIENT INFO ─── -->
@@ -1124,7 +1124,7 @@ input[type="number"]:focus {
               <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Add one row per vehicle/work combination</div>
             </div>
           </div>
-          <button onclick="addVWRow()" style="background:#ecfdf5;color:#059669;border:1.5px dashed #6ee7b7;padding:7px 14px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">＋ Add Vehicle</button>
+          <button onclick="addVWRow()" tabindex="-1" style="background:#ecfdf5;color:#059669;border:1.5px dashed #6ee7b7;padding:7px 14px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;" onmouseover="this.style.background='#d1fae5'" onmouseout="this.style.background='#ecfdf5'">＋ Add Vehicle</button>
         </div>
 
         <!-- Column Labels -->
@@ -1157,8 +1157,8 @@ input[type="number"]:focus {
                 <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
                 <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
               </div>
-              <input type="text" class="wtype-spec" placeholder="Specify work type…" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-              <select class="wtype-dltype" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+              <input type="text" class="wtype-spec" placeholder="Specify work type…" tabindex="-1" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+              <select class="wtype-dltype" tabindex="-1" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
                 <option value="">— License Type —</option>
                 <option value="Renewal">Renewal</option>
                 <option value="Permanent (New)">Permanent (New)</option>
@@ -1166,16 +1166,16 @@ input[type="number"]:focus {
               </select>
               <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:6px;">
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="date" class="wtype-dlexpiry" style="flex:1;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+                  <input type="date" class="wtype-dlexpiry" tabindex="-1" style="flex:1;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
                   <span style="font-size:.7rem;color:var(--p);font-weight:700;white-space:nowrap;">⬅ DL Expiry</span>
                 </div>
               </div>
-              <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-              <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+              <input type="text" class="wtype-tfrom" tabindex="-1" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+              <input type="text" class="wtype-tto" tabindex="-1" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
             </div>
             <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
             <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-              <button onclick="addVWRow()" title="Add row" style="width:32px;height:32px;border-radius:8px;background:#dcfce7;color:#16a34a;border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">＋</button>
+              <button onclick="addVWRow()" tabindex="-1" title="Add row" style="width:32px;height:32px;border-radius:8px;background:#dcfce7;color:#16a34a;border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">＋</button>
             </div>
           </div>
         </div>
@@ -1221,15 +1221,15 @@ input[type="number"]:focus {
                 <option value="Employee">👤 Employee (Taken by staff)</option>
                 <option value="Unpaid">⏳ Unpaid / Due</option>
                               </select>
-              <select class="pay-bank-sel" tabindex="10" style="display:none;flex:1;">
+              <select class="pay-bank-sel" tabindex="-1" style="display:none;flex:1;">
                 <option value="">— Bank —</option>
                 <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
                 <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
                 <option value="Canara">Canara</option>
               </select>
-              <select class="pay-emp-sel" style="display:none;flex:1;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" tabindex="11"/>
-              <button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button>
+              <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:1;"></select>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" tabindex="10"/>
+              <button class="btn btn-sm btn-outline" onclick="addPayRow()" tabindex="-1" title="Add another payment mode">＋</button>
             </div>
           </div>
           <div class="hint">Split across Cash + UPI etc. using ＋</div>
@@ -1248,18 +1248,18 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date" tabindex="12"/>
+            <input type="date" id="w_date" tabindex="11"/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="13"></textarea>
+            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="12"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="14" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="13" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -3590,47 +3590,38 @@ function renderWorkTable(){
 }
 function filterWorks(){renderWorkTable();}
 
-// ── Global Tab order enforcer for New Work page ──
-const NW_TAB_ORDER = [
-  'w_name','w_phone','w_clientName',
-  // vehicle row fields handled dynamically
-  'w_amount','w_payDate',
-  'w_date','w_notes','submitWorkBtn'
-];
-
+// ── New Work page Tab order enforcer ──
 document.addEventListener('keydown', function(e) {
   if(e.key !== 'Tab') return;
-  const activePage = document.getElementById('page-newWork');
-  if(!activePage || !activePage.classList.contains('active')) return;
+  const page = document.getElementById('page-newWork');
+  if(!page || !page.classList.contains('active')) return;
+
+  // Build ordered list dynamically from visible tabindex'd fields inside the form
+  const candidates = [...page.querySelectorAll('[tabindex]')].filter(el => {
+    const ti = parseInt(el.getAttribute('tabindex'));
+    if(ti < 0) return false;
+    if(el.type === 'hidden') return false;
+    if(el.disabled) return false;
+    // Must be visible
+    let n = el;
+    while(n && n !== page) {
+      const st = window.getComputedStyle(n);
+      if(st.display === 'none' || st.visibility === 'hidden') return false;
+      n = n.parentElement;
+    }
+    return true;
+  }).sort((a,b) => parseInt(a.getAttribute('tabindex')) - parseInt(b.getAttribute('tabindex')));
 
   const focused = document.activeElement;
-  if(!focused) return;
-
-  // Build ordered list of all focusable fields in the new work form
-  const form = activePage;
-  const allFocusable = [...form.querySelectorAll(
-    'input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])[id="submitWorkBtn"]'
-  )].filter(el => {
-    // Only include elements that are visible and have tabindex >= 0
-    const ti = parseInt(el.getAttribute('tabindex'));
-    return el.offsetParent !== null && (isNaN(ti) || ti >= 0);
-  }).sort((a,b) => {
-    const ta = parseInt(a.getAttribute('tabindex'))||999;
-    const tb = parseInt(b.getAttribute('tabindex'))||999;
-    return ta - tb;
-  });
-
-  const idx = allFocusable.indexOf(focused);
-  if(idx === -1) return; // not in our form, let browser handle
+  const idx = candidates.indexOf(focused);
+  if(idx === -1) return; // not one of ours — let browser handle
 
   e.preventDefault();
-  if(!e.shiftKey) {
-    const next = allFocusable[(idx+1) % allFocusable.length];
-    if(next) next.focus();
-  } else {
-    const prev = allFocusable[(idx-1+allFocusable.length) % allFocusable.length];
-    if(prev) prev.focus();
-  }
+  e.stopPropagation();
+  const next = e.shiftKey
+    ? candidates[(idx - 1 + candidates.length) % candidates.length]
+    : candidates[(idx + 1) % candidates.length];
+  if(next) next.focus();
 });
 
 function setAllWorkTab(val, btn) {
