@@ -1963,15 +1963,15 @@ input[type="number"]:focus {
       <div class="field">
         <label>Entry Type *</label>
         <div style="display:flex;gap:10px;">
-          <button type="button" id="pmt_credit_btn" onclick="pmtSetType('credit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #16a34a;background:#dcfce7;color:#166534;font-weight:800;cursor:pointer;font-size:.88rem;transition:all .15s;">
+          <button type="button" id="pmt_credit_btn" onclick="pmtSetType('credit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:700;cursor:pointer;font-size:.88rem;transition:all .15s;">
             ↑ Credit (Payment Received)
           </button>
-          <button type="button" id="pmt_debit_btn" onclick="pmtSetType('debit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:700;cursor:pointer;font-size:.88rem;transition:all .15s;">
+          <button type="button" id="pmt_debit_btn" onclick="pmtSetType('debit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #dc2626;background:#fee2e2;color:#be123c;font-weight:800;cursor:pointer;font-size:.88rem;transition:all .15s;">
             ↓ Debit (Expense / Payout)
           </button>
         </div>
-        <input type="hidden" id="pmt_type" value="credit"/>
-        <div id="pmt_type_hint" style="margin-top:6px;font-size:.78rem;color:#16a34a;font-weight:600;">💚 Credit — money coming IN, will reduce client dues</div>
+        <input type="hidden" id="pmt_type" value="debit"/>
+        <div id="pmt_type_hint" style="margin-top:6px;font-size:.78rem;color:#be123c;font-weight:600;">🔴 Debit — money going OUT (expense, payout). Does NOT affect client dues.</div>
       </div>
       <div class="field">
         <label>Amount (₹) *</label>
@@ -5790,11 +5790,11 @@ function printReceipt(key) {
   }
 
   const excess = (w.amount||w.totalPaid||0) - (w.workValue||0);
-  const win = window.open('','_blank','width=460,height=700');
+  const win = window.open('','_blank','width=420,height=620');
   win.document.write(`<!DOCTYPE html><html><head><title>Receipt #${w.workNum} — ${esc(w.ownerName||w.clientName)}</title>
   <style>
     *{box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;padding:24px;max-width:420px;margin:auto;font-size:13px;color:#1a1a1a;}
+    body{font-family:Arial,sans-serif;padding:16px;max-width:380px;margin:auto;font-size:12px;color:#1a1a1a;} @page{size:A5;margin:8mm;}
     h2{text-align:center;margin:0 0 2px;font-size:20px;}
     .sub{text-align:center;color:#666;font-size:11px;margin-bottom:4px;}
     hr{border:none;border-top:1px solid #ddd;margin:10px 0;}
@@ -6109,7 +6109,7 @@ function pmtToggleForm() {
       const el=document.getElementById(id); if(el) el.value='';
     });
     document.getElementById('pmt_source').value = '';
-    pmtSetType('credit');
+    pmtSetType('debit');
     document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
     document.getElementById('pmt_work_specify').style.display = 'none';
     document.getElementById('pmt_vehicle_hint').textContent = '';
@@ -6182,6 +6182,13 @@ async function savePaymentEntry() {
   const btn = document.querySelector('#pmtForm .btn-primary');
   if(btn) { btn.textContent='⏳ Saving…'; btn.disabled=true; }
 
+  // Check if editing existing entry
+  const form = document.getElementById('pmtForm');
+  const editingId = form.dataset.editingId;
+  const editingWorkKey = form.dataset.editingWorkKey;
+  const editingType = form.dataset.editingType;
+  const editingAmount = parseFloat(form.dataset.editingAmount)||0;
+
   try {
     const now = new Date();
     const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
@@ -6193,6 +6200,21 @@ async function savePaymentEntry() {
     const typeLabel = entryType === 'credit' ? 'Payment Received' : 'Expense/Debit';
     const description = `${typeLabel}: ${name}${vehicle?' / '+vehicle:''} — ${workDesc}`;
     const workRef = linkedWork ? `#${linkedWork.workNum} — ${linkedWork.ownerName||linkedWork.clientName} / ${linkedWork.vehicle}` : '';
+
+    // If editing — reverse old work balance change first, then delete old entry
+    if(editingId) {
+      if(editingWorkKey && editingType === 'credit') {
+        const oldWork = allWorks.find(x=>x._key===editingWorkKey);
+        if(oldWork) {
+          const rt = Math.max(0,(oldWork.totalPaid||oldWork.amount||0)-editingAmount);
+          const rr = (oldWork.workValue||0)>0?Math.max(0,(oldWork.workValue||0)-rt):0;
+          await _sb.from('works').update({remaining_balance:rr,total_paid:rt,amount:rt}).eq('id',editingWorkKey);
+        }
+      }
+      await _sb.from('ledger').delete().eq('id', editingId);
+      delete form.dataset.editingId; delete form.dataset.editingWorkKey;
+      delete form.dataset.editingType; delete form.dataset.editingAmount;
+    }
 
     const res = await _sb.from('ledger').insert({
       bank: source,
@@ -6236,6 +6258,54 @@ async function savePaymentEntry() {
     _savePaymentLock = false;
     if(btn) { btn.textContent='💾 Save Payment'; btn.disabled=false; }
   }
+}
+
+function editPaymentEntry(id) {
+  const entry = allLedger.find(l=>l._key===id);
+  if(!entry) return;
+  let meta = {};
+  try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
+
+  // Show form
+  const form = document.getElementById('pmtForm');
+  form.style.display = 'block';
+  document.getElementById('pmtToggleBtn').textContent = '✕ Cancel';
+
+  // Fill fields
+  // Convert date from en-IN format back to ISO
+  const dateParts = (entry.date||'').split('/');
+  const isoDate = dateParts.length===3
+    ? `${dateParts[2]}-${dateParts[1].padStart(2,'0')}-${dateParts[0].padStart(2,'0')}`
+    : new Date().toISOString().split('T')[0];
+  document.getElementById('pmt_date').value = isoDate;
+  document.getElementById('pmt_name').value = meta.payment_name || '';
+  document.getElementById('pmt_vehicle').value = meta.payment_vehicle || '';
+  document.getElementById('pmt_source').value = entry.bank || '';
+  document.getElementById('pmt_amount').value = entry.amount || '';
+  document.getElementById('pmt_remarks').value = meta.payment_remarks || '';
+  pmtSetType(meta.payment_entry_type || entry.type || 'debit');
+
+  // Set work link
+  const workKey = meta.payment_work_key || '';
+  if(workKey) pmtVehicleInput(); // rebuild work dropdown
+  setTimeout(()=>{
+    const ws = document.getElementById('pmt_work');
+    if(ws && workKey) ws.value = workKey;
+    else if(ws && meta.payment_other_desc) {
+      ws.value = 'other';
+      document.getElementById('pmt_work_specify').style.display = 'block';
+      document.getElementById('pmt_other_desc').value = meta.payment_other_desc;
+    }
+  }, 200);
+
+  // Store editing ID so save knows to delete old entry first
+  form.dataset.editingId = id;
+  form.dataset.editingWorkKey = meta.payment_work_key || '';
+  form.dataset.editingType = meta.payment_entry_type || entry.type || 'debit';
+  form.dataset.editingAmount = entry.amount || 0;
+
+  // Scroll to form
+  form.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 async function deletePaymentEntry(id) {
@@ -6325,7 +6395,10 @@ function renderPayments() {
       <td style="font-weight:800;color:${e.type==='debit'?'#be123c':'#16a34a'};">${e.type==='debit'?'↓':'↑'} ${inr(e.amount||0)}</td>
       <td style="font-size:.75rem;color:var(--gray);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(remarks)}">${remarks||'—'}</td>
       <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
-      <td>${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}</td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn btn-sm btn-outline" style="padding:3px 8px;font-size:.75rem;" onclick="editPaymentEntry('${e._key}')">✏️</button>
+        ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -6853,8 +6926,8 @@ async function downloadClientDoc(workKey, workNum) {
 
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const PW = 210, PH = 297; // A4 dimensions
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a5' });
+    const PW = 148, PH = 210; // A5 dimensions
 
     // ── PAGE 1: Professional details page ──
     // Dark header bar
