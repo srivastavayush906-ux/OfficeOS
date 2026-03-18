@@ -2068,80 +2068,60 @@ input[type="number"]:focus {
   </div>
 </div>
 
-<!-- CLOSE WORK -->
+<!-- CLOSE WORK — Redesigned -->
 <div class="mo" id="closeWorkModal">
-  <div class="md" style="max-width:560px;">
+  <div class="md" style="max-width:580px;max-height:90vh;overflow-y:auto;">
     <button class="md-close" onclick="closeModal('closeWorkModal')">×</button>
-    <div class="md-title" id="closeWorkTitle">✅ Complete Work</div>
-    <!-- Completion type -->
-    <div class="field">
-      <label>Completion Type *</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-success" id="completeFullBtn" onclick="setCompleteType('full')" style="flex:1;">✅ Full Completion</button>
-        <button class="btn btn-outline" id="completePartialBtn" onclick="setCompleteType('partial')" style="flex:1;">⏳ Partial Completion</button>
+    <div class="md-title">✅ Mark Work Complete</div>
+
+    <!-- STEP 1: Select rows to complete -->
+    <div id="cwStep1">
+      <div style="font-size:.83rem;color:var(--gray);margin-bottom:12px;">Select which vehicle/work items are being completed now:</div>
+      <div id="cwRowCheckboxes"></div>
+      <div class="field" style="margin-top:12px;">
+        <label>Completion Notes (optional)</label>
+        <textarea id="closeNotes" placeholder="Any remarks…" style="min-height:48px;"></textarea>
+      </div>
+      <div class="md-foot">
+        <button class="btn btn-gray" onclick="closeModal('closeWorkModal')">Cancel</button>
+        <button class="btn btn-primary" id="cwCheckPayBtn" onclick="cwCheckPayments()">Check Payments →</button>
       </div>
     </div>
-    <div class="field" id="partialDescField" style="display:none;">
-      <label>What was completed? *</label>
-      <div id="partialCheckboxes" style="margin-bottom:8px;"></div>
-      <input type="text" id="partialDesc" placeholder="Or type manually (e.g. Insurance done, Fitness pending)" style="font-size:.85rem;"/>
-      <div class="hint">Tick the items that are done, or type manually below.</div>
-    </div>
-    <!-- Multiple documents -->
-    <div class="field">
-      <label>Add Documents (optional)</label>
-      <div id="docUploadList">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-          <input type="file" id="receiptPhoto" accept="image/*,application/pdf" onchange="previewReceiptPhoto(this)" style="flex:1;"/>
+
+    <!-- STEP 2: Payment check result + docs -->
+    <div id="cwStep2" style="display:none;">
+      <div id="cwPaymentStatus" style="margin-bottom:16px;"></div>
+
+      <!-- Document upload -->
+      <div class="field">
+        <label>Add Documents (optional)</label>
+        <div id="docUploadList">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <input type="file" id="receiptPhoto" accept="image/*,application/pdf" onchange="previewReceiptPhoto(this)" style="flex:1;"/>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="addDocUpload()" style="margin-top:4px;">＋ Add Another Document</button>
+        <div class="hint">📸 Photos auto-compressed. Multiple documents allowed.</div>
+        <div id="receiptPreviewBox" style="display:none;margin-top:8px;">
+          <img id="receiptPreviewImg" style="max-width:100%;max-height:140px;border-radius:var(--rads);border:2px solid var(--grayb);display:block;margin-bottom:4px;"/>
+          <div id="receiptSizeInfo" style="font-size:.75rem;color:var(--gray);font-weight:700;"></div>
         </div>
       </div>
-      <button class="btn btn-sm btn-outline" onclick="addDocUpload()" style="margin-top:4px;">＋ Add Another Document</button>
-      <div class="hint">📸 Photos auto-compressed. Multiple documents allowed.</div>
-      <div id="receiptPreviewBox" style="display:none;margin-top:8px;">
-        <img id="receiptPreviewImg" style="max-width:100%;max-height:140px;border-radius:var(--rads);border:2px solid var(--grayb);display:block;margin-bottom:4px;"/>
-        <div id="receiptSizeInfo" style="font-size:.75rem;color:var(--gray);font-weight:700;"></div>
-      </div>
-    </div>
-    <div class="field" id="expiryField" style="display:none;">
-      <label>Paper Expiry Date *</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="date" id="expiryDate" style="flex:1;"/>
-        <span style="font-size:.8rem;color:var(--p);font-weight:700;">⬅ Click here to pick date</span>
-      </div>
-      <div class="hint">Use the calendar only — required for: Fitness, PUC, Permit, Insurance, Quarterly Road Tax</div>
-    </div>
-    <div class="field">
-      <label>Expense Payments for This Work *</label>
-      <div style="font-size:.75rem;color:var(--gray);margin-bottom:8px;">Add all expense payments made for this work (e.g. government fee, stamp, petrol)</div>
-      <div id="closePayList">
-        <div class="close-pay-row" style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;">
-          <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
-            <option value="">— Source —</option>
-            <option value="Cash">💵 Cash</option>
-            <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-            <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
-            <option value="Canara">Canara</option>
-            <option value="Employee">👤 Employee</option>
-          </select>
-          <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
-          <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
-          <button class="btn btn-sm btn-outline" onclick="addClosePayRow()" style="padding:8px 10px;">＋</button>
+
+      <!-- Expiry date (shown only if relevant) -->
+      <div class="field" id="expiryField" style="display:none;">
+        <label>Paper Expiry Date *</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="date" id="expiryDate" style="flex:1;"/>
+          <span style="font-size:.8rem;color:var(--p);font-weight:700;">⬅ Click to pick date</span>
         </div>
+        <div class="hint">Required for: Fitness, PUC, Permit, Insurance, Road Tax (Quarterly)</div>
       </div>
-      <div class="hint">Click ＋ to add multiple expense payments. These go to Bank Ledger instantly.</div>
-    </div>
-    <!-- Miscellaneous expense -->
-    <div style="background:var(--graylite);border-radius:var(--rads);padding:12px;margin-bottom:12px;">
-      <div style="font-weight:800;font-size:.82rem;margin-bottom:8px;">➕ Miscellaneous Expense (optional)</div>
-      <div class="g2">
-        <div class="field" style="margin:0;"><label>Amount (₹)</label><input type="number" id="miscAmount" placeholder="e.g. 200" min="0" oninput="showAmtHint(this)"/></div>
-        <div class="field" style="margin:0;"><label>Reason</label><input type="text" id="miscReason" placeholder="e.g. Petrol, Stamp fee"/></div>
+
+      <div class="md-foot">
+        <button class="btn btn-gray" onclick="cwBackToStep1()">← Back</button>
+        <button class="btn btn-success" id="cwSubmitBtn" onclick="completeWork()">✅ Mark Complete</button>
       </div>
-    </div>
-    <div class="field"><label>Completion Notes (optional)</label><textarea id="closeNotes" placeholder="Any remarks…"></textarea></div>
-    <div class="md-foot">
-      <button class="btn btn-gray" onclick="closeModal('closeWorkModal')">Cancel</button>
-      <button class="btn btn-success" onclick="completeWork()">✅ Submit</button>
     </div>
   </div>
 </div>
@@ -4605,6 +4585,7 @@ function viewWork(key){
     <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
     ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
     ${payInfo}
+    ${(()=>{const pmts=allLedger.filter(l=>{try{const m=JSON.parse(l.receiptUrls||'{}');return m.is_payment_entry&&m.payment_work_key===key;}catch(e){return false;}});if(!pmts.length)return '';return `<div style="background:#f0fdf4;border-radius:10px;padding:10px 14px;margin:8px 0;"><div style="font-size:.73rem;font-weight:800;color:#166534;text-transform:uppercase;margin-bottom:8px;">💰 Payments (Payments Page)</div>${pmts.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #d1fae5;font-size:.82rem;"><span>${l.type==='credit'?'↑ Credit':'↓ Debit'} · ${esc(l.bank||'—')} · ${esc(l.date||'—')}</span><span style="font-weight:800;color:${l.type==='credit'?'#16a34a':'#be123c'};">${l.type==='credit'?'+':'-'}${inr(l.amount||0)}</span></div>`).join('')}</div>`})()}
     <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
     ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
     <div class="di"><div class="dl">Work Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
@@ -4738,244 +4719,239 @@ async function saveEditWork(){
 // CLOSE / COMPLETE WORK
 // ============================================================
 function openCloseWork(key){
-  closingWorkId=key;
-  const w=allWorks.find(x=>x._key===key);
-  const needsExpiry=w&&['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(w.workType);
-  document.getElementById('expiryField').style.display=needsExpiry?'block':'none';
-  ['expiryDate','closeNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  // Reset multi-payment rows
-  const closePayList = document.getElementById('closePayList');
-  if(closePayList) closePayList.innerHTML = `<div class="close-pay-row" style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;">
-    <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
-      <option value="">— Source —</option><option value="Cash">💵 Cash</option>
-      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
-      <option value="Canara">Canara</option><option value="Employee">👤 Employee</option>
-    </select>
-    <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
-    <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
-    <button class="btn btn-sm btn-outline" onclick="addClosePayRow()" style="padding:8px 10px;">＋</button>
-  </div>`;
-  // Reset doc upload
-  const rp = document.getElementById('receiptPhoto');
-  if(rp) rp.value='';
-  const rpb = document.getElementById('receiptPreviewBox');
-  if(rpb) rpb.style.display='none';
-  const rpi = document.getElementById('receiptPreviewImg');
-  if(rpi) rpi.src='';
-  // Reset misc fields
-  const ma = document.getElementById('miscAmount');
-  if(ma) ma.value='';
-  const mr = document.getElementById('miscReason');
-  if(mr) mr.value='';
-  // Populate partial completion checkboxes from vehicleWorkItems
-  const cbBox = document.getElementById('partialCheckboxes');
-  if(cbBox) cbBox.innerHTML = '';
-  const pd = document.getElementById('partialDesc');
-  if(pd) pd.value = '';
-  // Reset completion type to full
-  setCompleteType('full');
-  if(w) {
-    try {
-      const items = JSON.parse(w.vehicleWorkItems||'[]');
-      const prevDone = (w.partialDesc||'').split(',').map(s=>s.trim().toLowerCase());
-      const pendingItems = items.filter(r => r.vehicle && r.workType && !prevDone.some(d=>d.includes(r.vehicle.toLowerCase())));
-      if(pendingItems.length > 0 && cbBox) {
-        cbBox.innerHTML = pendingItems.map((r,i)=>`
-          <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--graylite);border-radius:var(--rads);margin-bottom:6px;cursor:pointer;font-size:.88rem;">
-            <input type="checkbox" id="pcb_${i}" value="${esc(r.vehicle)} — ${wtLabelPlain(r.workType)}" onchange="updatePartialDescFromCheckboxes()" style="width:16px;height:16px;"/>
-            <span><strong>${esc(r.vehicle)}</strong> — ${wtLabelPlain(r.workType)}</span>
-          </label>`).join('');
-        const cpb = document.getElementById('completePartialBtn');
-        if(pendingItems.length === 1) {
-          if(cpb){ cpb.disabled=true; cpb.title='Only 1 item left — use Full Completion'; cpb.style.opacity='0.4'; }
-          setCompleteType('full');
-        } else {
-          if(cpb){ cpb.disabled=false; cpb.title=''; cpb.style.opacity=''; }
-        }
-      }
-    } catch(e) { if(cbBox) cbBox.innerHTML=''; }
+  closingWorkId = key;
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+
+  // Reset both steps
+  document.getElementById('cwStep1').style.display = 'block';
+  document.getElementById('cwStep2').style.display = 'none';
+
+  // Reset fields
+  const cn = document.getElementById('closeNotes'); if(cn) cn.value='';
+  const ed = document.getElementById('expiryDate'); if(ed) ed.value='';
+  const rp = document.getElementById('receiptPhoto'); if(rp) rp.value='';
+  const rpb = document.getElementById('receiptPreviewBox'); if(rpb) rpb.style.display='none';
+  const rpi = document.getElementById('receiptPreviewImg'); if(rpi) rpi.src='';
+
+  // Reset doc upload list
+  const dul = document.getElementById('docUploadList');
+  if(dul) dul.innerHTML = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><input type="file" id="receiptPhoto" accept="image/*,application/pdf" onchange="previewReceiptPhoto(this)" style="flex:1;"/></div>';
+
+  // Build row checkboxes from vehicleWorkItems
+  const box = document.getElementById('cwRowCheckboxes');
+  box.innerHTML = '';
+
+  let items = [];
+  try { items = JSON.parse(w.vehicleWorkItems||'[]'); } catch(e){}
+  if(!items.length && (w.vehicle||w.vehicles)) {
+    items = [{ vehicle: w.vehicles||w.vehicle, workType: w.workType, rowWorkValue: w.workValue||0 }];
   }
+
+  // Find already-completed items from partialDesc
+  const doneParts = (w.partialDesc||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+
+  if(!items.length) {
+    // No items parsed — single completion
+    box.innerHTML = `<div style="padding:12px;background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" class="cw-row-cb" data-vehicle="${esc(w.vehicles||w.vehicle)}" data-type="${esc(w.workType)}" data-val="${esc(w.workValue||0)}" checked style="width:18px;height:18px;"/>
+        <span><strong>${esc(w.vehicles||w.vehicle)}</strong> — ${wtLabel(w.workType)} ${w.workValue?'('+inr(w.workValue)+')':''}</span>
+      </label>
+    </div>`;
+  } else {
+    box.innerHTML = items.map((r,i) => {
+      const key = (r.vehicle+' — '+wtLabelPlain(r.workType)).toLowerCase();
+      const alreadyDone = doneParts.some(d => d.includes((r.vehicle||'').toLowerCase()) || key.includes(d));
+      if(alreadyDone) {
+        return `<div style="padding:10px 14px;background:#f0fdf4;border-radius:10px;margin-bottom:8px;border:1.5px solid #bbf7d0;opacity:0.6;display:flex;align-items:center;gap:10px;">
+          <span style="color:#16a34a;font-size:1.2rem;">✓</span>
+          <span style="font-size:.87rem;color:#166534;"><strong>${esc(r.vehicle||'N/A')}</strong> — ${wtLabel(r.workType)} ${r.rowWorkValue>0?'('+inr(r.rowWorkValue)+')':''} <em>Already completed</em></span>
+        </div>`;
+      }
+      return `<div style="padding:10px 14px;background:#fafafa;border-radius:10px;margin-bottom:8px;border:1.5px solid var(--grayb);">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.88rem;">
+          <input type="checkbox" class="cw-row-cb" data-vehicle="${esc(r.vehicle||'')}" data-type="${esc(r.workType||'')}" data-val="${r.rowWorkValue||0}" style="width:18px;height:18px;"/>
+          <span><strong>${esc(r.vehicle||'N/A')}</strong> — ${wtLabel(r.workType)} ${r.rowWorkValue>0?'<span style="color:var(--p);font-weight:700;">('+inr(r.rowWorkValue)+')</span>':''}</span>
+        </label>
+      </div>`;
+    }).join('');
+  }
+
+  // Show expiry field based on selected types
+  cwUpdateExpiryVisibility();
+  document.querySelectorAll('.cw-row-cb').forEach(cb => cb.addEventListener('change', cwUpdateExpiryVisibility));
+
   closeModal('workDetailModal');
   openModal('closeWorkModal');
 }
 
-function updatePartialDescFromCheckboxes() {
-  const checked = [...document.querySelectorAll('#partialCheckboxes input[type=checkbox]:checked')].map(cb=>cb.value);
-  if(checked.length > 0) document.getElementById('partialDesc').value = checked.join(', ');
+function cwUpdateExpiryVisibility() {
+  const selected = [...document.querySelectorAll('.cw-row-cb:checked')].map(cb=>cb.dataset.type);
+  const needsExpiry = selected.some(t=>['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(t));
+  const ef = document.getElementById('expiryField');
+  if(ef) ef.style.display = needsExpiry ? 'block' : 'none';
 }
 
-function closePaySrcChange(sel) {
-  const empSel = sel.parentElement.querySelector('.close-pay-emp');
-  if(!empSel) return;
-  if(sel.value === 'Employee') {
-    empSel.style.display = 'block';
-    empSel.innerHTML = '<option value="">— Staff —</option>' +
-      allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+async function cwCheckPayments() {
+  const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
+  if(!checked.length) { toast('Select at least one item to complete','warn'); return; }
+
+  const w = allWorks.find(x=>x._key===closingWorkId);
+  if(!w) return;
+
+  // Check payments page for any payment linked to this work
+  const workPayments = allLedger.filter(l => {
+    try {
+      const meta = JSON.parse(l.receiptUrls||'{}');
+      return meta.is_payment_entry && meta.payment_work_key === closingWorkId && l.type === 'credit';
+    } catch(e) { return false; }
+  });
+
+  // Also consider original payment at work creation (amount on the work itself)
+  const originalPaid = w.totalPaid || w.amount || 0;
+  const pmtPagePaid = workPayments.reduce((s,l)=>s+(l.amount||0),0);
+  const totalPaid = originalPaid; // original already includes pmt page payments (they update work.totalPaid)
+  const workValue = w.workValue || 0;
+
+  const statusEl = document.getElementById('cwPaymentStatus');
+
+  // Build status display
+  let html = '<div style="margin-bottom:14px;">';
+  html += `<div style="font-weight:800;font-size:.9rem;margin-bottom:10px;">Items to complete:</div>`;
+  checked.forEach(cb=>{
+    html += `<div style="padding:8px 12px;background:#eff6ff;border-radius:8px;margin-bottom:6px;font-size:.85rem;">
+      ✅ <strong>${esc(cb.dataset.vehicle||'N/A')}</strong> — ${wtLabel(cb.dataset.type)}
+    </div>`;
+  });
+  html += '</div>';
+
+  // Payment status
+  if(workValue > 0) {
+    const isPaid = totalPaid >= workValue;
+    const isPartialPaid = totalPaid > 0 && totalPaid < workValue;
+    if(isPaid) {
+      html += `<div style="background:#dcfce7;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+        <div style="font-weight:800;color:#166534;font-size:.9rem;">✅ Payment Confirmed</div>
+        <div style="font-size:.82rem;color:#166534;margin-top:4px;">Total paid: ${inr(totalPaid)} of ${inr(workValue)}</div>
+        ${pmtPagePaid>0?`<div style="font-size:.78rem;color:#16a34a;margin-top:2px;">Includes ${inr(pmtPagePaid)} from Payments page</div>`:''}
+      </div>`;
+    } else if(isPartialPaid) {
+      html += `<div style="background:#fef9c3;border:1.5px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+        <div style="font-weight:800;color:#854d0e;font-size:.9rem;">⚠️ Partial Payment Only</div>
+        <div style="font-size:.82rem;color:#92400e;margin-top:4px;">Paid: ${inr(totalPaid)} — Still due: ${inr(workValue-totalPaid)}</div>
+      </div>`;
+    } else {
+      html += `<div style="background:#fee2e2;border:1.5px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+        <div style="font-weight:800;color:#be123c;font-size:.9rem;">❌ No Payment Found</div>
+        <div style="font-size:.82rem;color:#be123c;margin-top:4px;">Work value: ${inr(workValue)} — No payment recorded in Payments page for this work.</div>
+        <div style="font-size:.78rem;color:#be123c;margin-top:6px;">Please go to <strong>Payments page</strong> and add a payment linked to this work before completing.</div>
+      </div>
+      <div class="md-foot" style="justify-content:flex-end;">
+        <button class="btn btn-gray" onclick="cwBackToStep1()">← Back</button>
+      </div>`;
+      document.getElementById('cwPaymentStatus').innerHTML = html;
+      document.getElementById('cwStep1').style.display = 'none';
+      document.getElementById('cwStep2').style.display = 'block';
+      document.getElementById('cwSubmitBtn').style.display = 'none';
+      return;
+    }
   } else {
-    empSel.style.display = 'none';
-    empSel.value = '';
+    html += `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+      <div style="font-weight:700;color:#166534;font-size:.88rem;">ℹ️ No work value set — skipping payment check</div>
+    </div>`;
   }
-}
-// Keep old name for compatibility
-function closingBankChange(sel) { closePaySrcChange(sel); }
 
-function addClosePayRow() {
-  const list = document.getElementById('closePayList');
-  const row = document.createElement('div');
-  row.className = 'close-pay-row';
-  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 120px auto;gap:6px;margin-bottom:8px;align-items:center;';
-  row.innerHTML = `
-    <select class="close-pay-src" onchange="closePaySrcChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;">
-      <option value="">— Source —</option>
-      <option value="Cash">💵 Cash</option>
-      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
-      <option value="Canara">Canara</option>
-      <option value="Employee">👤 Employee</option>
-    </select>
-    <select class="close-pay-emp" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"></select>
-    <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
-    <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.close-pay-row').remove()">✕</button>`;
-  list.appendChild(row);
+  statusEl.innerHTML = html;
+  document.getElementById('cwSubmitBtn').style.display = '';
+  document.getElementById('cwStep1').style.display = 'none';
+  document.getElementById('cwStep2').style.display = 'block';
+  cwUpdateExpiryVisibility();
 }
 
-function getClosePayRows() {
-  return [...document.querySelectorAll('.close-pay-row')].map(row=>{
-    const src = row.querySelector('.close-pay-src').value;
-    const emp = row.querySelector('.close-pay-emp').value;
-    const amt = parseFloat(row.querySelector('.close-pay-amt').value)||0;
-    return { bank: src==='Employee'?(emp?`Employee: ${emp}`:'Employee'):src, raw: src, emp, amt };
-  }).filter(r=>r.bank && r.amt>0);
+function cwBackToStep1() {
+  document.getElementById('cwStep1').style.display = 'block';
+  document.getElementById('cwStep2').style.display = 'none';
 }
+
+// Stubs for compatibility
+function setCompleteType(t){}
+function updatePartialDescFromCheckboxes(){}
+function closePaySrcChange(sel){}
+function closingBankChange(sel){}
+function addClosePayRow(){}
+function getClosePayRows(){ return []; }
 
 async function completeWork() {
   const closeWorkKey = closingWorkId;
   const w = allWorks.find(x=>x._key===closeWorkKey);
-  if(!w){toast('Work not found — please try again','error');return;}
-  const payRows = getClosePayRows();
-  const amt = payRows.reduce((s,r)=>s+r.amt, 0);
-  const bankDisplay = payRows.length>0 ? payRows.map(r=>r.bank).join(', ') : '';
-  const bank = payRows.length>0 ? payRows[0].bank : '';
-  const notes = document.getElementById('closeNotes').value.trim();
-  const expiry = document.getElementById('expiryDate').value;
-  const miscAmt = Math.max(0, parseFloat(document.getElementById('miscAmount').value)||0);
-  const miscRsn = document.getElementById('miscReason').value.trim();
-  const isPartial = closeWorkType==='partial';
-  const partialDesc = isPartial ? document.getElementById('partialDesc').value.trim() : '';
-  if(isPartial&&!partialDesc){toast('Describe what was completed','error');return;}
+  if(!w){ toast('Work not found','error'); return; }
 
-  // Lock button to prevent double submit
-  const submitBtn = document.querySelector('#closeWorkModal .btn-success');
-  if(submitBtn && submitBtn.dataset.submitting==='1'){toast('Already saving, please wait...','warn');return;}
-  if(submitBtn){ submitBtn.dataset.submitting='1'; submitBtn.textContent='⏳ Saving...'; submitBtn.disabled=true; }
-
-  // Upload documents to Firebase Storage
-  let photoData = '';
-  const fileInputs = document.querySelectorAll('#docUploadList input[type=file]');
-  if(fileInputs[0]&&fileInputs[0].files[0]) {
-    try {
-      photoData = await uploadDocToStorage(fileInputs[0].files[0], closeWorkKey);
-    } catch(e){ console.warn('Upload failed:', e); }
-  }
-
-  const now = new Date();
-  const updates = {
-    status: isPartial?'partial':'done',
-    completedBy: currentUser.name,
-    completedDate: now.toLocaleDateString('en-IN'),
-    completedTime: now.toLocaleTimeString('en-IN'),
-    completedTimestamp: now.getTime(),
-    closingBank: bankDisplay, receiptAmount: amt,
-    closeNotes: notes, receiptPhoto: photoData,
-    expiryDate: expiry||'',
-    miscExpense: miscAmt, miscReason: miscRsn,
-    partialDesc: partialDesc
-  };
+  // Anti-double-submit
+  const submitBtn = document.getElementById('cwSubmitBtn');
+  if(submitBtn && submitBtn.dataset.submitting==='1'){ toast('Already saving, please wait…','warn'); return; }
+  if(submitBtn){ submitBtn.dataset.submitting='1'; submitBtn.textContent='⏳ Saving…'; submitBtn.disabled=true; }
 
   try {
-    // Use dbUpd (update only changed fields) — safer than dbSet which can fail on complex objects
+    const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
+    const notes = document.getElementById('closeNotes')?.value.trim()||'';
+    const expiry = document.getElementById('expiryDate')?.value||'';
+
+    // Get all items and which are newly completed
+    let items = [];
+    try { items = JSON.parse(w.vehicleWorkItems||'[]'); } catch(e){}
+    const doneParts = (w.partialDesc||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const newlyDone = checked.map(cb=>`${cb.dataset.vehicle} — ${wtLabelPlain(cb.dataset.type)}`);
+    const allDoneNow = [...doneParts, ...newlyDone].filter(Boolean);
+
+    // Is everything done now?
+    const totalPendingItems = items.filter(r=>{
+      const key = (r.vehicle+' — '+wtLabelPlain(r.workType)).toLowerCase();
+      return !doneParts.some(d=>d.toLowerCase().includes((r.vehicle||'').toLowerCase()));
+    });
+    const isFullyDone = newlyDone.length >= totalPendingItems.length;
+
+    // Upload documents
+    let photoData = '';
+    const fileInputs = document.querySelectorAll('#docUploadList input[type=file]');
+    if(fileInputs[0]&&fileInputs[0].files[0]) {
+      try { photoData = await uploadDocToStorage(fileInputs[0].files[0], closeWorkKey); }
+      catch(e){ console.warn('Upload failed:', e); }
+    }
+
+    const now = new Date();
+    const updates = {
+      status: isFullyDone ? 'done' : 'partial',
+      completedBy: currentUser.name,
+      completedDate: now.toLocaleDateString('en-IN'),
+      completedTime: now.toLocaleTimeString('en-IN'),
+      completedTimestamp: now.getTime(),
+      closeNotes: notes,
+      receiptPhoto: photoData,
+      expiryDate: expiry||'',
+      miscExpense: 0, miscReason: '',
+      partialDesc: allDoneNow.join(', ')
+    };
+
     await _sb.from('works').update(toSnake(updates)).eq('id', closeWorkKey);
-    // Auto ledger debit for each expense payment row
-    for(const pr of payRows) {
-      if(pr.amt>0) {
-        await _sb.from('ledger').insert({
-          bank: pr.raw==='Employee'?(pr.emp||'Employee'):pr.raw,
-          type:'debit', amount:pr.amt,
-          date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
-          work_ref:`#${w.workNum} — ${w.ownerName||w.clientName} / ${w.vehicle}`,
-          description:`Work expense: ${wtLabel(w.workType)}${isPartial?' [Partial]':''} [${pr.bank}]`,
-          by:currentUser.name, auto_entry:true,
-          employee_name: pr.raw==='Employee' ? pr.emp : ''
-        });
-      }
-    }
-    // Misc expense → cash debit
-    if(miscAmt>0) {
-      await _sb.from('ledger').insert({
-        bank:'Cash', type:'debit', amount:miscAmt,
-        date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(),
-        work_ref:`#${w.workNum} — Misc`,
-        description:`Misc expense: ${miscRsn||'—'} (Work #${w.workNum})`,
-        by:currentUser.name, auto_entry:true
-      });
-    }
-    // Reload data first, THEN show WA prompt (non-blocking)
-    document.getElementById('miscAmount').value='';
-    document.getElementById('miscReason').value='';
-    document.getElementById('partialDesc').value='';
-    closeWorkType='full';
-    // Update clientWorks mirror with completed status + receipt
-    if(w.clientId) {
-      // clientWorks update handled via works table in Supabase
-      const cwRef = null;
-      if(cwRef) {
-        const cwKey = Object.keys(cwRef).find(k=>cwRef[k].workNum==w.workNum);
-        if(false && cwKey) await _sb.from('works').update({
-          status: isPartial?'partial':'done',
-          expiryDate: expiry||'',
-          receiptPhoto: photoData?'1':'', // just flag — don't expose actual photo URL publicly
-          completedDate: now.toLocaleDateString('en-IN')
-        }).catch(()=>{});
-      }
-    }
     await loadAllData();
     renderWorkTable();
     renderDashboard();
     updateSidebarBadges();
-    toast(isPartial?'⏳ Partial completion saved!':'✅ Work marked complete!','success');
+    toast(isFullyDone ? '✅ Work marked complete!' : '⏳ Partial completion saved!', 'success');
     closeModal('closeWorkModal');
-    // WhatsApp — single block, after all data saved
+
+    // WhatsApp prompt
     if(w.phone) {
-      const compMsg = isPartial
-        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\nYour work (#${w.workNum} — ${wtLabel(w.workType)}) has been *partially completed* at Nandan Legal Services.\n\n✅ Completed: ${partialDesc}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack your work status anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`
-        : `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${w.expiryDate?'\n\n📅 Document Expiry: '+fmtDate(w.expiryDate):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack your work status anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`;
-      const waUrl='https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
+      const compMsg = isFullyDone
+        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${expiry?'\n\n📅 Document Expiry: '+fmtDate(expiry):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack status at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`
+        : `Hello ${w.ownerName||w.clientName}! 🙏\n\nYour work (#${w.workNum}) has been *partially completed*. Completed: ${newlyDone.join(', ')}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nRegards,\nTeam Nandan Legal Services`;
+      const waUrl = 'https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
     }
-  } catch(e){console.error(e);toast('Error saving: '+e.message,'error');}
+  } catch(e){ console.error(e); toast('Error: '+e.message,'error'); }
   finally {
-    if(submitBtn){ submitBtn.dataset.submitting=''; submitBtn.textContent='✅ Submit'; submitBtn.disabled=false; }
-  }
-}
-
-async function previewReceiptPhoto(input) {
-  const file = input.files[0];
-  if(!file) return;
-  const box = document.getElementById('receiptPreviewBox');
-  const img = document.getElementById('receiptPreviewImg');
-  const info = document.getElementById('receiptSizeInfo');
-  box.style.display = 'block';
-  info.textContent = 'Loading preview…';
-  try {
-    const compressed = await compressImage(file);
-    img.src = compressed;
-    const origKB = Math.round(file.size/1024);
-    const compKB = Math.round((compressed.length*3/4)/1024);
-    const saved = origKB - compKB;
-    info.innerHTML = `Original: <strong>${origKB}KB</strong> → Compressed: <strong style="color:var(--g);">${compKB}KB</strong> &nbsp;💾 Saved ${saved}KB (${Math.round(saved/origKB*100)}%)`;
-  } catch(e) {
-    info.textContent = 'Preview failed — file will still upload';
+    if(submitBtn){ submitBtn.dataset.submitting=''; submitBtn.textContent='✅ Mark Complete'; submitBtn.disabled=false; }
   }
 }
 
