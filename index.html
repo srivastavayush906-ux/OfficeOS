@@ -1959,6 +1959,20 @@ input[type="number"]:focus {
           </select>
         </div>
       </div>
+      <!-- Entry Type toggle -->
+      <div class="field">
+        <label>Entry Type *</label>
+        <div style="display:flex;gap:10px;">
+          <button type="button" id="pmt_credit_btn" onclick="pmtSetType('credit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #16a34a;background:#dcfce7;color:#166534;font-weight:800;cursor:pointer;font-size:.88rem;transition:all .15s;">
+            ↑ Credit (Payment Received)
+          </button>
+          <button type="button" id="pmt_debit_btn" onclick="pmtSetType('debit')" style="flex:1;padding:9px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:700;cursor:pointer;font-size:.88rem;transition:all .15s;">
+            ↓ Debit (Expense / Payout)
+          </button>
+        </div>
+        <input type="hidden" id="pmt_type" value="credit"/>
+        <div id="pmt_type_hint" style="margin-top:6px;font-size:.78rem;color:#16a34a;font-weight:600;">💚 Credit — money coming IN, will reduce client dues</div>
+      </div>
       <div class="field">
         <label>Amount (₹) *</label>
         <input type="number" id="pmt_amount" placeholder="e.g. 5000" min="0" oninput="showAmtHint(this)"/>
@@ -6063,6 +6077,24 @@ async function renderOspHistory() {
 // ============================================================
 let allPayments = [];
 
+function pmtSetType(type) {
+  document.getElementById('pmt_type').value = type;
+  const cb = document.getElementById('pmt_credit_btn');
+  const db = document.getElementById('pmt_debit_btn');
+  const hint = document.getElementById('pmt_type_hint');
+  if(type === 'credit') {
+    cb.style.cssText = 'flex:1;padding:9px;border-radius:9px;border:2px solid #16a34a;background:#dcfce7;color:#166534;font-weight:800;cursor:pointer;font-size:.88rem;';
+    db.style.cssText = 'flex:1;padding:9px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:700;cursor:pointer;font-size:.88rem;';
+    hint.style.color = '#16a34a';
+    hint.textContent = '💚 Credit — money coming IN, will reduce client dues';
+  } else {
+    cb.style.cssText = 'flex:1;padding:9px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;color:#6b7280;font-weight:700;cursor:pointer;font-size:.88rem;';
+    db.style.cssText = 'flex:1;padding:9px;border-radius:9px;border:2px solid #dc2626;background:#fee2e2;color:#be123c;font-weight:800;cursor:pointer;font-size:.88rem;';
+    hint.style.color = '#be123c';
+    hint.textContent = '🔴 Debit — money going OUT (expense, payout). Does NOT affect client dues.';
+  }
+}
+
 function pmtToggleForm() {
   const form = document.getElementById('pmtForm');
   const btn = document.getElementById('pmtToggleBtn');
@@ -6077,6 +6109,7 @@ function pmtToggleForm() {
       const el=document.getElementById(id); if(el) el.value='';
     });
     document.getElementById('pmt_source').value = '';
+    pmtSetType('credit');
     document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
     document.getElementById('pmt_work_specify').style.display = 'none';
     document.getElementById('pmt_vehicle_hint').textContent = '';
@@ -6135,6 +6168,7 @@ async function savePaymentEntry() {
   const vehicle = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
   const source = document.getElementById('pmt_source').value;
   const amount = parseFloat(document.getElementById('pmt_amount').value)||0;
+  const entryType = document.getElementById('pmt_type')?.value || 'credit';
   const workKey = document.getElementById('pmt_work').value;
   const otherDesc = document.getElementById('pmt_other_desc').value.trim();
   const remarks = document.getElementById('pmt_remarks').value.trim();
@@ -6151,20 +6185,18 @@ async function savePaymentEntry() {
   try {
     const now = new Date();
     const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
-
-    // Find linked work
     const linkedWork = workKey && workKey !== 'other' ? allWorks.find(x=>x._key===workKey) : null;
     const workDesc = linkedWork
       ? `#${linkedWork.workNum} — ${wtLabelPlain(linkedWork.workType)}`
-      : (otherDesc || 'Standalone payment');
+      : (otherDesc || (entryType==='debit'?'Expense/Payout':'Standalone payment'));
 
-    const description = `Payment: ${name}${vehicle?' / '+vehicle:''} — ${workDesc}`;
+    const typeLabel = entryType === 'credit' ? 'Payment Received' : 'Expense/Debit';
+    const description = `${typeLabel}: ${name}${vehicle?' / '+vehicle:''} — ${workDesc}`;
     const workRef = linkedWork ? `#${linkedWork.workNum} — ${linkedWork.ownerName||linkedWork.clientName} / ${linkedWork.vehicle}` : '';
 
-    // Save to ledger (credit entry)
     const res = await _sb.from('ledger').insert({
       bank: source,
-      type: 'credit',
+      type: entryType,   // 'credit' or 'debit'
       amount,
       date: dateStr,
       timestamp: now.getTime(),
@@ -6172,20 +6204,20 @@ async function savePaymentEntry() {
       work_ref: workRef,
       by: currentUser.name,
       auto_entry: false,
-      // Extra payment-specific fields stored in receipt_urls as JSON metadata
       receipt_urls: JSON.stringify({
         payment_name: name,
         payment_vehicle: vehicle,
         payment_remarks: remarks,
         payment_work_key: workKey !== 'other' ? workKey : '',
         payment_other_desc: otherDesc,
+        payment_entry_type: entryType,
         is_payment_entry: true
       })
     });
     if(res.error) throw res.error;
 
-    // If linked to a work, update remainingBalance
-    if(linkedWork) {
+    // Only update work balance for CREDIT entries linked to a work
+    if(linkedWork && entryType === 'credit') {
       const newRemaining = Math.max(0, (linkedWork.remainingBalance||0) - amount);
       const newTotal = (linkedWork.totalPaid||linkedWork.amount||0) + amount;
       await _sb.from('works').update({
@@ -6195,7 +6227,7 @@ async function savePaymentEntry() {
       }).eq('id', workKey);
     }
 
-    toast(`✅ Payment of ${inr(amount)} saved`, 'success');
+    toast(`✅ ${entryType==='credit'?'Credit':'Debit'} of ${inr(amount)} saved`, 'success');
     pmtToggleForm();
     await loadAllData();
     renderPayments();
@@ -6207,10 +6239,33 @@ async function savePaymentEntry() {
 }
 
 async function deletePaymentEntry(id) {
-  if(!confirm('Delete this payment entry?')) return;
+  if(!confirm('Delete this payment entry? This will also reverse any work balance changes.')) return;
   try {
+    // Find the entry first to reverse work balance if it was a credit
+    const entry = allLedger.find(l=>l._key===id);
+    if(entry) {
+      let meta = {};
+      try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
+      const workKey = meta.payment_work_key;
+      const entryType = meta.payment_entry_type || entry.type;
+      // Only reverse if it was a credit linked to a work
+      if(workKey && entryType === 'credit') {
+        const linkedWork = allWorks.find(x=>x._key===workKey);
+        if(linkedWork) {
+          const reversedTotal = Math.max(0, (linkedWork.totalPaid||linkedWork.amount||0) - (entry.amount||0));
+          const reversedRemaining = (linkedWork.workValue||0) > 0
+            ? Math.max(0, (linkedWork.workValue||0) - reversedTotal)
+            : 0;
+          await _sb.from('works').update({
+            remaining_balance: reversedRemaining,
+            total_paid: reversedTotal,
+            amount: reversedTotal
+          }).eq('id', workKey);
+        }
+      }
+    }
     await _sb.from('ledger').delete().eq('id', id);
-    toast('Deleted','success');
+    toast('Entry deleted and work balance reversed ✅','success');
     await loadAllData();
     renderPayments();
   } catch(e) { toast('Error: '+e.message,'error'); }
@@ -6226,10 +6281,10 @@ function renderPayments() {
     document.getElementById('pmt_work_specify').style.display = this.value === 'other' ? 'block' : 'none';
   };
 
-  // Filter ledger for payment entries
+  // Filter ledger for payment entries (both credit and debit)
   const q = (document.getElementById('pmtSearch')?.value||'').toLowerCase();
   let entries = allLedger.filter(l => {
-    if(l.type !== 'credit' || l.autoEntry) return false;
+    if(l.autoEntry) return false;
     try {
       const meta = JSON.parse(l.receiptUrls||'{}');
       return meta.is_payment_entry === true;
@@ -6267,7 +6322,7 @@ function renderPayments() {
       <td style="font-family:monospace;font-size:.82rem;">${vehicle||'—'}</td>
       <td style="font-size:.78rem;color:var(--p);">${workDesc}</td>
       <td><span style="background:${e.bank==='Cash'?'#fef9c3':'#eff6ff'};color:${e.bank==='Cash'?'#92400e':'#1d4ed8'};padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:700;">${bankIcon} ${esc(e.bank||'—')}</span></td>
-      <td style="font-weight:800;color:#16a34a;">${inr(e.amount||0)}</td>
+      <td style="font-weight:800;color:${e.type==='debit'?'#be123c':'#16a34a'};">${e.type==='debit'?'↓':'↑'} ${inr(e.amount||0)}</td>
       <td style="font-size:.75rem;color:var(--gray);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(remarks)}">${remarks||'—'}</td>
       <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
       <td>${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}</td>
