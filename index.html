@@ -911,10 +911,13 @@ input[type="number"]:focus {
 .wtopt:hover, .wtopt.kb-active { background: var(--pl); color: var(--pd); font-weight: 600; }
 
 /* Submit work button hover */
-.submit-work-btn:hover {
+.submit-work-btn:hover,
+.submit-work-btn:focus {
   background: linear-gradient(135deg,#3730a3,#4f46e5) !important;
   box-shadow: 0 8px 28px rgba(79,70,229,.6) !important;
   transform: translateY(-1px);
+  outline: 3px solid #a5b4fc;
+  outline-offset: 3px;
 }
 .submit-work-btn:active {
   transform: translateY(0);
@@ -1250,13 +1253,13 @@ input[type="number"]:focus {
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;"></textarea>
+            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="10" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('submitWorkBtn').focus();}"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button onclick="submitWork()" class="submit-work-btn" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="11" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -1305,7 +1308,7 @@ input[type="number"]:focus {
           <input type="date" id="filterFrom" onchange="filterWorks()" title="From date" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;"/>
           <input type="date" id="filterTo" onchange="filterWorks()" title="To date" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;"/>
         </div>
-        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Payment</th><th>Status</th><th>By</th><th>Date</th><th>Action</th></tr></thead><tbody id="workTableBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client ID</th><th>Client</th><th>Vehicle / Work / Value</th><th>Type</th><th>Payment</th><th>Status</th><th>By</th><th>Work Date / Added</th><th>Action</th></tr></thead><tbody id="workTableBody"></tbody></table></div>
       </div>
     </div>
 
@@ -1928,41 +1931,39 @@ input[type="number"]:focus {
 
 <!-- EDIT WORK -->
 <div class="mo" id="editWorkModal">
-  <div class="md" style="max-width:580px;">
+  <div class="md" style="max-width:620px;">
     <button class="md-close" onclick="closeModal('editWorkModal')">×</button>
     <div class="md-title">✏️ Edit Work</div>
-    <div class="g2">
+    <div class="g2" style="margin-bottom:12px;">
       <div class="field"><label>Owner Name *</label><input type="text" id="ew_name" placeholder="Vehicle owner name"/></div>
       <div class="field"><label>Client Name (if different)</label><input type="text" id="ew_clientName" placeholder="Person at office (optional)"/></div>
-      <div class="field"><label>Vehicle Number(s) *</label><input type="text" id="ew_vehicle" style="text-transform:uppercase;" placeholder="e.g. UP32AB1234"/></div>
       <div class="field"><label>Phone *</label><input type="tel" id="ew_phone" maxlength="10"/></div>
-      <div class="field"><label>Work Type *</label>
-        <select id="ew_type" onchange="editWorkTypeChange()">
-          <option value="Insurance">🛡️ Insurance</option>
-          <option value="Challan-Online">📄 Challan — Online</option>
-          <option value="Challan-Court">⚖️ Challan — Court</option>
-          <option value="Fitness">✅ Fitness</option>
-          <option value="Permit-AllIndia">🗺️ Permit — All India</option>
-          <option value="Permit-State">📍 Permit — State</option>
-          <option value="Registration">📝 Registration</option>
-          <option value="Transfer">🔄 Transfer</option>
-          <option value="PUC">🌿 PUC</option>
-          <option value="RoadTax-OTT">🛣️ Road Tax — OTT</option>
-          <option value="RoadTax-Quarterly">🔁 Road Tax — Quarterly</option>
-          <option value="Others">📦 Others</option>
-        </select>
+      <div></div>
+    </div>
+    <!-- Vehicle + Work Type rows -->
+    <div class="field" style="margin-bottom:12px;">
+      <label>Vehicle(s) &amp; Work Type(s) *</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 110px auto;gap:6px;margin-bottom:6px;padding:0 2px;">
+        <div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Vehicle No.</div>
+        <div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Work Type</div>
+        <div style="font-size:.68rem;font-weight:800;color:#94a3b8;text-transform:uppercase;">Value (₹)</div>
+        <div></div>
       </div>
-      <div class="field" id="ew_othersField" style="display:none;"><label>Specify</label><input type="text" id="ew_othersSpec"/></div>
-      <div class="field" id="ew_dlLicenseTypeField" style="display:none;"><label>License Type</label><select id="ew_dlLicenseType"><option value="">— Select —</option><option value="Renewal">Renewal</option><option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option></select></div>
-      <div class="field" id="ew_transferFromField" style="display:none;"><label>Transfer From</label><input type="text" id="ew_transferFrom"/></div>
-      <div class="field" id="ew_transferToField" style="display:none;"><label>Transfer To</label><input type="text" id="ew_transferTo"/></div>
-      <div class="field"><label>Work Value (₹)</label><input type="number" id="ew_workValue" min="0"/></div>
+      <div id="ew_vwList"></div>
+      <button class="btn btn-sm btn-outline" onclick="ewAddVWRow()" style="margin-top:6px;">＋ Add Row</button>
+      <div id="ew_totalDisplay" style="display:none;background:var(--pl);border-radius:8px;padding:8px 14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:.8rem;font-weight:700;color:var(--pd);">Total Work Value</span>
+        <span id="ew_totalAmt" style="font-size:1rem;font-weight:800;color:var(--p);">₹0</span>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:12px;">
       <div class="field"><label>Amount Received (₹)</label><input type="number" id="ew_amount" min="0"/></div>
+      <div></div>
     </div>
     <div class="field"><label>Notes</label><textarea id="ew_notes"></textarea></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('editWorkModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditWork()">Save Changes</button>
+      <button class="btn btn-primary" onclick="saveEditWork()">💾 Save Changes</button>
     </div>
   </div>
 </div>
@@ -3141,28 +3142,50 @@ function wtFilterOptions(input) {
 function wtKeyNav(input, e) {
   const dd = input.parentElement.querySelector('.wtype-dropdown');
   if(!dd || dd.style.display==='none') {
-    if(e.key==='ArrowDown'||e.key==='ArrowUp') { dd.style.display='block'; wtFilterOptions(input); }
+    if(e.key==='ArrowDown'||e.key==='ArrowUp') { e.preventDefault(); dd.style.display='block'; wtFilterOptions(input); }
     return;
   }
   const visible = [...dd.querySelectorAll('.wtopt')].filter(o=>o.style.display!=='none');
   const active = dd.querySelector('.wtopt.kb-active');
   let idx = active ? visible.indexOf(active) : -1;
+
   if(e.key==='ArrowDown') {
     e.preventDefault();
     if(active) active.classList.remove('kb-active');
     idx = (idx+1) % visible.length;
     visible[idx].classList.add('kb-active');
     visible[idx].scrollIntoView({block:'nearest'});
+    // Real-time reflect in input field
+    input.value = visible[idx].textContent.trim();
+    const hidden = input.parentElement.querySelector('.wtype-sel');
+    if(hidden) hidden.value = visible[idx].dataset.val;
+    vwTypeChange(hidden||input, visible[idx].dataset.val);
   } else if(e.key==='ArrowUp') {
     e.preventDefault();
     if(active) active.classList.remove('kb-active');
     idx = (idx-1+visible.length) % visible.length;
     visible[idx].classList.add('kb-active');
     visible[idx].scrollIntoView({block:'nearest'});
+    // Real-time reflect
+    input.value = visible[idx].textContent.trim();
+    const hidden = input.parentElement.querySelector('.wtype-sel');
+    if(hidden) hidden.value = visible[idx].dataset.val;
+    vwTypeChange(hidden||input, visible[idx].dataset.val);
   } else if(e.key==='Enter') {
     e.preventDefault();
     if(active) { wtSelectOption(active); dd.querySelectorAll('.wtopt').forEach(o=>o.classList.remove('kb-active')); }
     else if(visible.length===1) wtSelectOption(visible[0]);
+    dd.style.display='none';
+  } else if(e.key==='Tab') {
+    // Auto-save highlighted option on Tab without needing Enter
+    if(active) {
+      wtSelectOption(active);
+      dd.querySelectorAll('.wtopt').forEach(o=>o.classList.remove('kb-active'));
+    } else if(visible.length===1) {
+      wtSelectOption(visible[0]);
+    }
+    dd.style.display='none';
+    // Let Tab proceed naturally to next field
   } else if(e.key==='Escape') {
     dd.style.display='none';
   }
@@ -3442,14 +3465,25 @@ async function deleteWork(key) {
   if(!currentUser || currentUser.role !== 'owner') { toast('Only owner can delete works','error'); return; }
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
-  if(!confirm('Delete Work #'+w.workNum+' for '+w.clientName+'? This cannot be undone.')) return;
+  if(!confirm('Delete Work #'+w.workNum+' for '+(w.ownerName||w.clientName)+'?\nThis will also delete all related ledger entries. Cannot be undone.')) return;
   try {
+    // Delete related ledger entries by work_ref pattern
+    const workRef = '#'+w.workNum+' —';
+    const {data: ledgerRows} = await _sb.from('ledger').select('id').ilike('work_ref', workRef+'%');
+    if(ledgerRows && ledgerRows.length > 0) {
+      const ids = ledgerRows.map(r=>r.id);
+      await _sb.from('ledger').delete().in('id', ids);
+    }
+    // Delete the work itself
     await _sb.from('works').delete().eq('id', key);
-    toast('Work deleted','success');
+    toast('Work #'+w.workNum+' and '+(ledgerRows?.length||0)+' ledger entries deleted','success');
     await loadAllData();
     renderDashboard();
-    const page = document.querySelector('.page.active');
-    if(page && page.id==='page-allWork') renderWorkTable();
+    const activePage = document.querySelector('.page.active');
+    if(activePage) {
+      if(activePage.id==='page-allWork') renderWorkTable();
+      else if(activePage.id==='page-verification') renderVerification();
+    }
   } catch(e) { toast('Error: '+e.message,'error'); }
 }
 
@@ -3526,18 +3560,23 @@ function renderWorkTable(){
     <td><span class="wnum">#${w.workNum}</span></td>
     <td><span class="uid-tag" style="cursor:pointer;" onclick="showPage('clientHistory');document.getElementById('chSearch').value='${esc(w.phone)}';searchClientHistory();" title="View all works for this client">${esc(w.clientId||'—')}</span></td>
     <td><strong>${esc(w.ownerName||w.clientName)}</strong>${w.clientName&&w.clientName!==w.ownerName?`<br/><span style='font-size:.7rem;color:var(--gray);'>Client: ${esc(w.clientName)}</span>`:''}<br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-    <td style="font-weight:700;">${(()=>{
+    <td style="font-weight:700;font-size:.84rem;">${(()=>{
       try{
         const items=JSON.parse(w.vehicleWorkItems||'[]');
-        if(items.length>1) return items.map(r=>`<div><span style="font-family:monospace;">${esc(r.vehicle)}</span> <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.68rem;">${wtLabel(r.workType)}</span></div>`).join('');
+        if(items.length>0) return items.map(r=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><span style="font-family:monospace;font-size:.82rem;">${esc(r.vehicle||'—')}</span><span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(r.workType)}</span>${r.rowWorkValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(r.rowWorkValue)}</span>`:''}</div>`).join('');
       }catch(e){}
-      return esc(w.vehicles||w.vehicle)+(w.workType==='Transfer'&&w.transferFrom?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.transferFrom)} → ${esc(w.transferTo)}</span>`:'')+(w.workType==='DrivingLicense'&&w.dlLicenseType?`<br/><span style='font-size:.7rem;color:var(--gray);'>${esc(w.dlLicenseType)}</span>`:'');
+      return `<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</span><span class="badge ${wtClasses[w.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(w.workType)}</span>${w.workValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(w.workValue)}</span>`:''}</div>`;
     })()}</td>
     <td>${wtBadge(w)}</td>
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>⚠️ Due: ${inr(w.remainingBalance)}</span>`:''}${(()=>{const excess=(w.amount||0)-(w.workValue||0);return excess>0?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:800;background:#dcfce7;padding:1px 6px;border-radius:10px;'>+${inr(excess)} Excess</span>`:'';})()} </td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
     <td style="font-size:.78rem;">${esc(w.takenBy)}${w.verifiedBy?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:700;'>✅ ${esc(w.verifiedBy)}</span>`:''}</td>
-    <td style="font-size:.77rem;color:var(--gray);">${fmtDate(w.date)}<br/><span style="font-size:.7rem;">${esc(w.time||"")}</span></td>
+    <td style="font-size:.77rem;">
+      <div style="font-weight:700;color:#1e1b4b;">${fmtDate(w.date)}</div>
+      <div style="font-size:.68rem;color:var(--gray);margin-top:1px;">Work date</div>
+      ${w.timestamp?`<div style="font-size:.68rem;color:#7c3aed;margin-top:4px;font-weight:600;">Added: ${new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`:''}
+      ${w.time?`<div style="font-size:.65rem;color:var(--gray);">${esc(w.time)}</div>`:''}
+    </td>
     <td>
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
@@ -3843,7 +3882,7 @@ function renderVerification() {
           <span class="wnum" style="font-size:1rem;">#${w.workNum}</span>
           <span style="background:#fff3cd;color:#856404;border-radius:8px;padding:2px 10px;font-size:.75rem;font-weight:700;margin-left:8px;">⏳ Pending Verification</span>
         </div>
-        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> on ${fmtDate(w.date)} at ${esc(w.time||'')}</div>
+        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> on ${w.timestamp?new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' at '+new Date(w.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}):fmtDate(w.date)+' '+esc(w.time||'')}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:14px;">
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
@@ -4398,7 +4437,8 @@ function viewWork(key){
     ${payInfo}
     <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
     ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
-    <div class="di"><div class="dl">Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
+    <div class="di"><div class="dl">Work Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
+    ${w.timestamp?`<div class="di"><div class="dl" style="color:#7c3aed;">Entry Date</div><div class="dv" style="color:#7c3aed;font-weight:700;">Added on ${new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} at ${new Date(w.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`:''}
 
     <div class="di"><div class="dl">Added By</div><div class="dv">${esc(w.takenBy)}</div></div>
     ${w.verifiedBy?`<div class="di"><div class="dl">Verified By</div><div class="dv" style="color:#16a34a;font-weight:700;">✅ ${esc(w.verifiedBy)}${w.verifiedAt?' · '+new Date(w.verifiedAt).toLocaleString('en-IN'):''}</div></div>`:''}
@@ -4412,35 +4452,81 @@ function viewWork(key){
   openModal('workDetailModal');
 }
 
+// ── Edit Work VW row helpers ──
+const EW_WORK_TYPES = [
+  {val:'Insurance',label:'🛡️ Insurance'},{val:'Challan-Online',label:'📄 Challan — Online'},
+  {val:'Challan-Court',label:'⚖️ Challan — Court'},{val:'Fitness',label:'✅ Fitness'},
+  {val:'Permit-AllIndia',label:'🗺️ Permit — All India'},{val:'Permit-State',label:'📍 Permit — State'},
+  {val:'Registration',label:'📝 Registration'},{val:'Transfer',label:'🔄 Transfer'},
+  {val:'PUC',label:'🌿 PUC'},{val:'RoadTax-OTT',label:'🛣️ Road Tax — OTT'},
+  {val:'RoadTax-Quarterly',label:'🔁 Road Tax — Quarterly'},
+  {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'}
+];
+
+function ewMakeRow(vehicle='', workType='', rowVal=0) {
+  const opts = EW_WORK_TYPES.map(t=>`<option value="${t.val}"${workType===t.val?' selected':''}>${t.label}</option>`).join('');
+  const row = document.createElement('div');
+  row.className = 'ew-vw-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 110px auto;gap:6px;margin-bottom:8px;align-items:center;background:#f8fafc;border-radius:8px;padding:8px;';
+  row.innerHTML = `
+    <input type="text" class="ew-vehicle" value="${vehicle}" placeholder="UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;" oninput="this.value=this.value.toUpperCase()"/>
+    <select class="ew-wtype" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;">
+      <option value="">— Type —</option>${opts}
+    </select>
+    <input type="number" class="ew-rowval" value="${rowVal||''}" placeholder="₹ 0" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;" oninput="ewCalcTotal()"/>
+    <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.ew-vw-row').remove();ewCalcTotal()">✕</button>`;
+  return row;
+}
+
+function ewAddVWRow(vehicle='', workType='', rowVal=0) {
+  const list = document.getElementById('ew_vwList');
+  if(list) list.appendChild(ewMakeRow(vehicle, workType, rowVal));
+  ewCalcTotal();
+}
+
+function ewCalcTotal() {
+  const total = [...document.querySelectorAll('.ew-rowval')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+  const disp = document.getElementById('ew_totalDisplay');
+  const amt = document.getElementById('ew_totalAmt');
+  if(disp) disp.style.display = total>0?'flex':'none';
+  if(amt) amt.textContent = inr(total);
+}
+
+function ewGetRows() {
+  return [...document.querySelectorAll('.ew-vw-row')].map(row=>({
+    vehicle: row.querySelector('.ew-vehicle').value.trim().toUpperCase(),
+    workType: row.querySelector('.ew-wtype').value,
+    rowWorkValue: parseFloat(row.querySelector('.ew-rowval').value)||0
+  })).filter(r=>r.vehicle||r.workType);
+}
+
 function openEditWork(key){
   const w=allWorks.find(x=>x._key===key); if(!w) return;
   editingWorkKey=key;
   document.getElementById('ew_name').value=w.ownerName||w.clientName||'';
   document.getElementById('ew_clientName').value=w.clientName&&w.clientName!==w.ownerName?w.clientName:'';
-  document.getElementById('ew_vehicle').value=w.vehicles||w.vehicle||'';
   document.getElementById('ew_phone').value=w.phone||'';
-  document.getElementById('ew_type').value=w.workType||'';
-  document.getElementById('ew_othersSpec').value=w.othersSpecify||'';
-  document.getElementById('ew_dlLicenseType').value=w.dlLicenseType||'';
-  document.getElementById('ew_dlLicenseTypeField').style.display=w.workType==='DrivingLicense'?'block':'none';
-  document.getElementById('ew_othersField').style.display=w.workType==='Others'?'block':'none';
-  document.getElementById('ew_transferFromField').style.display=w.workType==='Transfer'?'block':'none';
-  document.getElementById('ew_transferToField').style.display=w.workType==='Transfer'?'block':'none';
-  document.getElementById('ew_transferFrom').value=w.transferFrom||'';
-  document.getElementById('ew_transferTo').value=w.transferTo||'';
-  document.getElementById('ew_workValue').value=w.workValue||'';
   document.getElementById('ew_amount').value=w.totalPaid||w.amount||'';
   document.getElementById('ew_notes').value=w.notes||'';
+  // Populate vehicle+work rows
+  const list = document.getElementById('ew_vwList');
+  list.innerHTML = '';
+  try {
+    const items = JSON.parse(w.vehicleWorkItems||'[]');
+    if(items.length>0) {
+      items.forEach(r=>ewAddVWRow(r.vehicle||'', r.workType||'', r.rowWorkValue||0));
+    } else {
+      ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0);
+    }
+  } catch(e) {
+    ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0);
+  }
+  ewCalcTotal();
   closeModal('workDetailModal');
   openModal('editWorkModal');
 }
-function editWorkTypeChange(){
-  const t=document.getElementById('ew_type').value;
-  document.getElementById('ew_othersField').style.display=t==='Others'?'block':'none';
-  document.getElementById('ew_transferFromField').style.display=t==='Transfer'?'block':'none';
-  document.getElementById('ew_dlLicenseTypeField').style.display=t==='DrivingLicense'?'block':'none';
-  document.getElementById('ew_transferToField').style.display=t==='Transfer'?'block':'none';
-}
+
+function editWorkTypeChange(){}
 function editPayModeChange(){}
 
 async function saveEditWork(){
@@ -4448,40 +4534,35 @@ async function saveEditWork(){
   const w=allWorks.find(x=>x._key===editingWorkKey); if(!w) return;
   const ownerName=document.getElementById('ew_name').value.trim();
   const clientName=document.getElementById('ew_clientName').value.trim()||ownerName;
-  const vehicles=document.getElementById('ew_vehicle').value.trim().toUpperCase();
   const phone=document.getElementById('ew_phone').value.trim();
-  const type=document.getElementById('ew_type').value;
-  const workValue=parseFloat(document.getElementById('ew_workValue').value)||0;
-  const amount=Math.max(0, parseFloat(document.getElementById('ew_amount').value)||0);
+  const amount=Math.max(0,parseFloat(document.getElementById('ew_amount').value)||0);
   const notes=document.getElementById('ew_notes').value.trim();
-  const othersSpec=document.getElementById('ew_othersSpec').value.trim();
-  const transferFrom=document.getElementById('ew_transferFrom').value.trim();
-  const transferTo=document.getElementById('ew_transferTo').value.trim();
-  if(!ownerName||!vehicles||!phone||!type){toast('Fill all required fields','error');return;}
+  const rows = ewGetRows();
+  if(!ownerName||!phone){toast('Fill all required fields','error');return;}
   if(!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
-  const remaining=workValue>0?Math.max(0,workValue-amount):0;
+  if(!rows.length){toast('Add at least one vehicle/work row','error');return;}
+  const workValue = rows.reduce((s,r)=>s+r.rowWorkValue,0);
+  const remaining = workValue>0?Math.max(0,workValue-amount):0;
+  const primaryRow = rows[0];
+  const vehicles = rows.map(r=>r.vehicle).filter(Boolean).join(', ');
   try {
-    // If phone changed, look up (or create) the correct Client ID for the new number
     let newClientId = w.clientId;
-    if(phone !== w.phone) {
-      newClientId = await getOrCreateClientId(phone);
-    }
+    if(phone !== w.phone) newClientId = await getOrCreateClientId(phone);
     await _sb.from('works').update(toSnake({
-      ownerName, clientName, vehicle:vehicles.split(',')[0].trim(),
-      vehicles, phone, workType:type,
-      clientId: newClientId,
-      othersSpecify:type==='Others'?othersSpec:'',
-      dlLicenseType:type==='DrivingLicense'?(document.getElementById('ew_dlLicenseType').value.trim()):'',
-      transferFrom:type==='Transfer'?transferFrom:'',
-      transferTo:type==='Transfer'?transferTo:'',
-      workValue, totalPaid:amount, amount, remainingBalance:remaining, notes
+      ownerName, clientName, phone,
+      vehicle: primaryRow.vehicle, vehicles,
+      workType: primaryRow.workType,
+      vehicleWorkItems: JSON.stringify(rows),
+      workValue, totalPaid:amount, amount, remainingBalance:remaining, notes,
+      clientId: newClientId
     })).eq('id', editingWorkKey);
-    toast('Work updated! ✅'+(phone!==w.phone?' Client ID updated to match new number.':''),'success');
+    toast('Work updated ✅','success');
     closeModal('editWorkModal');
     await loadAllData();
     renderWorkTable();
   } catch(e){toast('Error: '+e.message,'error');}
 }
+
 
 // ============================================================
 // CLOSE / COMPLETE WORK
