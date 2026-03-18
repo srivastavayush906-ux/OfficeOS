@@ -1101,16 +1101,16 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Owner Name <span style="color:var(--r);">*</span></label>
-            <input type="text" id="w_name" placeholder="Vehicle owner's full name" style="font-size:.9rem;"/>
+            <input type="text" id="w_name" placeholder="Vehicle owner's full name" tabindex="11" style="font-size:.9rem;"/>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Phone Number <span style="color:var(--r);">*</span></label>
-            <input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10" style="font-size:.9rem;"/>
+            <input type="tel" id="w_phone" placeholder="10-digit mobile" maxlength="10" tabindex="12" style="font-size:.9rem;"/>
           </div>
         </div>
         <div class="field" style="margin-top:13px;margin-bottom:0;">
           <label>Client Name <span style="font-size:.72rem;color:var(--gray);font-weight:400;">— person who visited office, if different from owner</span></label>
-          <input type="text" id="w_clientName" placeholder="Leave blank if same as owner" style="font-size:.9rem;"/>
+          <input type="text" id="w_clientName" placeholder="Leave blank if same as owner" tabindex="13" style="font-size:.9rem;"/>
         </div>
       </div>
 
@@ -1138,9 +1138,9 @@ input[type="number"]:focus {
         <div id="vehicleWorkList">
           <!-- Initial row -->
           <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
-            <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
+            <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="14" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
             <div style="position:relative;">
-              <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+              <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="15" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
               <input type="hidden" class="wtype-sel" value=""/>
               <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
                 <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
@@ -1173,7 +1173,7 @@ input[type="number"]:focus {
               <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
               <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
             </div>
-            <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
+            <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" tabindex="16" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
             <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
               <button onclick="addVWRow()" title="Add row" style="width:32px;height:32px;border-radius:8px;background:#dcfce7;color:#16a34a;border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">＋</button>
             </div>
@@ -1200,11 +1200,11 @@ input[type="number"]:focus {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">
           <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;">
             <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
-            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="6" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('w_date').focus();}" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
+            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="20" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
           </div>
           <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:13px 15px;">
             <label style="font-size:.78rem;font-weight:800;color:#166534;display:block;margin-bottom:7px;">Payment Received Date</label>
-            <input type="date" id="w_payDate" style="width:100%;padding:10px 13px;border:1.5px solid #86efac;border-radius:9px;font-size:.9rem;font-weight:600;background:#fff;"/>
+            <input type="date" id="w_payDate" tabindex="21" style="width:100%;padding:10px 13px;border:1.5px solid #86efac;border-radius:9px;font-size:.9rem;font-weight:600;background:#fff;"/>
             <div style="font-size:.7rem;color:#16a34a;margin-top:4px;">Defaults to today</div>
           </div>
         </div>
@@ -1214,21 +1214,21 @@ input[type="number"]:focus {
           <label>Payment Mode(s) <span style="color:var(--r);">*</span></label>
           <div id="payModeList">
             <div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-              <select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;">
+              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="22" style="flex:1;">
                 <option value="">— Select Mode —</option>
                 <option value="Cash">💵 Cash</option>
                 <option value="UPI">📱 UPI / Online</option>
                 <option value="Employee">👤 Employee (Taken by staff)</option>
                 <option value="Unpaid">⏳ Unpaid / Due</option>
                               </select>
-              <select class="pay-bank-sel" style="display:none;flex:1;">
+              <select class="pay-bank-sel" tabindex="23" style="display:none;flex:1;">
                 <option value="">— Bank —</option>
                 <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
                 <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
                 <option value="Canara">Canara</option>
               </select>
               <select class="pay-emp-sel" style="display:none;flex:1;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" tabindex="7" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('w_date').focus();}"  />
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" tabindex="24"/>
               <button class="btn btn-sm btn-outline" onclick="addPayRow()" title="Add another payment mode">＋</button>
             </div>
           </div>
@@ -1248,18 +1248,18 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date" tabindex="8" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('w_notes').focus();}"/>
+            <input type="date" id="w_date" tabindex="25"/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="9" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('submitWorkBtn').focus();}"></textarea>
+            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="26"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="10" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="27" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -4586,51 +4586,45 @@ function openCloseWork(key){
     <input type="number" class="close-pay-amt" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;" oninput="showAmtHint(this)"/>
     <button class="btn btn-sm btn-outline" onclick="addClosePayRow()" style="padding:8px 10px;">＋</button>
   </div>`;
-  document.getElementById('receiptPhoto').value='';
-  document.getElementById('receiptPreviewBox').style.display='none';
-  document.getElementById('receiptPreviewImg').src='';
-  // Pre-fill bank from work's original payment source
-  const bankSel = document.getElementById('closingBank');
-  const empSel = document.getElementById('closingEmployee');
-  bankSel.value = '';
-  empSel.style.display = 'none';
-  empSel.value = '';
-  if(w) {
-    const mode = w.payMode||'';
-    const bank = w.bank||'';
-    if(mode==='Cash') bankSel.value='Cash';
-    else if(mode==='UPI' && bank) bankSel.value=bank;
-    else if(['HDFC','SBI','Kotak','ICICI','Canara','Cash'].includes(bank)) bankSel.value=bank;
-  }
-  // Populate partial completion checkboxes from vehicleWorkItems (Bug C + E)
+  // Reset doc upload
+  const rp = document.getElementById('receiptPhoto');
+  if(rp) rp.value='';
+  const rpb = document.getElementById('receiptPreviewBox');
+  if(rpb) rpb.style.display='none';
+  const rpi = document.getElementById('receiptPreviewImg');
+  if(rpi) rpi.src='';
+  // Reset misc fields
+  const ma = document.getElementById('miscAmount');
+  if(ma) ma.value='';
+  const mr = document.getElementById('miscReason');
+  if(mr) mr.value='';
+  // Populate partial completion checkboxes from vehicleWorkItems
   const cbBox = document.getElementById('partialCheckboxes');
-  cbBox.innerHTML = '';
-  document.getElementById('partialDesc').value = '';
+  if(cbBox) cbBox.innerHTML = '';
+  const pd = document.getElementById('partialDesc');
+  if(pd) pd.value = '';
+  // Reset completion type to full
+  setCompleteType('full');
   if(w) {
     try {
       const items = JSON.parse(w.vehicleWorkItems||'[]');
       const prevDone = (w.partialDesc||'').split(',').map(s=>s.trim().toLowerCase());
-      // Find items not yet marked done
       const pendingItems = items.filter(r => r.vehicle && r.workType && !prevDone.some(d=>d.includes(r.vehicle.toLowerCase())));
-      if(pendingItems.length > 0) {
+      if(pendingItems.length > 0 && cbBox) {
         cbBox.innerHTML = pendingItems.map((r,i)=>`
           <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--graylite);border-radius:var(--rads);margin-bottom:6px;cursor:pointer;font-size:.88rem;">
             <input type="checkbox" id="pcb_${i}" value="${esc(r.vehicle)} — ${wtLabelPlain(r.workType)}" onchange="updatePartialDescFromCheckboxes()" style="width:16px;height:16px;"/>
             <span><strong>${esc(r.vehicle)}</strong> — ${wtLabelPlain(r.workType)}</span>
           </label>`).join('');
-        // Bug E: if only 1 item left, disable Partial button, force Full Completion
+        const cpb = document.getElementById('completePartialBtn');
         if(pendingItems.length === 1) {
-          document.getElementById('completePartialBtn').disabled = true;
-          document.getElementById('completePartialBtn').title = 'Only 1 item left — use Full Completion';
-          document.getElementById('completePartialBtn').style.opacity = '0.4';
+          if(cpb){ cpb.disabled=true; cpb.title='Only 1 item left — use Full Completion'; cpb.style.opacity='0.4'; }
           setCompleteType('full');
         } else {
-          document.getElementById('completePartialBtn').disabled = false;
-          document.getElementById('completePartialBtn').title = '';
-          document.getElementById('completePartialBtn').style.opacity = '';
+          if(cpb){ cpb.disabled=false; cpb.title=''; cpb.style.opacity=''; }
         }
       }
-    } catch(e) { cbBox.innerHTML = ''; }
+    } catch(e) { if(cbBox) cbBox.innerHTML=''; }
   }
   closeModal('workDetailModal');
   openModal('closeWorkModal');
