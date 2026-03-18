@@ -1248,18 +1248,18 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date"/>
+            <input type="date" id="w_date" tabindex="8" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('w_notes').focus();}"/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="10" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('submitWorkBtn').focus();}"></textarea>
+            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="9" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('submitWorkBtn').focus();}"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="11" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="10" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
