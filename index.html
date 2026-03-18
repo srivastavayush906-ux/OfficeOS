@@ -3223,9 +3223,17 @@ function vwTypeChange(el, forcedVal) {
       vehicleInput.style.display='none';
       vehicleInput.placeholder='N/A';
       vehicleInput.value='DL';
+    } else if(val==='Others') {
+      vehicleInput.style.display='';
+      vehicleInput.placeholder='Vehicle No. (optional)';
+      vehicleInput.style.borderColor='#d1d5db';
+      vehicleInput.style.background='#fafafa';
+      if(vehicleInput.value==='DL') vehicleInput.value='';
     } else {
       vehicleInput.style.display='';
       vehicleInput.placeholder='e.g. UP32AB1234';
+      vehicleInput.style.borderColor='';
+      vehicleInput.style.background='#fff';
       if(vehicleInput.value==='DL') vehicleInput.value='';
     }
   }
@@ -3370,8 +3378,8 @@ async function _doSubmitWork() {
 
   // Validations
   if(!ownerName){toast('Enter owner name','error');return;}
-  if(!vwRows.length||(!vwRows[0].vehicle&&vwRows[0].workType!=='DrivingLicense')){toast('Enter at least one vehicle number','error');return;}
-  if(vwRows.some(r=>r.vehicle&&!r.workType)){toast('Select work type for each vehicle','error');return;}
+  if(!vwRows.length||(!vwRows[0].vehicle&&vwRows[0].workType!=='DrivingLicense'&&vwRows[0].workType!=='Others')){toast('Enter at least one vehicle number','error');return;}
+  if(vwRows.some(r=>!r.workType)){toast('Select work type for each row','error');return;}
   if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
   if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
   if(!phone||!/^\d{10}$/.test(phone)){toast('Enter valid 10-digit phone','error');return;}
@@ -3596,31 +3604,59 @@ document.addEventListener('keydown', function(e) {
   const page = document.getElementById('page-newWork');
   if(!page || !page.classList.contains('active')) return;
 
-  // Build ordered list dynamically from visible tabindex'd fields inside the form
-  const candidates = [...page.querySelectorAll('[tabindex]')].filter(el => {
-    const ti = parseInt(el.getAttribute('tabindex'));
-    if(ti < 0) return false;
-    if(el.type === 'hidden') return false;
-    if(el.disabled) return false;
-    // Must be visible
-    let n = el;
-    while(n && n !== page) {
-      const st = window.getComputedStyle(n);
-      if(st.display === 'none' || st.visibility === 'hidden') return false;
-      n = n.parentElement;
-    }
-    return true;
-  }).sort((a,b) => parseInt(a.getAttribute('tabindex')) - parseInt(b.getAttribute('tabindex')));
+  // Collect fields in exact visual order
+  const fields = [];
+
+  // Step 1: Client info
+  const push = id => { const el = document.getElementById(id); if(el && el.offsetParent !== null) fields.push(el); };
+  push('w_name');
+  push('w_phone');
+  push('w_clientName');
+
+  // Step 2: Each vehicle row in order
+  page.querySelectorAll('.vw-row').forEach(row => {
+    const vi = row.querySelector('.vehicle-input');
+    const ws = row.querySelector('.wtype-search');
+    const wv = row.querySelector('.wtype-value');
+    if(vi) fields.push(vi);
+    if(ws) fields.push(ws);
+    if(wv) fields.push(wv);
+    // Only add visible sub-fields
+    ['.wtype-spec','.wtype-dltype','.wtype-tfrom','.wtype-tto'].forEach(sel=>{
+      const el = row.querySelector(sel);
+      if(el && el.style.display !== 'none') fields.push(el);
+    });
+  });
+
+  // Step 3: Payment
+  push('w_amount');
+  push('w_payDate');
+  // Payment mode rows
+  page.querySelectorAll('.pay-row').forEach(row => {
+    const ms = row.querySelector('.pay-mode-sel');
+    const bs = row.querySelector('.pay-bank-sel');
+    const es = row.querySelector('.pay-emp-sel');
+    const ai = row.querySelector('.pay-amt-inp');
+    if(ms) fields.push(ms);
+    if(bs && bs.style.display !== 'none') fields.push(bs);
+    if(es && es.style.display !== 'none') fields.push(es);
+    if(ai) fields.push(ai);
+  });
+
+  // Step 4: Date & Notes & Submit
+  push('w_date');
+  push('w_notes');
+  push('submitWorkBtn');
 
   const focused = document.activeElement;
-  const idx = candidates.indexOf(focused);
-  if(idx === -1) return; // not one of ours — let browser handle
+  const idx = fields.indexOf(focused);
+  if(idx === -1) return; // not our field
 
   e.preventDefault();
   e.stopPropagation();
   const next = e.shiftKey
-    ? candidates[(idx - 1 + candidates.length) % candidates.length]
-    : candidates[(idx + 1) % candidates.length];
+    ? fields[(idx - 1 + fields.length) % fields.length]
+    : fields[(idx + 1) % fields.length];
   if(next) next.focus();
 });
 
