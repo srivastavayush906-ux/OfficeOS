@@ -985,6 +985,7 @@ input[type="number"]:focus {
       <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">📋</span> All Works</a>
       <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">📝</span> New Inquiry</a>
       <a onclick="showPage('allInquiry')" id="nav-allInquiry"><span class="ico">📂</span> All Inquiries <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+      <a onclick="showPage('payments')" id="nav-payments"><span class="ico">💰</span> Payments</a>
 
       <!-- WORKS: detailed views -->
       <div class="ns">Works</div>
@@ -1915,6 +1916,91 @@ input[type="number"]:focus {
     </div>
   </div>
 
+  <!-- PAYMENTS PAGE -->
+  <div class="page" id="page-payments">
+    <div style="background:linear-gradient(135deg,#065f46 0%,#10b981 100%);border-radius:16px;padding:20px 24px;margin-bottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.15rem;font-weight:800;">💰 Payments</div>
+        <div style="font-size:.8rem;opacity:.65;margin-top:3px;">Record any payment received — linked to work or standalone</div>
+      </div>
+      <button class="btn btn-sm" id="pmtToggleBtn" onclick="pmtToggleForm()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);">➕ Add Entry</button>
+    </div>
+
+    <!-- Add Entry Form -->
+    <div class="card" id="pmtForm" style="display:none;margin-bottom:18px;">
+      <div style="font-weight:800;font-size:.95rem;margin-bottom:16px;color:#065f46;">➕ New Payment Entry</div>
+      <div class="g2">
+        <div class="field">
+          <label>Date *</label>
+          <input type="date" id="pmt_date"/>
+          <div class="hint">Auto-filled to today</div>
+        </div>
+        <div class="field">
+          <label>Name *</label>
+          <input type="text" id="pmt_name" placeholder="Client / payer name" oninput="pmtNameInput()"/>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Vehicle Number <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label>
+          <input type="text" id="pmt_vehicle" placeholder="e.g. UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase();pmtVehicleInput()"/>
+          <div id="pmt_vehicle_hint" class="hint"></div>
+        </div>
+        <div class="field">
+          <label>Payment Source *</label>
+          <select id="pmt_source">
+            <option value="">— Select —</option>
+            <option value="Cash">💵 Cash</option>
+            <option value="HDFC">🏦 HDFC</option>
+            <option value="SBI">🏦 SBI</option>
+            <option value="Kotak">🏦 Kotak</option>
+            <option value="ICICI">🏦 ICICI</option>
+            <option value="Canara">🏦 Canara</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Amount (₹) *</label>
+        <input type="number" id="pmt_amount" placeholder="e.g. 5000" min="0" oninput="showAmtHint(this)"/>
+      </div>
+      <div class="field">
+        <label>Link to Work</label>
+        <select id="pmt_work">
+          <option value="">— Select open work (optional) —</option>
+          <option value="other">📦 Other / Not linked to a work</option>
+        </select>
+        <div id="pmt_work_specify" style="display:none;margin-top:8px;">
+          <input type="text" id="pmt_other_desc" placeholder="Describe what this payment is for…"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Remarks <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label>
+        <textarea id="pmt_remarks" placeholder="Any notes about this payment…" style="min-height:48px;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" onclick="savePaymentEntry()" style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 4px 14px rgba(16,185,129,.3);">💾 Save Payment</button>
+        <button class="btn btn-gray" onclick="pmtToggleForm()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Search + List -->
+    <div class="card">
+      <div class="sh" style="margin-bottom:14px;">
+        <div class="card-title" style="margin:0;">📋 All Payment Entries</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="pmtSearch" placeholder="🔍 Search name, vehicle…" oninput="renderPayments()" style="padding:7px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.84rem;width:180px;"/>
+          <button class="btn btn-sm btn-outline" onclick="exportPaymentsExcel()">📥 Excel</button>
+        </div>
+      </div>
+      <div class="ox">
+        <table class="wt">
+          <thead><tr><th>#</th><th>Date</th><th>Name</th><th>Vehicle</th><th>Work</th><th>Source</th><th>Amount</th><th>Remarks</th><th>By</th><th>Action</th></tr></thead>
+          <tbody id="pmtTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   </div>
 </div>
 
@@ -2798,7 +2884,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries',payments:'💰 Payments'};
 
 // Track current page for filter reset
 let currentActivePage = 'dashboard';
@@ -2824,7 +2910,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page !== 'newWork') resetNewWorkForm();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry,payments:renderPayments};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -5971,6 +6057,241 @@ async function renderOspHistory() {
       </tr>`;
     }).join('')}
   </tbody></table></div>`;
+}
+
+// PAYMENTS
+// ============================================================
+let allPayments = [];
+
+function pmtToggleForm() {
+  const form = document.getElementById('pmtForm');
+  const btn = document.getElementById('pmtToggleBtn');
+  const showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '➕ Add Entry' : '✕ Cancel';
+  if(!showing) {
+    // Init form
+    const d = document.getElementById('pmt_date');
+    if(d) d.value = new Date().toISOString().split('T')[0];
+    ['pmt_name','pmt_vehicle','pmt_amount','pmt_remarks'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('pmt_source').value = '';
+    document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
+    document.getElementById('pmt_work_specify').style.display = 'none';
+    document.getElementById('pmt_vehicle_hint').textContent = '';
+  }
+}
+
+function pmtVehicleInput() {
+  const veh = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
+  const hint = document.getElementById('pmt_vehicle_hint');
+  const workSel = document.getElementById('pmt_work');
+  if(veh.length < 4) {
+    hint.textContent = '';
+    workSel.innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
+    return;
+  }
+  // Find open works for this vehicle
+  const matches = allWorks.filter(w =>
+    (w.status === 'open' || w.status === 'partial') &&
+    ((w.vehicles||w.vehicle||'').toUpperCase().includes(veh))
+  );
+  if(matches.length > 0) {
+    hint.textContent = `${matches.length} open work(s) found`;
+    hint.style.color = '#16a34a';
+    workSel.innerHTML = '<option value="">— Select open work (optional) —</option>' +
+      matches.map(w => `<option value="${w._key}">#${w.workNum} — ${esc(w.ownerName||w.clientName)} — ${wtLabelPlain(w.workType)} — ${inr(w.remainingBalance||w.workValue||0)} due</option>`).join('') +
+      '<option value="other">📦 Other / Not linked</option>';
+  } else {
+    hint.textContent = 'No open works found for this vehicle';
+    hint.style.color = '#6b7280';
+    workSel.innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
+  }
+  document.getElementById('pmt_work').onchange = function() {
+    document.getElementById('pmt_work_specify').style.display = this.value === 'other' ? 'block' : 'none';
+  };
+}
+
+function pmtNameInput() {
+  // Auto-populate vehicle if client has open works
+  const name = document.getElementById('pmt_name').value.trim().toLowerCase();
+  if(name.length < 3) return;
+  const match = allWorks.find(w =>
+    (w.status==='open'||w.status==='partial') &&
+    ((w.ownerName||w.clientName||'').toLowerCase().includes(name))
+  );
+  if(match && !document.getElementById('pmt_vehicle').value) {
+    document.getElementById('pmt_vehicle').value = match.vehicles||match.vehicle||'';
+    pmtVehicleInput();
+  }
+}
+
+let _savePaymentLock = false;
+async function savePaymentEntry() {
+  if(_savePaymentLock) { toast('Already saving…','warn'); return; }
+  const date = document.getElementById('pmt_date').value;
+  const name = document.getElementById('pmt_name').value.trim();
+  const vehicle = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
+  const source = document.getElementById('pmt_source').value;
+  const amount = parseFloat(document.getElementById('pmt_amount').value)||0;
+  const workKey = document.getElementById('pmt_work').value;
+  const otherDesc = document.getElementById('pmt_other_desc').value.trim();
+  const remarks = document.getElementById('pmt_remarks').value.trim();
+
+  if(!name) { toast('Enter name','warn'); return; }
+  if(!source) { toast('Select payment source','warn'); return; }
+  if(!amount || amount <= 0) { toast('Enter valid amount','warn'); return; }
+  if(workKey === 'other' && !otherDesc) { toast('Describe what this payment is for','warn'); return; }
+
+  _savePaymentLock = true;
+  const btn = document.querySelector('#pmtForm .btn-primary');
+  if(btn) { btn.textContent='⏳ Saving…'; btn.disabled=true; }
+
+  try {
+    const now = new Date();
+    const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
+
+    // Find linked work
+    const linkedWork = workKey && workKey !== 'other' ? allWorks.find(x=>x._key===workKey) : null;
+    const workDesc = linkedWork
+      ? `#${linkedWork.workNum} — ${wtLabelPlain(linkedWork.workType)}`
+      : (otherDesc || 'Standalone payment');
+
+    const description = `Payment: ${name}${vehicle?' / '+vehicle:''} — ${workDesc}`;
+    const workRef = linkedWork ? `#${linkedWork.workNum} — ${linkedWork.ownerName||linkedWork.clientName} / ${linkedWork.vehicle}` : '';
+
+    // Save to ledger (credit entry)
+    const res = await _sb.from('ledger').insert({
+      bank: source,
+      type: 'credit',
+      amount,
+      date: dateStr,
+      timestamp: now.getTime(),
+      description,
+      work_ref: workRef,
+      by: currentUser.name,
+      auto_entry: false,
+      // Extra payment-specific fields stored in receipt_urls as JSON metadata
+      receipt_urls: JSON.stringify({
+        payment_name: name,
+        payment_vehicle: vehicle,
+        payment_remarks: remarks,
+        payment_work_key: workKey !== 'other' ? workKey : '',
+        payment_other_desc: otherDesc,
+        is_payment_entry: true
+      })
+    });
+    if(res.error) throw res.error;
+
+    // If linked to a work, update remainingBalance
+    if(linkedWork) {
+      const newRemaining = Math.max(0, (linkedWork.remainingBalance||0) - amount);
+      const newTotal = (linkedWork.totalPaid||linkedWork.amount||0) + amount;
+      await _sb.from('works').update({
+        remaining_balance: newRemaining,
+        total_paid: newTotal,
+        amount: newTotal
+      }).eq('id', workKey);
+    }
+
+    toast(`✅ Payment of ${inr(amount)} saved`, 'success');
+    pmtToggleForm();
+    await loadAllData();
+    renderPayments();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+  finally {
+    _savePaymentLock = false;
+    if(btn) { btn.textContent='💾 Save Payment'; btn.disabled=false; }
+  }
+}
+
+async function deletePaymentEntry(id) {
+  if(!confirm('Delete this payment entry?')) return;
+  try {
+    await _sb.from('ledger').delete().eq('id', id);
+    toast('Deleted','success');
+    await loadAllData();
+    renderPayments();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+function renderPayments() {
+  // Init date if form visible
+  const d = document.getElementById('pmt_date');
+  if(d && !d.value) d.value = new Date().toISOString().split('T')[0];
+  // Set up work select onchange
+  const ws = document.getElementById('pmt_work');
+  if(ws) ws.onchange = function() {
+    document.getElementById('pmt_work_specify').style.display = this.value === 'other' ? 'block' : 'none';
+  };
+
+  // Filter ledger for payment entries
+  const q = (document.getElementById('pmtSearch')?.value||'').toLowerCase();
+  let entries = allLedger.filter(l => {
+    if(l.type !== 'credit' || l.autoEntry) return false;
+    try {
+      const meta = JSON.parse(l.receiptUrls||'{}');
+      return meta.is_payment_entry === true;
+    } catch(e) { return false; }
+  }).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+
+  if(q) entries = entries.filter(e =>
+    (e.description||'').toLowerCase().includes(q) ||
+    (e.workRef||'').toLowerCase().includes(q)
+  );
+
+  allPayments = entries;
+
+  // Stats
+  const total = entries.reduce((s,e)=>s+(e.amount||0),0);
+
+  const tbody = document.getElementById('pmtTableBody');
+  if(!tbody) return;
+  if(!entries.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="nd">No payment entries yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = entries.map((e,i) => {
+    let meta = {};
+    try { meta = JSON.parse(e.receiptUrls||'{}'); } catch(err){}
+    const name = meta.payment_name || esc(e.description||'').replace('Payment:','').split('—')[0].trim();
+    const vehicle = meta.payment_vehicle || '';
+    const remarks = meta.payment_remarks || '';
+    const workDesc = e.workRef ? esc(e.workRef) : (meta.payment_other_desc ? esc(meta.payment_other_desc) : '—');
+    const bankIcon = e.bank==='Cash'?'💵':'🏦';
+    return `<tr>
+      <td style="color:var(--gray);font-size:.78rem;">${entries.length-i}</td>
+      <td style="font-size:.8rem;white-space:nowrap;">${esc(e.date||'—')}</td>
+      <td style="font-weight:700;">${esc(name)}</td>
+      <td style="font-family:monospace;font-size:.82rem;">${vehicle||'—'}</td>
+      <td style="font-size:.78rem;color:var(--p);">${workDesc}</td>
+      <td><span style="background:${e.bank==='Cash'?'#fef9c3':'#eff6ff'};color:${e.bank==='Cash'?'#92400e':'#1d4ed8'};padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:700;">${bankIcon} ${esc(e.bank||'—')}</span></td>
+      <td style="font-weight:800;color:#16a34a;">${inr(e.amount||0)}</td>
+      <td style="font-size:.75rem;color:var(--gray);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(remarks)}">${remarks||'—'}</td>
+      <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
+      <td>${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportPaymentsExcel() {
+  if(!allPayments.length){toast('No data to export','warn');return;}
+  let csv='#,Date,Name,Vehicle,Work,Source,Amount,Remarks,By\n';
+  allPayments.forEach((e,i)=>{
+    let meta={};
+    try{meta=JSON.parse(e.receiptUrls||'{}');}catch(err){}
+    const name=meta.payment_name||(e.description||'').split('—')[0].replace('Payment:','').trim();
+    const veh=meta.payment_vehicle||'';
+    const remarks=meta.payment_remarks||'';
+    const work=e.workRef||meta.payment_other_desc||'';
+    csv+=`${i+1},"${e.date||''}","${name}","${veh}","${work}","${e.bank||''}",${e.amount||0},"${remarks}","${e.by||''}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`payments_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
 }
 
 // OFFICE EXPENDITURE
