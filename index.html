@@ -5431,49 +5431,122 @@ function recoAddToLedger(credit, debit, dateStr, desc) {
 function printReceipt(key) {
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
+
+  // Parse payment modes
   let payInfo = '';
   try {
     const modes = JSON.parse(w.payModes||'[]');
-    payInfo = modes.map(m=>`${m.mode}${m.bank?' ('+m.bank+')':''}${m.employee?' — '+m.employee+' ':''}: ${inr(m.amount||0)}`).join('<br>');
+    payInfo = modes.map(m=>`${m.mode}${m.bank?' ('+m.bank+')':''}${m.employee?' — '+m.employee:''}${m.amount>0?' — '+inr(m.amount):''}`).join('<br>');
   } catch(e){ payInfo = `${w.payMode||'—'}: ${inr(w.amount||0)}`; }
-  const win = window.open('','_blank','width=400,height=600');
-  win.document.write(`<!DOCTYPE html><html><head><title>Receipt #${w.workNum}</title>
-  <style>body{font-family:Arial,sans-serif;padding:20px;max-width:380px;margin:auto;font-size:13px;}
-  h2{text-align:center;margin:0 0 4px;}p{text-align:center;margin:0 0 16px;font-size:11px;color:#555;}
-  table{width:100%;border-collapse:collapse;}td{padding:5px 2px;border-bottom:1px dashed #ddd;vertical-align:top;}
-  td:first-child{font-weight:bold;width:45%;}
-  .total{font-size:14px;font-weight:bold;}.footer{text-align:center;margin-top:16px;font-size:10px;color:#888;}
-  @media print{button{display:none;}}</style></head><body>
-  <h2>🏢 Work Receipt</h2>
-  <p>RTO & Vehicle Services Office</p>
+
+  // Parse vehicle+work items for breakdown
+  let vehicleRows = '';
+  let hasMultiple = false;
+  try {
+    const items = JSON.parse(w.vehicleWorkItems||'[]');
+    if(items.length > 0) {
+      hasMultiple = items.length > 1;
+      // Distribute work value equally if per-row value not stored
+      const totalWV = w.workValue || 0;
+      const perRow = items.length > 0 ? totalWV / items.length : 0;
+      vehicleRows = items.map(r => {
+        const rowAmt = r.rowWorkValue || perRow;
+        return `<tr>
+          <td style="font-family:monospace;font-weight:700;">${esc(r.vehicle||'—')}</td>
+          <td>${esc(wtLabelPlain(r.workType))}${r.othersSpecify?' — '+esc(r.othersSpecify):''}</td>
+          <td style="text-align:right;font-weight:700;">${rowAmt>0?inr(rowAmt):'—'}</td>
+        </tr>`;
+      }).join('');
+    }
+  } catch(e){}
+
+  // Fallback if no items parsed
+  if(!vehicleRows) {
+    vehicleRows = `<tr>
+      <td style="font-family:monospace;font-weight:700;">${esc(w.vehicles||w.vehicle||'—')}</td>
+      <td>${esc(wtLabelPlain(w.workType))}</td>
+      <td style="text-align:right;font-weight:700;">${w.workValue?inr(w.workValue):'—'}</td>
+    </tr>`;
+  }
+
+  const excess = (w.amount||w.totalPaid||0) - (w.workValue||0);
+  const win = window.open('','_blank','width=460,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><title>Receipt #${w.workNum} — ${esc(w.ownerName||w.clientName)}</title>
+  <style>
+    *{box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;padding:24px;max-width:420px;margin:auto;font-size:13px;color:#1a1a1a;}
+    h2{text-align:center;margin:0 0 2px;font-size:20px;}
+    .sub{text-align:center;color:#666;font-size:11px;margin-bottom:4px;}
+    hr{border:none;border-top:1px solid #ddd;margin:10px 0;}
+    .section-title{font-size:10px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;}
+    table{width:100%;border-collapse:collapse;}
+    .info-table td{padding:4px 2px;border-bottom:1px dashed #eee;vertical-align:top;}
+    .info-table td:first-child{font-weight:700;width:38%;color:#555;}
+    .vw-table{border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:12px;}
+    .vw-table th{background:#f8fafc;padding:6px 8px;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;text-align:left;}
+    .vw-table th:last-child,.vw-table td:last-child{text-align:right;}
+    .vw-table td{padding:7px 8px;border-top:1px solid #f1f5f9;font-size:12px;}
+    .vw-table tr:nth-child(even) td{background:#fafafa;}
+    .total-row{background:#f0f9ff!important;font-weight:800;}
+    .total-row td{border-top:2px solid #bae6fd!important;padding:8px!important;}
+    .status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:800;}
+    .paid{background:#dcfce7;color:#166534;}
+    .partial{background:#fef3c7;color:#92400e;}
+    .unpaid{background:#fee2e2;color:#be123c;}
+    .footer{text-align:center;margin-top:16px;font-size:10px;color:#999;}
+    @media print{button{display:none!important;}.no-print{display:none!important;}}
+  </style></head><body>
+  <h2>🏢 Nandan Legal Services</h2>
+  <div class="sub">RTO & Vehicle Documentation Office</div>
+  <div class="sub">Work Receipt</div>
   <hr/>
-  <table>
-    <tr><td>Work #</td><td>#${w.workNum}</td></tr>
+
+  <div class="section-title">Client Details</div>
+  <table class="info-table">
+    <tr><td>Work #</td><td><strong>#${w.workNum}</strong></td></tr>
     <tr><td>Date</td><td>${esc(w.date)}</td></tr>
     <tr><td>Owner</td><td>${esc(w.ownerName||w.clientName)}</td></tr>
     ${w.clientName&&w.clientName!==w.ownerName?`<tr><td>Client</td><td>${esc(w.clientName)}</td></tr>`:''}
-    <tr><td>Vehicle</td><td>${esc(w.vehicles||w.vehicle)}</td></tr>
     <tr><td>Phone</td><td>${esc(w.phone)}</td></tr>
-    <tr><td>Work Type</td><td>${esc(wtLabel(w.workType))}</td></tr>
-    ${w.workType==='Transfer'?`<tr><td>From</td><td>${esc(w.transferFrom)}</td></tr><tr><td>To</td><td>${esc(w.transferTo)}</td></tr>`:''}
-    ${w.workValue?`<tr><td>Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
-    <tr><td>Amount Paid</td><td class="total">${inr(w.totalPaid||w.amount||0)}</td></tr>
-    ${w.workValue?`<tr><td>Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
-    ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:red;font-weight:bold;">${inr(w.remainingBalance)}</td></tr>`:''}
-    ${(()=>{const excess=(w.amount||0)-(w.workValue||0);return (excess>0&&(w.workValue||0)>0)?`<tr><td>Excess Received</td><td style="color:green;font-weight:bold;">+${inr(excess)}</td></tr>`:''})()}
-    <tr><td>Payment Mode</td><td>${payInfo}</td></tr>
-    <tr><td>Status</td><td>${w.status==='done'?'Paid / Completed':w.status==='partial'?'Partially Paid':'Unpaid / Open'}</td></tr>
-    ${w.partialDesc?`<tr><td>Done</td><td>${esc(w.partialDesc)}</td></tr>`:''}
-    ${w.miscExpense>0?`<tr><td>Misc Expense</td><td>${inr(w.miscExpense)} — ${esc(w.miscReason)}</td></tr>`:''}
-    ${w.notes?`<tr><td>Notes</td><td>${esc(w.notes)}</td></tr>`:''}
     <tr><td>Client ID</td><td>${esc(w.clientId||'—')}</td></tr>
-    <tr><td>Taken By</td><td>${esc(w.takenBy)}</td></tr>
   </table>
-  <div class="footer">Thank you for your visit!<br>Keep this receipt for your records.</div>
-  <br><button onclick="window.print()" style="width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">🖨️ Print</button>
+
+  <div class="section-title">Work Breakdown</div>
+  <table class="vw-table">
+    <thead><tr><th>Vehicle No.</th><th>Work Type</th><th>Value</th></tr></thead>
+    <tbody>
+      ${vehicleRows}
+      ${w.workValue?`<tr class="total-row"><td colspan="2">Total Work Value</td><td>${inr(w.workValue)}</td></tr>`:''}
+    </tbody>
+  </table>
+
+  <div class="section-title">Payment</div>
+  <table class="info-table">
+    <tr><td>Amount Paid</td><td><strong style="font-size:15px;">${inr(w.totalPaid||w.amount||0)}</strong></td></tr>
+    ${w.remainingBalance>0?`<tr><td>Balance Due</td><td style="color:#be123c;font-weight:800;">${inr(w.remainingBalance)}</td></tr>`:''}
+    ${excess>0&&(w.workValue||0)>0?`<tr><td>Excess Paid</td><td style="color:#166534;font-weight:800;">+${inr(excess)}</td></tr>`:''}
+    <tr><td>Mode</td><td>${payInfo}</td></tr>
+    <tr><td>Status</td><td>
+      <span class="status-badge ${w.status==='done'?'paid':w.status==='partial'?'partial':'unpaid'}">
+        ${w.status==='done'?'✓ Paid / Completed':w.status==='partial'?'⏳ Partially Paid':'⚠ Unpaid / Open'}
+      </span>
+    </td></tr>
+  </table>
+
+  ${w.notes?`<div class="section-title">Notes</div><div style="font-size:12px;color:#555;padding:6px 0;">${esc(w.notes)}</div>`:''}
+  ${w.expiryDate?`<div class="section-title">Document Expiry</div><div style="font-weight:700;color:#7c3aed;">${fmtDate(w.expiryDate)}</div>`:''}
+
+  <hr/>
+  <div class="footer">
+    Taken by: ${esc(w.takenBy||'—')} &nbsp;·&nbsp; ${w.completedBy?'Completed by: '+esc(w.completedBy)+' &nbsp;·&nbsp; ':''}<br/>
+    Thank you for choosing Nandan Legal Services!<br/>Keep this receipt for your records.
+  </div>
+  <br/>
+  <button onclick="window.print()" style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨️ Print Receipt</button>
   </body></html>`);
   win.document.close();
 }
+
 
 // ============================================================
 // COMBINED BALANCE
