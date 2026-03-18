@@ -343,6 +343,11 @@ input, select, textarea { font-family: inherit; outline: none; }
   position: relative; overflow: hidden;
   transition: transform .15s, box-shadow .15s;
 }
+.sc[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  border-color: var(--p);
+}
 .sc::before {
   content: ''; position: absolute;
   top: 0; left: 0; right: 0; height: 3px;
@@ -903,7 +908,18 @@ input[type="number"]:focus {
   transition: background .1s;
 }
 .wtopt:last-child { border-bottom: none; }
-.wtopt:hover { background: var(--pl); color: var(--pd); font-weight: 600; }
+.wtopt:hover, .wtopt.kb-active { background: var(--pl); color: var(--pd); font-weight: 600; }
+
+/* Submit work button hover */
+.submit-work-btn:hover {
+  background: linear-gradient(135deg,#3730a3,#4f46e5) !important;
+  box-shadow: 0 8px 28px rgba(79,70,229,.6) !important;
+  transform: translateY(-1px);
+}
+.submit-work-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(79,70,229,.4) !important;
+}
 
 </style>
 </head>
@@ -1121,12 +1137,12 @@ input[type="number"]:focus {
           <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
             <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
             <div style="position:relative;">
-              <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+              <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
               <input type="hidden" class="wtype-sel" value=""/>
               <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
                 <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-                <div class="wtopt" data-val="Chalaan-Online" onclick="wtSelectOption(this)">📄 Chalaan — Online</div>
-                <div class="wtopt" data-val="Chalaan-Court" onclick="wtSelectOption(this)">⚖️ Chalaan — Court</div>
+                <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
+                <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
                 <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
                 <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
                 <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
@@ -1178,9 +1194,16 @@ input[type="number"]:focus {
           </div>
         </div>
 
-        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;margin-bottom:13px;">
-          <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
-          <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">
+          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;">
+            <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
+            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
+          </div>
+          <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:13px 15px;">
+            <label style="font-size:.78rem;font-weight:800;color:#166534;display:block;margin-bottom:7px;">Payment Received Date</label>
+            <input type="date" id="w_payDate" style="width:100%;padding:10px 13px;border:1.5px solid #86efac;border-radius:9px;font-size:.9rem;font-weight:600;background:#fff;"/>
+            <div style="font-size:.7rem;color:#16a34a;margin-top:4px;">Defaults to today</div>
+          </div>
         </div>
         <div id="remainingBal" style="display:none;border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:.88rem;"></div>
 
@@ -1233,7 +1256,7 @@ input[type="number"]:focus {
       </div>
 
       <!-- Submit Button -->
-      <button onclick="submitWork()" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+      <button onclick="submitWork()" class="submit-work-btn" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -1261,8 +1284,8 @@ input[type="number"]:focus {
           <select id="filterType" onchange="filterWorks()">
             <option value="">All Types</option>
             <option value="Insurance">Insurance</option>
-            <option value="Chalaan-Online">Chalaan-Online</option>
-            <option value="Chalaan-Court">Chalaan-Court</option>
+            <option value="Challan-Online">Challan-Online</option>
+            <option value="Challan-Court">Challan-Court</option>
             <option value="Fitness">Fitness</option>
             <option value="Permit-AllIndia">Permit-AllIndia</option>
             <option value="Permit-State">Permit-State</option>
@@ -1916,8 +1939,8 @@ input[type="number"]:focus {
       <div class="field"><label>Work Type *</label>
         <select id="ew_type" onchange="editWorkTypeChange()">
           <option value="Insurance">🛡️ Insurance</option>
-          <option value="Chalaan-Online">📄 Chalaan — Online</option>
-          <option value="Chalaan-Court">⚖️ Chalaan — Court</option>
+          <option value="Challan-Online">📄 Challan — Online</option>
+          <option value="Challan-Court">⚖️ Challan — Court</option>
           <option value="Fitness">✅ Fitness</option>
           <option value="Permit-AllIndia">🗺️ Permit — All India</option>
           <option value="Permit-State">📍 Permit — State</option>
@@ -2349,7 +2372,7 @@ input[type="number"]:focus {
 <!-- WHATSAPP MODAL -->
 <div class="mo" id="whatsappModal">
   <div class="md" style="max-width:420px;">
-    <button class="md-close" onclick="closeModal('whatsappModal')">×</button>
+    <button class="md-close" onclick="closeModal('whatsappModal')" tabindex="3">×</button>
     <div class="md-title">📱 Send WhatsApp to Client</div>
     <div style="background:var(--gl);border-radius:var(--rads);padding:16px;margin-bottom:16px;">
       <div style="font-size:.75rem;font-weight:700;color:var(--g);text-transform:uppercase;margin-bottom:4px;">Client ID</div>
@@ -2358,9 +2381,9 @@ input[type="number"]:focus {
     <div style="font-size:.88rem;margin-bottom:4px;"><strong>Client:</strong> <span id="wa_clientName"></span></div>
     <div style="font-size:.88rem;margin-bottom:4px;"><strong>Phone:</strong> <span id="wa_phone"></span></div>
     <div style="font-size:.88rem;margin-bottom:16px;"><strong>Work:</strong> <span id="wa_workType"></span></div>
-    <p style="font-size:.82rem;color:var(--gray);margin-bottom:14px;">Tapping the button below will open WhatsApp with a pre-written message containing the Unique ID for this client.</p>
-    <a id="wa_sendBtn" href="#" target="_blank" class="btn btn-success btn-full" style="display:block;text-align:center;text-decoration:none;" onclick="closeModal('whatsappModal')">📱 Open WhatsApp &amp; Send</a>
-    <button class="btn btn-gray btn-full" style="margin-top:8px;" onclick="closeModal('whatsappModal')">Close</button>
+    <p style="font-size:.82rem;color:var(--gray);margin-bottom:14px;">Press <kbd style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;padding:1px 6px;font-size:.78rem;">Tab</kbd> to switch between buttons, <kbd style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:4px;padding:1px 6px;font-size:.78rem;">Enter</kbd> to activate.</p>
+    <a id="wa_sendBtn" href="#" target="_blank" class="btn btn-success btn-full" tabindex="1" style="display:block;text-align:center;text-decoration:none;" onclick="closeModal('whatsappModal')">📱 Open WhatsApp &amp; Send</a>
+    <button class="btn btn-gray btn-full" tabindex="2" style="margin-top:8px;" onclick="closeModal('whatsappModal')">✕ Close</button>
   </div>
 </div>
 
@@ -2487,10 +2510,22 @@ const TABLE_MAP = {
 
 // Get next work number
 async function getNextWorkNum() {
+  // Try counter table first
   const {data, error} = await _sb.from('counter').select('value').eq('id','workNum').single();
-  if(error || !data) return 1;
-  const next = (data.value || 0) + 1;
-  await _sb.from('counter').update({value: next}).eq('id','workNum');
+  // Also get max workNum from actual works table as safety net
+  const {data: wData} = await _sb.from('works').select('work_num').order('work_num',{ascending:false}).limit(1);
+  const maxFromWorks = (wData&&wData[0]?.work_num)||0;
+
+  let next;
+  if(!error && data) {
+    // Use the higher of counter or actual max works
+    next = Math.max((data.value||0), maxFromWorks) + 1;
+    await _sb.from('counter').update({value: next}).eq('id','workNum');
+  } else {
+    // Counter row missing — create it and use max from works
+    next = maxFromWorks + 1;
+    await _sb.from('counter').upsert({id:'workNum', value: next});
+  }
   return next;
 }
 
@@ -2858,18 +2893,18 @@ function renderDashboard() {
   const empTotal2=Object.values(empMap2).reduce((s,v)=>s+v,0);
   const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
   document.getElementById('dashStats').innerHTML=`
-    <div class="sc"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
-    <div class="sc green"><div class="sl">Completed</div><div class="sv">${done}</div></div>
-    <div class="sc"><div class="sl">Open</div><div class="sv">${open}</div></div>
-    <div class="sc red"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
-    <div class="sc orange"><div class="sl">Dues</div><div class="sv">${udhari}</div></div>
+    <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
+    <div class="sc green" style="cursor:pointer;" onclick="setAllWorkTab('closed',document.getElementById('allWorkClosedBtn'));showPage('allWork')"><div class="sl">Completed</div><div class="sv">${done}</div></div>
+    <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Open</div><div class="sv">${open}</div></div>
+    <div class="sc red" style="cursor:pointer;" onclick="showPage('overdue')"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
+    <div class="sc orange" style="cursor:pointer;" onclick="showPage('udhari')"><div class="sl">Dues</div><div class="sv">${udhari}</div></div>
     ${pendingVerifCount>0?`<div class="sc" style="border:2px solid var(--o);cursor:pointer;" onclick="showPage('verification')"><div class="sl">⏳ Awaiting Verification</div><div class="sv" style="color:var(--o);">${pendingVerifCount}</div></div>`:''}
-    <div class="sc ${cashBalance<0?'red':'green'}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'}">${inr(cashBalance)}</div></div>
-    ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''} "><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'}">${inr(bal)}</div></div>`;}).join('')}
+    <div class="sc ${cashBalance<0?'red':'green'}" style="cursor:pointer;" onclick="${currentUser&&currentUser.role==='owner'?`showPage('bankLedger')`:`showPage('cashTracker')`}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
+    ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''}" style="cursor:pointer;" onclick="${currentUser&&currentUser.role==='owner'?`showPage('bankLedger')`:`showPage('combinedBalance')`}"><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">${inr(bal)}</div></div>`;}).join('')}
     ${empTotal2>0?`<div class="sc orange" style="cursor:pointer;" onclick="showPage('combinedBalance')"><div class="sl">👤 With Employees</div><div class="sv" style="color:#d97706;">${inr(empTotal2)}</div></div>`:''}
-    ${pendingDue>0?`<div class="sc red"><div class="sl">Pending Client Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
-    <div class="sc"><div class="sl">Today's Works</div><div class="sv">${todayCount}</div></div>
-    <div class="sc green"><div class="sl">Today's Collection</div><div class="sv">${inr(todayCollected)}</div></div>
+    ${pendingDue>0?`<div class="sc red" style="cursor:pointer;" onclick="showPage('udhari')"><div class="sl">Pending Client Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
+    <div class="sc" style="cursor:pointer;" onclick="showPage('datewise')"><div class="sl">Today's Works</div><div class="sv">${todayCount}</div></div>
+    <div class="sc green" style="cursor:pointer;" onclick="showPage('dailySummary')"><div class="sl">Today's Collection</div><div class="sv">${inr(todayCollected)}</div></div>
   `;
   // Greeting
   const hr = new Date().getHours();
@@ -2910,7 +2945,7 @@ function renderDashboard() {
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--rl);cursor:pointer;">
       <div><div style="font-weight:700;font-size:.87rem;color:var(--r);">${esc(w.clientName)}</div>
       <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicle)}</div></div>
-      <span class="badge br">${Math.floor((now-w.timestamp)/86400000)}d</span>
+      <span class="badge br">${(()=>{const pts=w.date?w.date.split('/'):[];const d=pts.length===3?new Date(pts[2]+'-'+pts[1].padStart(2,'0')+'-'+pts[0].padStart(2,'0')):new Date(w.timestamp||0);return Math.max(0,Math.floor((Date.now()-d.getTime())/86400000));})()}d</span>
     </div>`).join('');
   // Expiry snippet
   const today=new Date(); const in30=new Date(today.getTime()+30*86400000);
@@ -2939,12 +2974,12 @@ function renderDashboard() {
 // payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
-function initNewWorkDate(){const el=document.getElementById('w_date');if(el)el.value=new Date().toISOString().split('T')[0];}
+function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;const pd=document.getElementById('w_payDate');if(pd)pd.value=today;}
 
 function resetNewWorkForm() {
   try {
     ['w_name','w_clientName','w_phone','w_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    ['w_amount'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['w_amount','w_payDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=el.type==='date'?new Date().toISOString().split('T')[0]:'';});
     const remDiv=document.getElementById('remainingBal'); if(remDiv) remDiv.style.display='none';
     resetVWRows();
     // Reset pay modes to a single blank row
@@ -3088,7 +3123,6 @@ function wtShowDropdown(input) {
   if(dd) { dd.style.display='block'; wtFilterOptions(input); }
 }
 function wtHideDropdown(input) {
-  // Delay so click on option registers first
   setTimeout(()=>{ const dd=input.parentElement.querySelector('.wtype-dropdown'); if(dd) dd.style.display='none'; }, 180);
 }
 function wtSearchInput(input) {
@@ -3103,6 +3137,35 @@ function wtFilterOptions(input) {
     const txt = opt.textContent.toLowerCase().replace(/[^a-z0-9]/g,'');
     opt.style.display = (!q || txt.includes(q)) ? 'block' : 'none';
   });
+}
+function wtKeyNav(input, e) {
+  const dd = input.parentElement.querySelector('.wtype-dropdown');
+  if(!dd || dd.style.display==='none') {
+    if(e.key==='ArrowDown'||e.key==='ArrowUp') { dd.style.display='block'; wtFilterOptions(input); }
+    return;
+  }
+  const visible = [...dd.querySelectorAll('.wtopt')].filter(o=>o.style.display!=='none');
+  const active = dd.querySelector('.wtopt.kb-active');
+  let idx = active ? visible.indexOf(active) : -1;
+  if(e.key==='ArrowDown') {
+    e.preventDefault();
+    if(active) active.classList.remove('kb-active');
+    idx = (idx+1) % visible.length;
+    visible[idx].classList.add('kb-active');
+    visible[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp') {
+    e.preventDefault();
+    if(active) active.classList.remove('kb-active');
+    idx = (idx-1+visible.length) % visible.length;
+    visible[idx].classList.add('kb-active');
+    visible[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter') {
+    e.preventDefault();
+    if(active) { wtSelectOption(active); dd.querySelectorAll('.wtopt').forEach(o=>o.classList.remove('kb-active')); }
+    else if(visible.length===1) wtSelectOption(visible[0]);
+  } else if(e.key==='Escape') {
+    dd.style.display='none';
+  }
 }
 function wtSelectOption(opt) {
   const container = opt.closest('[style*="position:relative"]') || opt.parentElement.parentElement;
@@ -3153,12 +3216,12 @@ function addVWRow() {
   row.innerHTML = `
     <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
     <div style="position:relative;">
-      <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+      <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
       <input type="hidden" class="wtype-sel" value=""/>
       <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
         <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-        <div class="wtopt" data-val="Chalaan-Online" onclick="wtSelectOption(this)">📄 Chalaan — Online</div>
-        <div class="wtopt" data-val="Chalaan-Court" onclick="wtSelectOption(this)">⚖️ Chalaan — Court</div>
+        <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
+        <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
         <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
         <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
         <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
@@ -3215,12 +3278,12 @@ function resetVWRows() {
     <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
       <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
       <div style="position:relative;">
-        <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+        <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
         <input type="hidden" class="wtype-sel" value=""/>
         <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
           <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-          <div class="wtopt" data-val="Chalaan-Online" onclick="wtSelectOption(this)">📄 Chalaan — Online</div>
-          <div class="wtopt" data-val="Chalaan-Court" onclick="wtSelectOption(this)">⚖️ Chalaan — Court</div>
+          <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
+          <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
           <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
           <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
           <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
@@ -3269,6 +3332,7 @@ async function _doSubmitWork() {
   const workValue = getVWRows().reduce((s,r)=>s+(r.rowWorkValue||0),0);
   const notes = document.getElementById('w_notes').value.trim();
   const dateVal = document.getElementById('w_date').value;
+  const payDateVal = document.getElementById('w_payDate')?.value || dateVal;
 
   // Collect vehicle+worktype rows
   const vwRows = getVWRows();
@@ -3325,7 +3389,7 @@ async function _doSubmitWork() {
     dlLicenseType: primaryRow.workType==='DrivingLicense'?(primaryRow.dlLicenseType||''):'',
     transferFrom: primaryRow.workType==='Transfer'?primaryRow.transferFrom:'',
     transferTo: primaryRow.workType==='Transfer'?primaryRow.transferTo:'',
-    workValue, totalPaid, remainingBalance: remaining,
+    workValue, totalPaid, remainingBalance: remaining, payDate: payDateVal,
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
     amount: totalPaid, notes,
@@ -3345,7 +3409,8 @@ async function _doSubmitWork() {
       const ledBank = pr.mode==='Cash'?'Cash':pr.mode==='UPI'?pr.bank:'Cash';
       await _sb.from('ledger').insert({
         bank:ledBank, type:'credit', amount:pr.amount,
-        date:dateStr, timestamp:now.getTime(),
+        date: payDateVal ? new Date(payDateVal).toLocaleDateString('en-IN') : dateStr,
+        timestamp:now.getTime(),
         work_ref:`#${workNum} — ${ownerName} / ${primaryRow.vehicle}`,
         description:`${pr.mode==='Employee'?'[Employee: '+pr.employee+'] ':''}Payment received: ${wtLabel(primaryRow.workType)}`,
         by:currentUser.name, auto_entry:true,
@@ -3357,8 +3422,10 @@ async function _doSubmitWork() {
     document.getElementById('w_name').value='';
     document.getElementById('w_clientName').value='';
     document.getElementById('w_phone').value='';
+    document.getElementById('w_amount').value='';
     document.getElementById('w_notes').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
+    const pd=document.getElementById('w_payDate');if(pd)pd.value=new Date().toISOString().split('T')[0];
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
     document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
@@ -3428,6 +3495,8 @@ function showWhatsAppPopup(name, phone, uid, workType, dlLicenseType='') {
   const msg = "Hello "+name+"! 🙏\n\nYour work ("+wtDisplay+") has been successfully registered with Nandan Legal Services.\n\n📋 *Client ID: "+uid+"*\n\nYou can track your work status and document expiry dates anytime by visiting our website and entering your Client ID:\n👉 "+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
+  // Auto-focus send button so Tab/Enter works immediately
+  setTimeout(()=>{ const btn=document.getElementById('wa_sendBtn'); if(btn) btn.focus(); }, 120);
 }
 function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.ownerName||w.clientName,w.phone,w.clientId||w.uid,w.workType,w.dlLicenseType||''); }
 // ============================================================
@@ -3698,8 +3767,10 @@ function renderDateWise(){
   } else if(currentDateTab==='date'){
     const val=document.getElementById('datePickerSingle').value;
     if(!val){document.getElementById('dateTableBody').innerHTML='<tr><td colspan="10" class="nd">Select a date</td></tr>';document.getElementById('dateStats').innerHTML='';return;}
-    const sel=new Date(val).toLocaleDateString('en-IN');
-    list=allWorks.filter(w=>w.date===sel&&w.status!=='pending_verification'&&w.status!=='rejected');
+    const [dsy,dsm,dsd]=val.split('-');
+    const sel=dsd.padStart(2,'0')+'/'+dsm.padStart(2,'0')+'/'+dsy;
+    const selAlt=new Date(val).toLocaleDateString('en-IN');
+    list=allWorks.filter(w=>(w.date===sel||w.date===selAlt)&&w.status!=='pending_verification'&&w.status!=='rejected');
   } else {
     const m=parseInt(document.getElementById('monthSel').value);
     const y=parseInt(document.getElementById('yearSel').value);
@@ -4030,7 +4101,11 @@ function renderOverdue(){
     <td style="font-weight:700;">${esc(w.vehicle)}</td><td>${wtBadge(w)}</td>
     <td style="font-size:.8rem;">${esc(w.takenBy)}</td>
     <td style="font-size:.77rem;color:var(--gray);">${esc(w.date)}</td>
-    <td><span class="badge br">${Math.floor((now-w.timestamp)/86400000)} days</span></td>
+    <td><span class="badge br">${(()=>{
+      const parts=w.date?w.date.split('/'):[];
+      const d=parts.length===3?new Date(parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0')):new Date(w.timestamp||0);
+      return Math.max(0,Math.floor((now-d.getTime())/86400000));
+    })()} days</span></td>
     <td><button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button></td>
   </tr>`).join('');
 }
@@ -4056,16 +4131,16 @@ function renderUdhari(){
   const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
   const now = Date.now();
 
-  // Pure unpaid (Udhari) — also include open/partial works with Unpaid mode
+  // Pure unpaid — payMode is Unpaid regardless of status
   const pureUdhari = allWorks.filter(w=>
-    (w.status==='done'||w.status==='partial'||w.status==='open') &&
+    w.status!=='pending_verification' && w.status!=='rejected' &&
     (w.payMode==='Unpaid' || w.payMode==='⏳ Unpaid / Due')
   );
-  // Partial paid — done/partial status with remaining balance
+  // Partial paid — has remaining balance OR totalPaid < workValue
   const partialDue = allWorks.filter(w=>
-    (w.status==='done'||w.status==='partial') &&
+    w.status!=='pending_verification' && w.status!=='rejected' &&
     w.payMode!=='Unpaid' && w.payMode!=='⏳ Unpaid / Due' &&
-    (w.remainingBalance||0)>0
+    ((w.remainingBalance||0)>0 || ((w.workValue||0)>0 && (w.totalPaid||w.amount||0)<(w.workValue||0)))
   );
   // Excess: paid more than work value (only when workValue is set and > 0)
   // Due: payMode=Unpaid OR has remainingBalance > 0 OR status=partial
@@ -4095,8 +4170,8 @@ function renderUdhari(){
   const isExcess = tabFilter==='excess';
 
   const makeRow = (w) => {
-    const excess = Math.max(0,(w.amount||0)-(w.workValue||0));
-    const due = w.remainingBalance||w.amount||0;
+    const excess = Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0));
+    const due = w.remainingBalance || Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)) || (w.amount||0);
     return `<tr>
       <td><span class="wnum">#${w.workNum}</span></td>
       <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
@@ -5909,14 +5984,18 @@ function shiftSummaryDate(delta){
 function renderSummary(){
   const dateVal=document.getElementById('summaryDate').value;
   if(!dateVal){document.getElementById('summaryBody').innerHTML='<div class="nd">Select a date</div>';return;}
-  const selDate=new Date(dateVal).toLocaleDateString('en-IN');
-  const works=allWorks.filter(w=>w.date===selDate);
+  // Normalize to DD/MM/YYYY with leading zeros to match stored format
+  const [sy,sm,sd] = dateVal.split('-');
+  const selDate = sd.padStart(2,'0')+'/'+sm.padStart(2,'0')+'/'+sy;
+  // Also try without leading zeros for compatibility
+  const selDateAlt = new Date(dateVal).toLocaleDateString('en-IN');
+  const works=allWorks.filter(w=>w.date===selDate||w.date===selDateAlt);
   const completed=works.filter(w=>w.status==='done');
   const open=works.filter(w=>w.status==='open');
   const totalCollected=works.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
   const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
-  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>l.date===selDate&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
-  const ledgerEntries=allLedger.filter(l=>l.date===selDate);
+  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>(l.date===selDate||l.date===selDateAlt)&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
+  const ledgerEntries=allLedger.filter(l=>l.date===selDate||l.date===selDateAlt);
   document.getElementById('summaryBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Daily Report — ${selDate}</h2><p>Generated on ${new Date().toLocaleDateString('en-IN')}</p></div>
     <div class="stats-row">
@@ -6499,11 +6578,11 @@ async function downloadClientDoc(workKey, workNum) {
 // ============================================================
 // UTILITIES
 // ============================================================
-const wtLabels={'Insurance':'🛡️ Insurance','Chalaan-Online':'📄 Chalaan (Online)','Chalaan-Court':'⚖️ Chalaan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others','DrivingLicense':'🪪 Driving License'};
-const wtClasses={'Insurance':'bb','Chalaan-Online':'bo','Chalaan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr','DrivingLicense':'bp'};
+const wtLabels={'Insurance':'🛡️ Insurance','Challan-Online':'📄 Challan (Online)','Challan-Court':'⚖️ Challan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others','DrivingLicense':'🪪 Driving License'};
+const wtClasses={'Insurance':'bb','Challan-Online':'bo','Challan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr','DrivingLicense':'bp'};
 function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
-const wtPlainLabels={'Insurance':'Insurance','Chalaan-Online':'Chalaan (Online)','Chalaan-Court':'Chalaan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others','DrivingLicense':'Driving License'};
+const wtPlainLabels={'Insurance':'Insurance','Challan-Online':'Challan (Online)','Challan-Court':'Challan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others','DrivingLicense':'Driving License'};
 function wtLabelPlain(t){return wtPlainLabels[t]||t||'—';}
 function wtBadge(w){
   try {
