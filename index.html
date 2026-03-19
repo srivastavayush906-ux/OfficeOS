@@ -3230,7 +3230,7 @@ function renderDashboard() {
 // payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
-function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;document.querySelectorAll('.pay-date-inp').forEach(d=>{if(!d.value)d.value=today;});}
+function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=today;});}
 
 function resetNewWorkForm() {
   try {
@@ -3717,7 +3717,7 @@ async function _doSubmitWork() {
     document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
-    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
+    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:grid;grid-template-columns:1fr 1fr 100px 110px auto;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border-radius:10px;padding:10px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;" oninput="showAmtHint(this);calcRemaining()"/><input type="date" class="pay-date-inp" value="${new Date().toISOString().split('T')[0]}" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.82rem;background:#fff;" title="Date this payment was received"/><button class="btn btn-sm btn-outline" onclick="addPayRow()" style="padding:8px;" title="Add another payment mode">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
@@ -3823,7 +3823,8 @@ function renderWorkTable(){
   });
   if(search) list=list.filter(w=>(w.clientName||'').toLowerCase().includes(search)||(w.ownerName||'').toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||(w.vehicles||'').toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
   if(fType) list=list.filter(w=>w.workType===fType);
-  if(fStatus) list=list.filter(w=>w.status===fStatus);
+  if(fStatus==='open') list=list.filter(w=>w.status==='open'||w.status==='partial');
+  else if(fStatus) list=list.filter(w=>w.status===fStatus);
   const fFrom=document.getElementById('filterFrom')?.value;
   const fTo=document.getElementById('filterTo')?.value;
   if(fFrom) list=list.filter(w=>w.timestamp>=new Date(fFrom).getTime());
@@ -3939,9 +3940,9 @@ function setAllWorkTab(val, btn) {
   // Sync the All Status dropdown
   const fs = document.getElementById('filterStatus');
   if(fs) {
-    if(val==='open') fs.value='';
+    if(val==='open') fs.value='open';
     else if(val==='closed') fs.value='done';
-    else fs.value=''; // all = no filter
+    else fs.value=''; // all = All Status
   }
   renderWorkTable();
 }
@@ -3961,9 +3962,12 @@ function syncStatusToTab() {
   if(val==='done') {
     if(tabEl) tabEl.value='closed';
     if(closedBtn){ closedBtn.classList.add('active'); closedBtn.style.opacity='1'; }
-  } else if(val==='') {
+  } else if(val==='open') {
     if(tabEl) tabEl.value='open';
     if(openBtn){ openBtn.classList.add('active'); openBtn.style.opacity='1'; }
+  } else if(val==='') {
+    if(tabEl) tabEl.value='all';
+    if(allBtn){ allBtn.classList.add('active'); allBtn.style.opacity='1'; }
   } else {
     if(tabEl) tabEl.value='all';
     if(allBtn){ allBtn.classList.add('active'); allBtn.style.opacity='1'; }
@@ -5037,84 +5041,98 @@ function cwUpdateExpiryVisibility() {
 }
 
 async function cwCheckPayments() {
-  const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
-  if(!checked.length) { toast('Select at least one item to complete','warn'); return; }
+  // Anti-double-click
+  const btn = document.getElementById('cwCheckPayBtn');
+  if(btn && btn.dataset.checking==='1') { toast('Already checking, please wait…','warn'); return; }
+  if(btn) { btn.dataset.checking='1'; btn.textContent='⏳ Checking…'; btn.disabled=true; }
 
-  const w = allWorks.find(x=>x._key===closingWorkId);
-  if(!w) return;
+  try {
+    const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
+    if(!checked.length) { toast('Select at least one item to complete','warn'); return; }
 
-  // Check payments page for DEBIT entries (expenses we paid FOR this work)
-  const workExpenses = allLedger.filter(l => {
-    try {
-      const meta = JSON.parse(l.receiptUrls||'{}');
-      return meta.is_payment_entry && meta.payment_work_key === closingWorkId && l.type === 'debit';
-    } catch(e) { return false; }
-  });
-  // Also check RTO Inside Spend entries linked to this work
-  const rtoExpenses = allLedger.filter(l =>
-    l.type==='debit' && l.autoEntry &&
-    (l.workRef||'').startsWith('#'+w.workNum+' ')
-  );
+    const w = allWorks.find(x=>x._key===closingWorkId);
+    if(!w) return;
 
-  const totalExpenses = workExpenses.reduce((s,l)=>s+(l.amount||0),0)
-    + rtoExpenses.reduce((s,l)=>s+(l.amount||0),0);
-  const workValue = w.workValue || 0;
-  // For payment check: check if ANY expense payment was recorded for this work
-  const pmtPagePaid = totalExpenses; // expenses paid by us for this work
+    // Fetch fresh ledger data from Supabase for this work
+    const {data: freshLedger} = await _sb.from('ledger').select('*')
+      .or(`work_ref.ilike.#${w.workNum} —%`);
 
-  const statusEl = document.getElementById('cwPaymentStatus');
+    const allEntries = (freshLedger||[]).map(r=>({...toCamel(r),_key:r.id}));
 
-  // Build status display
-  let html = '<div style="margin-bottom:14px;">';
-  html += `<div style="font-weight:800;font-size:.9rem;margin-bottom:10px;">Items to complete:</div>`;
-  checked.forEach(cb=>{
-    html += `<div style="padding:8px 12px;background:#eff6ff;border-radius:8px;margin-bottom:6px;font-size:.85rem;">
-      ✅ <strong>${esc(cb.dataset.vehicle||'N/A')}</strong> — ${wtLabel(cb.dataset.type)}
-    </div>`;
-  });
-  html += '</div>';
+    // DEBIT entries from Payments page linked to this work (expenses we paid FOR work)
+    const pmtDebits = allEntries.filter(l => {
+      try {
+        const meta = JSON.parse(l.receiptUrls||'{}');
+        return meta.is_payment_entry && meta.payment_work_key === closingWorkId && l.type === 'debit';
+      } catch(e) { return false; }
+    });
 
-  // Payment status
-  if(workValue > 0) {
-    const isPaid = totalPaid >= workValue;
-    const isPartialPaid = totalPaid > 0 && totalPaid < workValue;
-    if(isPaid) {
+    // RTO Inside Spend entries for this work
+    const rtoEntries = allEntries.filter(l =>
+      (l.ospEntry===true || (l.type==='debit' && (l.description||'').startsWith('RTO Inside Spend:')))
+    );
+
+    const totalExpenses = pmtDebits.reduce((s,l)=>s+(l.amount||0),0)
+      + rtoEntries.reduce((s,l)=>s+(l.amount||0),0);
+
+    const workValue = w.workValue || 0;
+
+    const statusEl = document.getElementById('cwPaymentStatus');
+    let html = '<div style="margin-bottom:14px;">';
+    html += `<div style="font-weight:800;font-size:.9rem;margin-bottom:10px;">Items being completed:</div>`;
+    checked.forEach(cb=>{
+      html += `<div style="padding:8px 12px;background:#eff6ff;border-radius:8px;margin-bottom:6px;font-size:.85rem;">
+        ✅ <strong>${esc(cb.dataset.vehicle||'N/A')}</strong> — ${wtLabel(cb.dataset.type)}
+        ${cb.dataset.val>0?`<span style="color:var(--p);font-weight:700;margin-left:6px;">(${inr(parseFloat(cb.dataset.val))})</span>`:''}
+      </div>`;
+    });
+    html += '</div>';
+
+    // Show expense status
+    if(totalExpenses > 0) {
+      // Expenses found — list them
       html += `<div style="background:#dcfce7;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
-        <div style="font-weight:800;color:#166534;font-size:.9rem;">✅ Payment Confirmed</div>
-        <div style="font-size:.82rem;color:#166534;margin-top:4px;">Total paid: ${inr(totalPaid)} of ${inr(workValue)}</div>
-        ${pmtPagePaid>0?`<div style="font-size:.78rem;color:#16a34a;margin-top:2px;">Includes ${inr(pmtPagePaid)} from Payments page</div>`:''}
+        <div style="font-weight:800;color:#166534;font-size:.9rem;">✅ Expense Payments Found</div>
+        <div style="font-size:.82rem;color:#166534;margin-top:6px;">Total expenses recorded: <strong>${inr(totalExpenses)}</strong></div>
+        ${pmtDebits.length>0?`<div style="margin-top:8px;border-top:1px solid #bbf7d0;padding-top:8px;">
+          ${pmtDebits.map(l=>`<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;">
+            <span>💳 ${esc(l.bank||'—')} · ${esc(l.date||'—')}</span>
+            <span style="font-weight:700;">-${inr(l.amount||0)}</span>
+          </div>`).join('')}
+        </div>`:''}
+        ${rtoEntries.length>0?`<div style="margin-top:6px;border-top:1px solid #bbf7d0;padding-top:6px;">
+          ${rtoEntries.map(l=>`<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;">
+            <span>🏢 RTO · ${esc(l.date||'—')}</span>
+            <span style="font-weight:700;">-${inr(l.amount||0)}</span>
+          </div>`).join('')}
+        </div>`:''}
       </div>`;
-    } else if(isPartialPaid) {
-      html += `<div style="background:#fef9c3;border:1.5px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
-        <div style="font-weight:800;color:#854d0e;font-size:.9rem;">⚠️ Partial Payment Only</div>
-        <div style="font-size:.82rem;color:#92400e;margin-top:4px;">Paid: ${inr(totalPaid)} — Still due: ${inr(workValue-totalPaid)}</div>
-      </div>`;
+      document.getElementById('cwSubmitBtn').style.display = '';
     } else {
+      // No expenses found
       html += `<div style="background:#fee2e2;border:1.5px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
-        <div style="font-weight:800;color:#be123c;font-size:.9rem;">❌ No Payment Found</div>
-        <div style="font-size:.82rem;color:#be123c;margin-top:4px;">Work value: ${inr(workValue)} — No payment recorded in Payments page for this work.</div>
-        <div style="font-size:.78rem;color:#be123c;margin-top:6px;">Please go to <strong>Payments page</strong> and add a payment linked to this work before completing.</div>
+        <div style="font-weight:800;color:#be123c;font-size:.9rem;">❌ No Expense Payment Found</div>
+        <div style="font-size:.82rem;color:#be123c;margin-top:4px;">No debit expense recorded in <strong>Payments page</strong> for this work.</div>
+        <div style="font-size:.78rem;color:#be123c;margin-top:6px;">Go to <strong>Payments page → Add Entry → Debit</strong> and link it to Work #${w.workNum} before completing.</div>
       </div>
-      <div class="md-foot" style="justify-content:flex-end;">
+      <div style="display:flex;gap:8px;margin-top:4px;">
         <button class="btn btn-gray" onclick="cwBackToStep1()">← Back</button>
+        <button class="btn btn-outline" onclick="closeModal('closeWorkModal');showPage('payments')" style="font-size:.82rem;">Go to Payments Page</button>
       </div>`;
-      document.getElementById('cwPaymentStatus').innerHTML = html;
-      document.getElementById('cwStep1').style.display = 'none';
-      document.getElementById('cwStep2').style.display = 'block';
       document.getElementById('cwSubmitBtn').style.display = 'none';
-      return;
     }
-  } else {
-    html += `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
-      <div style="font-weight:700;color:#166534;font-size:.88rem;">ℹ️ No work value set — skipping payment check</div>
-    </div>`;
-  }
 
-  statusEl.innerHTML = html;
-  document.getElementById('cwSubmitBtn').style.display = '';
-  document.getElementById('cwStep1').style.display = 'none';
-  document.getElementById('cwStep2').style.display = 'block';
-  cwUpdateExpiryVisibility();
+    statusEl.innerHTML = html;
+    document.getElementById('cwStep1').style.display = 'none';
+    document.getElementById('cwStep2').style.display = 'block';
+    cwUpdateExpiryVisibility();
+
+  } catch(e) {
+    toast('Error checking payments: '+e.message,'error');
+    console.error(e);
+  } finally {
+    if(btn) { btn.dataset.checking=''; btn.textContent='Check Payments →'; btn.disabled=false; }
+  }
 }
 
 function cwBackToStep1() {
