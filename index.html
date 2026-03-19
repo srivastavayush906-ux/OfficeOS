@@ -1225,13 +1225,24 @@ input[type="number"]:focus {
           <label>Payment Mode(s) <span style="color:var(--r);">*</span></label>
           <div style="font-size:.72rem;color:var(--gray);margin-bottom:8px;">Each payment row has its own date — payments hit the ledger on that date</div>
           <div id="payModeList">
-            <div class="pay-row" style="display:grid;grid-template-columns:1fr 1fr 80px 1fr 30px;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;">
-              <select class="pay-mode-sel" tabindex="8" onchange="payRowChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid / Due</option></select>
-              <select class="pay-bank-sel" tabindex="-1" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select>
-              <select class="pay-emp-sel" tabindex="-1" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amt" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;width:100%;" tabindex="9" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
-              <input type="date" class="pay-date-inp" tabindex="-1" style="padding:8px 6px;border:1.5px solid #86efac;border-radius:9px;font-size:.82rem;background:#f0fdf4;font-weight:600;width:100%;" title="Payment date"/>
-              <button class="btn btn-sm btn-outline" onclick="addPayRow()" tabindex="-1" title="Add" style="padding:2px 5px;font-size:.75rem;line-height:1;">＋</button>
+            <div class="pay-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;">
+              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="8" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+                <option value="">— Mode —</option>
+                <option value="Cash">💵 Cash</option>
+                <option value="UPI">📱 UPI / Online</option>
+                <option value="Employee">👤 Employee</option>
+                <option value="Unpaid">⏳ Unpaid / Due</option>
+              </select>
+              <select class="pay-bank-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+                <option value="">— Bank —</option>
+                <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+                <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
+                <option value="Canara">Canara</option>
+              </select>
+              <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" tabindex="9" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
+              <input type="date" class="pay-date-inp" tabindex="-1" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/>
+              <button onclick="addPayRow()" tabindex="-1" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button>
             </div>
           </div>
           <div class="hint">Each row = one payment. Use ＋ for multiple dates/modes for the same work.</div>
@@ -3262,25 +3273,26 @@ function addPayRow() {
   const list = document.getElementById('payModeList');
   const row = document.createElement('div');
   row.className = 'pay-row';
-  row.style = 'display:grid;grid-template-columns:1fr 1fr 80px 1fr 30px;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;';
+  row.style = 'display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;';
   const today = new Date().toISOString().split('T')[0];
   const empOpts = allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
-  row.innerHTML = `<select class="pay-mode-sel" onchange="payRowChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
-    <option value="">— Mode —</option>
-    <option value="Cash">💵 Cash</option>
-    <option value="UPI">📱 UPI / Online</option>
-    <option value="Employee">👤 Employee</option>
-    <option value="Unpaid">⏳ Unpaid</option>
-  </select>
-  <select class="pay-bank-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
-    <option value="">— Bank —</option>
-    <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-    <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
-  </select>
-  <select class="pay-emp-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">${empOpts}</select>
-  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
-  <input type="date" class="pay-date-inp" value="${today}" style="padding:8px 6px;border:1.5px solid #86efac;border-radius:9px;font-size:.82rem;background:#f0fdf4;font-weight:600;width:100%;" title="Payment date"/>
-  <button class="btn btn-sm btn-outline" style="color:var(--r);padding:2px 5px;font-size:.75rem;line-height:1;" onclick="this.parentElement.remove();calcRemaining()">✕</button>`;
+  row.innerHTML = `
+    <select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+      <option value="">— Mode —</option>
+      <option value="Cash">💵 Cash</option>
+      <option value="UPI">📱 UPI / Online</option>
+      <option value="Employee">👤 Employee</option>
+      <option value="Unpaid">⏳ Unpaid</option>
+    </select>
+    <select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+      <option value="">— Bank —</option>
+      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
+    </select>
+    <select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">${empOpts}</select>
+    <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
+    <input type="date" class="pay-date-inp" value="${today}" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/>
+    <button style="width:28px;height:28px;border-radius:7px;background:#fee2e2;color:#be123c;border:1.5px solid #fca5a5;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;" onclick="this.parentElement.remove();calcRemaining()">✕</button>`;
   list.appendChild(row);
 }
 
@@ -3706,7 +3718,7 @@ async function _doSubmitWork() {
     document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
-    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:grid;grid-template-columns:1fr 1fr 90px 130px 28px;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border-radius:10px;padding:10px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;" oninput="showAmtHint(this);calcRemaining()"/><input type="date" class="pay-date-inp" value="${new Date().toISOString().split('T')[0]}" style="padding:8px 6px;border:1.5px solid #86efac;border-radius:9px;font-size:.82rem;background:#f0fdf4;font-weight:600;width:100%;" title="Payment date"/><button class="btn btn-sm btn-outline" onclick="addPayRow()" style="padding:8px;" title="Add another payment mode">＋</button></div>`;
+    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid / Due</option></select><select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/><input type="date" class="pay-date-inp" value="${new Date().toISOString().split('T')[0]}" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/><button onclick="addPayRow()" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
