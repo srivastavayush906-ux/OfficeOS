@@ -999,10 +999,10 @@ input[type="number"]:focus {
       <div class="ns">Finance</div>
       <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">⚖️</span> Client Balances <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
       <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues (by Client)</a>
-      <a onclick="showPage('bankLedger')" id="nav-bankLedger" class="owner-only-nav"><span class="ico">🏦</span> Bank Ledger</a>
-      <a onclick="showPage('reconcile')" id="nav-reconcile" class="owner-only-nav"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">💰</span> Combined Balance</a>
-      <a onclick="showPage('cashTracker')" id="nav-cashTracker" class="owner-only-nav"><span class="ico">💵</span> Cash in Hand</a>
+      <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
+      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
+      <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">💵</span> Cash in Hand</a>
       <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
 
       <!-- EXPENDITURE -->
@@ -1063,6 +1063,23 @@ input[type="number"]:focus {
         <button class="btn btn-outline" onclick="showPage('dues')">💳 Check Dues</button>
         <button class="btn btn-outline" onclick="showPage('dailySummary')">📊 Today Summary</button>
         <button class="btn btn-outline" onclick="showPage('cashTracker')">💵 Cash Tracker</button>
+      </div>
+      <!-- Vehicle Search Widget -->
+      <div class="card" style="margin-bottom:20px;border-left:4px solid #0891b2;">
+        <div class="sh" style="margin-bottom:12px;">
+          <div class="card-title" style="margin:0;">🔍 Search Vehicle</div>
+          <div style="font-size:.75rem;color:var(--gray);">Find all works for a vehicle</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" id="dashVehicleInput" placeholder="Enter vehicle number…" style="flex:1;padding:10px 14px;border:1.5px solid var(--grayb);border-radius:10px;font-size:.9rem;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')dashVehicleSearch()"/>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm btn-outline tb active" id="dashVehTabOpen" onclick="dashVehicleSetTab('open',this)" style="font-size:.78rem;">Open</button>
+            <button class="btn btn-sm btn-outline tb" id="dashVehTabClosed" onclick="dashVehicleSetTab('closed',this)" style="font-size:.78rem;">Closed</button>
+            <button class="btn btn-sm btn-outline tb" id="dashVehTabAll" onclick="dashVehicleSetTab('all',this)" style="font-size:.78rem;">All</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="dashVehicleSearch()">Search</button>
+        </div>
+        <div id="dashVehicleResults" style="display:none;"></div>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title">📋 Recent Works</div><div id="recentList"></div></div>
@@ -1198,42 +1215,37 @@ input[type="number"]:focus {
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">
-          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;">
+        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;margin-bottom:13px;">
             <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
             <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="7" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
           </div>
-          <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:13px 15px;">
-            <label style="font-size:.78rem;font-weight:800;color:#166534;display:block;margin-bottom:7px;">Payment Received Date</label>
-            <input type="date" id="w_payDate" tabindex="8" style="width:100%;padding:10px 13px;border:1.5px solid #86efac;border-radius:9px;font-size:.9rem;font-weight:600;background:#fff;"/>
-            <div style="font-size:.7rem;color:#16a34a;margin-top:4px;">Defaults to today</div>
-          </div>
-        </div>
         <div id="remainingBal" style="display:none;border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:.88rem;"></div>
 
         <div class="field" style="margin-bottom:0;">
           <label>Payment Mode(s) <span style="color:var(--r);">*</span></label>
+          <div style="font-size:.72rem;color:var(--gray);margin-bottom:8px;">Each payment row has its own date — payments hit the ledger on that date</div>
           <div id="payModeList">
-            <div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="9" style="flex:1;">
-                <option value="">— Select Mode —</option>
+            <div class="pay-row" style="display:grid;grid-template-columns:1fr 1fr 100px 110px auto;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border-radius:10px;padding:10px;">
+              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="8" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
+                <option value="">— Mode —</option>
                 <option value="Cash">💵 Cash</option>
                 <option value="UPI">📱 UPI / Online</option>
-                <option value="Employee">👤 Employee (Taken by staff)</option>
+                <option value="Employee">👤 Employee</option>
                 <option value="Unpaid">⏳ Unpaid / Due</option>
-                              </select>
-              <select class="pay-bank-sel" tabindex="-1" style="display:none;flex:1;">
+              </select>
+              <select class="pay-bank-sel" tabindex="-1" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
                 <option value="">— Bank —</option>
                 <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
                 <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
                 <option value="Canara">Canara</option>
               </select>
-              <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:1;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" tabindex="10"/>
-              <button class="btn btn-sm btn-outline" onclick="addPayRow()" tabindex="-1" title="Add another payment mode">＋</button>
+              <select class="pay-emp-sel" tabindex="-1" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;"></select>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;" oninput="showAmtHint(this);calcRemaining()" tabindex="9"/>
+              <input type="date" class="pay-date-inp" tabindex="-1" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.82rem;background:#fff;" title="Payment date for this mode"/>
+              <button class="btn btn-sm btn-outline" onclick="addPayRow()" tabindex="-1" title="Add another payment mode" style="padding:8px;">＋</button>
             </div>
           </div>
-          <div class="hint">Split across Cash + UPI etc. using ＋</div>
+          <div class="hint">Each row = one payment. Use ＋ for multiple dates/modes for the same work.</div>
         </div>
       </div>
 
@@ -1281,6 +1293,7 @@ input[type="number"]:focus {
         <div style="display:flex;gap:8px;margin-bottom:12px;">
           <button class="tb active" id="allWorkOpenBtn" onclick="setAllWorkTab('open',this)" style="background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;padding:6px 16px;font-weight:700;font-size:.83rem;cursor:pointer;">🔄 Open Works</button>
           <button class="tb" id="allWorkClosedBtn" onclick="setAllWorkTab('closed',this)" style="background:#f0fdf4;color:#166534;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 16px;font-weight:700;font-size:.83rem;cursor:pointer;">✅ Closed Works</button>
+          <button class="tb" id="allWorkAllBtn" onclick="setAllWorkTab('all',this)" style="background:#f5f3ff;color:#6d28d9;border:1.5px solid #ddd6fe;border-radius:8px;padding:6px 16px;font-weight:700;font-size:.83rem;cursor:pointer;">📋 All Works</button>
         </div>
         <input type="hidden" id="allWorkTabFilter" value="open"/>
         <div class="sbar">
@@ -1301,7 +1314,7 @@ input[type="number"]:focus {
             <option value="DrivingLicense">Driving License</option>
             <option value="Others">Others</option>
           </select>
-          <select id="filterStatus" onchange="filterWorks()">
+          <select id="filterStatus" onchange="syncStatusToTab();filterWorks()">
             <option value="">All Status</option>
             <option value="open">Open</option>
             <option value="done">Completed</option>
@@ -2018,6 +2031,20 @@ input[type="number"]:focus {
   </div>
 </div>
 
+
+<!-- AUDIT NOTIFICATION MODAL (owner only) -->
+<div class="mo" id="auditNotifModal">
+  <div class="md" style="max-width:560px;max-height:85vh;overflow-y:auto;">
+    <button class="md-close" onclick="closeModal('auditNotifModal')">×</button>
+    <div class="md-title" style="color:#be123c;">🔔 Activity Since Your Last Login</div>
+    <p style="font-size:.82rem;color:var(--gray);margin-bottom:14px;">The following changes were made while you were away. Review them carefully.</p>
+    <div id="auditNotifBody"></div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('auditNotifModal')">Dismiss</button>
+      <button class="btn btn-primary" onclick="closeModal('auditNotifModal');showPage('accessLog')">📜 View Full Audit Log</button>
+    </div>
+  </div>
+</div>
 
 <!-- WORK DETAIL -->
 <div class="mo" id="workDetailModal">
@@ -2948,6 +2975,152 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 // ============================================================
 // DASHBOARD
 // ============================================================
+let dashVehTab = 'open';
+function dashVehicleSetTab(tab, btn) {
+  dashVehTab = tab;
+  document.querySelectorAll('#dashVehTabOpen,#dashVehTabClosed,#dashVehTabAll').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  dashVehicleSearch();
+}
+
+function dashVehicleSearch() {
+  const q = (document.getElementById('dashVehicleInput')?.value||'').trim().toUpperCase();
+  const res = document.getElementById('dashVehicleResults');
+  if(!res) return;
+  if(!q) { res.style.display='none'; return; }
+  res.style.display='block';
+
+  let works = allWorks.filter(w =>
+    (w.vehicles||w.vehicle||'').toUpperCase().includes(q) ||
+    (w.vehicleWorkItems||'').toUpperCase().includes(q)
+  ).filter(w => w.status !== 'pending_verification' && w.status !== 'rejected');
+
+  if(dashVehTab==='open') works = works.filter(w=>w.status!=='done');
+  else if(dashVehTab==='closed') works = works.filter(w=>w.status==='done');
+
+  if(!works.length) {
+    res.innerHTML='<div class="nd">No works found for this vehicle</div>';
+    return;
+  }
+
+  // For each work, fetch payments and RTO entries
+  const getWorkPayments = (w) => {
+    const pmts = allLedger.filter(l=>{
+      try{const m=JSON.parse(l.receiptUrls||'{}');return m.is_payment_entry&&m.payment_work_key===w._key;}catch(e){return false;}
+    });
+    const rto = allLedger.filter(l=>(l.ospEntry===true||(l.type==='debit'&&(l.description||'').startsWith('RTO Inside Spend:')))&&(l.workRef||'').startsWith('#'+w.workNum+' '));
+    return {pmts, rto};
+  };
+
+  res.innerHTML = works.map(w => {
+    const {pmts, rto} = getWorkPayments(w);
+    const pmtTotal = pmts.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
+    const expTotal = pmts.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0) + rto.reduce((s,l)=>s+(l.amount||0),0);
+    return `<div style="background:#f8fafc;border:1.5px solid var(--grayb);border-radius:10px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;">
+        <div>
+          <span class="wnum">#${w.workNum}</span>
+          <strong style="margin-left:8px;">${esc(w.ownerName||w.clientName)}</strong>
+          <span style="font-size:.75rem;color:var(--gray);margin-left:6px;">${esc(w.phone)}</span>
+        </div>
+        <span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span>
+      </div>
+      <div style="font-size:.82rem;margin-top:6px;color:var(--gray);">
+        ${esc(w.vehicles||w.vehicle)} · ${wtLabel(w.workType)} · ${fmtDate(w.date)}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:.8rem;flex-wrap:wrap;">
+        <span>💰 Work Value: <strong>${inr(w.workValue||0)}</strong></span>
+        <span style="color:#16a34a;">↑ Received: <strong>${inr(w.totalPaid||w.amount||0)}</strong></span>
+        ${pmtTotal?`<span style="color:#16a34a;">💳 Pmts Page: <strong>+${inr(pmtTotal)}</strong></span>`:''}
+        ${expTotal?`<span style="color:#be123c;">🏢 Expenses: <strong>-${inr(expTotal)}</strong></span>`:''}
+        ${w.remainingBalance>0?`<span style="color:var(--r);">⚠️ Due: <strong>${inr(w.remainingBalance)}</strong></span>`:''}
+      </div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// AUDIT LOG SYSTEM
+// ============================================================
+async function auditLog(action, details) {
+  // action: 'DELETE_WORK' | 'EDIT_WORK' | 'DELETE_PAYMENT' | 'EDIT_PAYMENT' | 'DELETE_RTO' | 'VERIFY_WORK' | 'COMPLETE_WORK'
+  // details: object with snapshot of what changed
+  try {
+    const entry = {
+      name: currentUser?.name || '—',
+      role: currentUser?.role || '—',
+      date: new Date().toLocaleDateString('en-IN'),
+      time: new Date().toLocaleTimeString('en-IN'),
+      timestamp: Date.now(),
+      action,
+      details: JSON.stringify(details),
+      location: '—'
+    };
+    await _sb.from('access_log').insert(entry);
+  } catch(e) { console.warn('Audit log failed:', e.message); }
+}
+
+async function checkOwnerAuditNotif() {
+  if(!currentUser || currentUser.role !== 'owner') return;
+  try {
+    // Show changes made TODAY
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+    const {data} = await _sb.from('access_log').select('*')
+      .gt('timestamp', todayStart.getTime())
+      .in('action', ['DELETE_WORK','EDIT_WORK','DELETE_PAYMENT','DELETE_RTO'])
+      .order('timestamp', {ascending: false});
+
+    if(!data || !data.length) return;
+
+    // Build popup content
+    const body = document.getElementById('auditNotifBody');
+    if(!body) return;
+
+    const actionLabels = {
+      DELETE_WORK: '🗑️ Work Deleted',
+      EDIT_WORK: '✏️ Work Edited',
+      DELETE_PAYMENT: '🗑️ Payment Deleted',
+      EDIT_PAYMENT: '✏️ Payment Edited',
+      DELETE_RTO: '🗑️ RTO Spend Deleted',
+      EDIT_PAYMENT: '✏️ Payment Edited'
+    };
+
+    // Count by type
+    const dels = data.filter(e=>e.action.startsWith('DELETE')).length;
+    const edits = data.filter(e=>e.action==='EDIT_WORK').length;
+    const total = data.length;
+
+    body.innerHTML = `
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+        ${dels>0?`<div style="background:#fee2e2;border-radius:10px;padding:12px 18px;flex:1;text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:#be123c;">${dels}</div>
+          <div style="font-size:.78rem;color:#be123c;font-weight:700;">Deletion${dels!==1?'s':''} Today</div>
+        </div>`:''}
+        ${edits>0?`<div style="background:#fef9c3;border-radius:10px;padding:12px 18px;flex:1;text-align:center;">
+          <div style="font-size:1.6rem;font-weight:800;color:#b45309;">${edits}</div>
+          <div style="font-size:.78rem;color:#b45309;font-weight:700;">Edit${edits!==1?'s':''} Today</div>
+        </div>`:''}
+      </div>
+      <div style="font-size:.82rem;color:#374151;background:#f1f5f9;border-radius:8px;padding:10px 14px;">
+        ${data.slice(0,5).map(e=>{
+          let det={};try{det=JSON.parse(e.details||'{}');}catch(err){}
+          const label=actionLabels[e.action]||e.action;
+          return `<div style="padding:5px 0;border-bottom:1px solid #e2e8f0;font-size:.8rem;">
+            <strong>${label}</strong> by ${esc(e.name||'—')} at ${e.time||''}
+            ${det.workNum?` — Work #${det.workNum} (${esc(det.ownerName||det.clientName||'—')})`:det.description?` — ${esc(det.description)}`:''}
+          </div>`;
+        }).join('')}
+        ${data.length>5?`<div style="font-size:.75rem;color:var(--gray);margin-top:6px;">...and ${data.length-5} more. View full log below.</div>`:''}
+      </div>`;
+
+    openModal('auditNotifModal');
+  } catch(e) { console.warn('Audit notif error:', e.message); }
+}
+
 function renderDashboard() {
   const now=Date.now();
   const total=allWorks.length, done=allWorks.filter(w=>w.status==='done').length;
@@ -2973,6 +3146,8 @@ function renderDashboard() {
   const empMap2={};allLedger.filter(l=>l.employeeName).forEach(e=>{if(!empMap2[e.employeeName])empMap2[e.employeeName]=0;empMap2[e.employeeName]+=(e.amount||0);});
   const empTotal2=Object.values(empMap2).reduce((s,v)=>s+v,0);
   const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
+  // Show audit notification if owner
+  if(currentUser && currentUser.role==='owner') checkOwnerAuditNotif();
   document.getElementById('dashStats').innerHTML=`
     <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
     <div class="sc green" style="cursor:pointer;" onclick="setAllWorkTab('closed',document.getElementById('allWorkClosedBtn'));showPage('allWork')"><div class="sl">Completed</div><div class="sv">${done}</div></div>
@@ -3055,12 +3230,12 @@ function renderDashboard() {
 // payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
-function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;const pd=document.getElementById('w_payDate');if(pd)pd.value=today;}
+function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;document.querySelectorAll('.pay-date-inp').forEach(d=>{if(!d.value)d.value=today;});}
 
 function resetNewWorkForm() {
   try {
     ['w_name','w_clientName','w_phone','w_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    ['w_amount','w_payDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=el.type==='date'?new Date().toISOString().split('T')[0]:'';});
+    const _ra=document.getElementById('w_amount');if(_ra)_ra.value='';document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     const remDiv=document.getElementById('remainingBal'); if(remDiv) remDiv.style.display='none';
     resetVWRows();
     // Reset pay modes to a single blank row
@@ -3098,23 +3273,25 @@ function addPayRow() {
   const list = document.getElementById('payModeList');
   const row = document.createElement('div');
   row.className = 'pay-row';
-  row.style = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  row.style = 'display:grid;grid-template-columns:1fr 1fr 100px 110px auto;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border-radius:10px;padding:10px;';
+  const today = new Date().toISOString().split('T')[0];
   const empOpts = allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
-  row.innerHTML = `<select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;">
+  row.innerHTML = `<select class="pay-mode-sel" onchange="payRowChange(this)" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
     <option value="">— Mode —</option>
     <option value="Cash">💵 Cash</option>
     <option value="UPI">📱 UPI / Online</option>
     <option value="Employee">👤 Employee</option>
     <option value="Unpaid">⏳ Unpaid</option>
-      </select>
-  <select class="pay-bank-sel" style="display:none;flex:1;">
+  </select>
+  <select class="pay-bank-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">
     <option value="">— Bank —</option>
     <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
     <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
   </select>
-  <select class="pay-emp-sel" style="display:none;flex:1;">${empOpts}</select>
-  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()" onkeydown="if(event.key==='Tab'&&!event.shiftKey){event.preventDefault();document.getElementById('w_date').focus();}" />
-  <button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>`;
+  <select class="pay-emp-sel" style="display:none;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;">${empOpts}</select>
+  <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
+  <input type="date" class="pay-date-inp" value="${today}" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.82rem;background:#fff;" title="Date this payment was received"/>
+  <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px;" onclick="this.parentElement.remove();calcRemaining()">✕</button>`;
   list.appendChild(row);
 }
 
@@ -3443,7 +3620,7 @@ async function _doSubmitWork() {
   const workValue = getVWRows().reduce((s,r)=>s+(r.rowWorkValue||0),0);
   const notes = document.getElementById('w_notes').value.trim();
   const dateVal = document.getElementById('w_date').value;
-  const payDateVal = document.getElementById('w_payDate')?.value || dateVal;
+  // payDate is now per-row (pay-date-inp), not global
 
   // Collect vehicle+worktype rows
   const vwRows = getVWRows();
@@ -3453,7 +3630,8 @@ async function _doSubmitWork() {
     mode: row.querySelector('.pay-mode-sel').value,
     bank: row.querySelector('.pay-bank-sel').value,
     employee: row.querySelector('.pay-emp-sel')?.value||'',
-    amount: parseFloat(row.querySelector('.pay-amt-inp').value)||0
+    amount: parseFloat(row.querySelector('.pay-amt-inp').value)||0,
+    payDate: (()=>{const d=row.querySelector('.pay-date-inp')?.value;return d?new Date(d).toLocaleDateString('en-IN'):null;})()
   })).filter(r=>r.mode);
 
   // Validations
@@ -3500,7 +3678,7 @@ async function _doSubmitWork() {
     dlLicenseType: primaryRow.workType==='DrivingLicense'?(primaryRow.dlLicenseType||''):'',
     transferFrom: primaryRow.workType==='Transfer'?primaryRow.transferFrom:'',
     transferTo: primaryRow.workType==='Transfer'?primaryRow.transferTo:'',
-    workValue, totalPaid, remainingBalance: remaining, payDate: payDateVal,
+    workValue, totalPaid, remainingBalance: remaining,
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
     amount: totalPaid, notes,
@@ -3520,7 +3698,7 @@ async function _doSubmitWork() {
       const ledBank = pr.mode==='Cash'?'Cash':pr.mode==='UPI'?pr.bank:'Cash';
       await _sb.from('ledger').insert({
         bank:ledBank, type:'credit', amount:pr.amount,
-        date: payDateVal ? new Date(payDateVal).toLocaleDateString('en-IN') : dateStr,
+        date: pr.payDate || dateStr,
         timestamp:now.getTime(),
         work_ref:`#${workNum} — ${ownerName} / ${primaryRow.vehicle}`,
         description:`${pr.mode==='Employee'?'[Employee: '+pr.employee+'] ':''}Payment received: ${wtLabel(primaryRow.workType)}`,
@@ -3536,7 +3714,7 @@ async function _doSubmitWork() {
     document.getElementById('w_amount').value='';
     document.getElementById('w_notes').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
-    const pd=document.getElementById('w_payDate');if(pd)pd.value=new Date().toISOString().split('T')[0];
+    document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
     document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this)"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
@@ -3555,6 +3733,14 @@ async function deleteWork(key) {
   if(!w) return;
   if(!confirm('Delete Work #'+w.workNum+' for '+(w.ownerName||w.clientName)+'?\nThis will also delete all related ledger entries. Cannot be undone.')) return;
   try {
+    // AUDIT LOG — save full snapshot before deletion
+    await auditLog('DELETE_WORK', {
+      workNum: w.workNum, clientName: w.clientName, ownerName: w.ownerName,
+      vehicle: w.vehicles||w.vehicle, workType: w.workType,
+      workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
+      status: w.status, phone: w.phone, date: w.date,
+      takenBy: w.takenBy, addedAt: w.timestamp
+    });
     // Delete related ledger entries by work_ref pattern
     const workRef = '#'+w.workNum+' —';
     const {data: ledgerRows} = await _sb.from('ledger').select('id').ilike('work_ref', workRef+'%');
@@ -3562,7 +3748,6 @@ async function deleteWork(key) {
       const ids = ledgerRows.map(r=>r.id);
       await _sb.from('ledger').delete().in('id', ids);
     }
-    // Delete the work itself
     await _sb.from('works').delete().eq('id', key);
     toast('Work #'+w.workNum+' and '+(ledgerRows?.length||0)+' ledger entries deleted','success');
     await loadAllData();
@@ -3632,6 +3817,7 @@ function renderWorkTable(){
   const allWorkTab = document.getElementById('allWorkTabFilter')?.value||'open';
   let list=allWorks.filter(w=>{
     if(w.status==='pending_verification'||w.status==='rejected') return false;
+    if(allWorkTab==='all') return true;
     if(allWorkTab==='closed') return w.status==='done';
     return w.status!=='done'; // open = open + partial
   });
@@ -3710,17 +3896,19 @@ document.addEventListener('keydown', function(e) {
 
   // Step 3: Payment
   push('w_amount');
-  push('w_payDate');
+  // pay dates are per-row, not a single field
   // Payment mode rows
   page.querySelectorAll('.pay-row').forEach(row => {
     const ms = row.querySelector('.pay-mode-sel');
     const bs = row.querySelector('.pay-bank-sel');
     const es = row.querySelector('.pay-emp-sel');
     const ai = row.querySelector('.pay-amt-inp');
+    const di = row.querySelector('.pay-date-inp');
     if(ms) fields.push(ms);
     if(bs && bs.style.display !== 'none') fields.push(bs);
     if(es && es.style.display !== 'none') fields.push(es);
     if(ai) fields.push(ai);
+    if(di) fields.push(di);
   });
 
   // Step 4: Date & Notes & Submit
@@ -3743,12 +3931,43 @@ document.addEventListener('keydown', function(e) {
 function setAllWorkTab(val, btn) {
   const el = document.getElementById('allWorkTabFilter');
   if(el) el.value = val;
-  document.querySelectorAll('#allWorkOpenBtn,#allWorkClosedBtn').forEach(b=>{
+  document.querySelectorAll('#allWorkOpenBtn,#allWorkClosedBtn,#allWorkAllBtn').forEach(b=>{
     b.classList.remove('active');
-    b.style.opacity = '0.6';
+    b.style.opacity = '0.65';
   });
   if(btn){ btn.classList.add('active'); btn.style.opacity = '1'; }
+  // Sync the All Status dropdown
+  const fs = document.getElementById('filterStatus');
+  if(fs) {
+    if(val==='open') fs.value='';
+    else if(val==='closed') fs.value='done';
+    else fs.value=''; // all = no filter
+  }
   renderWorkTable();
+}
+
+function syncStatusToTab() {
+  const fs = document.getElementById('filterStatus');
+  if(!fs) return;
+  const val = fs.value;
+  // Update tab to match status selection
+  const openBtn = document.getElementById('allWorkOpenBtn');
+  const closedBtn = document.getElementById('allWorkClosedBtn');
+  const allBtn = document.getElementById('allWorkAllBtn');
+  const tabEl = document.getElementById('allWorkTabFilter');
+  document.querySelectorAll('#allWorkOpenBtn,#allWorkClosedBtn,#allWorkAllBtn').forEach(b=>{
+    b.classList.remove('active'); b.style.opacity='0.65';
+  });
+  if(val==='done') {
+    if(tabEl) tabEl.value='closed';
+    if(closedBtn){ closedBtn.classList.add('active'); closedBtn.style.opacity='1'; }
+  } else if(val==='') {
+    if(tabEl) tabEl.value='open';
+    if(openBtn){ openBtn.classList.add('active'); openBtn.style.opacity='1'; }
+  } else {
+    if(tabEl) tabEl.value='all';
+    if(allBtn){ allBtn.classList.add('active'); allBtn.style.opacity='1'; }
+  }
 }
 
 // ============================================================
@@ -4345,8 +4564,14 @@ function renderUdhari(){
 
   if(ageFilter!=='all') {
     list = list.filter(w=>{
-      const age = now-(w.completedTimestamp||w.timestamp||0);
-      const days = age/86400000;
+      // Use the actual work date (DD/MM/YYYY), not the entry timestamp
+      let workDate = 0;
+      if(w.date) {
+        const pts = w.date.split('/');
+        if(pts.length===3) workDate = new Date(`${pts[2]}-${pts[1].padStart(2,'0')}-${pts[0].padStart(2,'0')}`).getTime();
+      }
+      if(!workDate) workDate = w.timestamp||0;
+      const days = (now - workDate)/86400000;
       if(ageFilter==='week') return days<7;
       if(ageFilter==='month') return days>=7&&days<30;
       if(ageFilter==='year') return days>=30&&days<365;
@@ -4598,6 +4823,12 @@ function viewWork(key){
     ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
     ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
     ${w.closeNotes?`<div class="di"><div class="dl">Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
+    ${(()=>{
+      // RTO Inside Spend entries linked to this work
+      const rtoEntries = allLedger.filter(l=>(l.ospEntry===true||(l.type==='debit'&&(l.description||'').startsWith('RTO Inside Spend:')))&&(l.workRef||'').startsWith('#'+w.workNum+' '));
+      if(!rtoEntries.length) return '';
+      return `<div style="background:#fff7ed;border-radius:10px;padding:10px 14px;margin:8px 0;"><div style="font-size:.73rem;font-weight:800;color:#c2410c;text-transform:uppercase;margin-bottom:8px;">🏢 RTO Inside Spend</div>${rtoEntries.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fed7aa;font-size:.82rem;"><span>${esc((l.description||'').replace('RTO Inside Spend:','').trim())} · ${esc(l.date||'—')}</span><span style="font-weight:800;color:#c2410c;">-${inr(l.amount||0)}</span></div>`).join('')}</div>`;
+    })()}
     ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="openImgInTab('${w.receiptPhoto}')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
   `;
   openModal('workDetailModal');
@@ -4699,6 +4930,18 @@ async function saveEditWork(){
   try {
     let newClientId = w.clientId;
     if(phone !== w.phone) newClientId = await getOrCreateClientId(phone);
+    // AUDIT LOG — save what changed
+    const changes = [];
+    if(ownerName !== (w.ownerName||'')) changes.push(`Name: "${w.ownerName}" → "${ownerName}"`);
+    if(phone !== w.phone) changes.push(`Phone: ${w.phone} → ${phone}`);
+    if(Math.abs(workValue-(w.workValue||0))>0) changes.push(`Work Value: ₹${w.workValue||0} → ₹${workValue}`);
+    if(Math.abs(amount-(w.totalPaid||w.amount||0))>0) changes.push(`Amount Paid: ₹${w.totalPaid||w.amount||0} → ₹${amount}`);
+    await auditLog('EDIT_WORK', {
+      workNum: w.workNum, ownerName: w.ownerName, clientName: w.clientName,
+      vehicle: w.vehicles||w.vehicle, workType: w.workType,
+      workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
+      changes: changes.join(' | ') || 'Minor details updated'
+    });
     await _sb.from('works').update(toSnake({
       ownerName, clientName, phone,
       vehicle: primaryRow.vehicle, vehicles,
@@ -4800,19 +5043,24 @@ async function cwCheckPayments() {
   const w = allWorks.find(x=>x._key===closingWorkId);
   if(!w) return;
 
-  // Check payments page for any payment linked to this work
-  const workPayments = allLedger.filter(l => {
+  // Check payments page for DEBIT entries (expenses we paid FOR this work)
+  const workExpenses = allLedger.filter(l => {
     try {
       const meta = JSON.parse(l.receiptUrls||'{}');
-      return meta.is_payment_entry && meta.payment_work_key === closingWorkId && l.type === 'credit';
+      return meta.is_payment_entry && meta.payment_work_key === closingWorkId && l.type === 'debit';
     } catch(e) { return false; }
   });
+  // Also check RTO Inside Spend entries linked to this work
+  const rtoExpenses = allLedger.filter(l =>
+    l.type==='debit' && l.autoEntry &&
+    (l.workRef||'').startsWith('#'+w.workNum+' ')
+  );
 
-  // Also consider original payment at work creation (amount on the work itself)
-  const originalPaid = w.totalPaid || w.amount || 0;
-  const pmtPagePaid = workPayments.reduce((s,l)=>s+(l.amount||0),0);
-  const totalPaid = originalPaid; // original already includes pmt page payments (they update work.totalPaid)
+  const totalExpenses = workExpenses.reduce((s,l)=>s+(l.amount||0),0)
+    + rtoExpenses.reduce((s,l)=>s+(l.amount||0),0);
   const workValue = w.workValue || 0;
+  // For payment check: check if ANY expense payment was recorded for this work
+  const pmtPagePaid = totalExpenses; // expenses paid by us for this work
 
   const statusEl = document.getElementById('cwPaymentStatus');
 
@@ -6032,9 +6280,9 @@ async function renderOspHistory() {
   allOspSpend = ospEntries;
   const el = document.getElementById('ospHistory');
   if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
-  el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>Spent By</th><th>Logged By</th><th>Files</th></tr></thead><tbody>
+  el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>Spent By</th><th>Logged By</th><th>Files</th><th>Action</th></tr></thead><tbody>
     ${allOspSpend.map(s=>{
-      let receiptLinks = '';
+      let receiptLinks='';
       if(s.receiptUrls){try{const urls=JSON.parse(s.receiptUrls);receiptLinks=urls.map((u,i)=>`<a href="${esc(u)}" target="_blank" style="color:var(--p);font-size:.75rem;display:block;">📎 File ${i+1}</a>`).join('');}catch(e){}}
       return `<tr>
         <td style="font-size:.78rem;">${fmtDate(s.date)}</td>
@@ -6044,9 +6292,25 @@ async function renderOspHistory() {
         <td style="font-size:.8rem;font-weight:700;">${esc(s.spentBy||s.by||'—')}</td>
         <td style="font-size:.78rem;color:var(--gray);">${esc(s.loggedBy||s.by||'—')}</td>
         <td>${receiptLinks||'—'}</td>
+        <td>${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deleteOspEntry('${s._key}')">🗑️</button>`:'—'}</td>
       </tr>`;
     }).join('')}
   </tbody></table></div>`;
+}
+
+async function deleteOspEntry(id) {
+  if(!confirm('Delete this RTO Inside Spend entry?')) return;
+  try {
+    const entry = allOspSpend?.find(s=>s._key===id);
+    await auditLog('DELETE_RTO', {
+      description: entry?.description||'—', amount: entry?.amount||0,
+      bank: entry?.bank||'—', date: entry?.date||'—',
+      workRef: entry?.workRef||'—', spentBy: entry?.spentBy||entry?.by||'—'
+    });
+    await _sb.from('ledger').delete().eq('id', id);
+    toast('Entry deleted ✅','success');
+    renderOspHistory();
+  } catch(e){ toast('Error: '+e.message,'error'); }
 }
 
 // PAYMENTS
@@ -6292,9 +6556,15 @@ async function deletePaymentEntry(id) {
     if(entry) {
       let meta = {};
       try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
+      // AUDIT LOG
+      await auditLog('DELETE_PAYMENT', {
+        description: entry.description||'—', amount: entry.amount||0,
+        bank: entry.bank||'—', date: entry.date||'—',
+        entryType: entry.type, paymentName: meta.payment_name||'—',
+        vehicle: meta.payment_vehicle||'—', workRef: entry.workRef||'—'
+      });
       const workKey = meta.payment_work_key;
       const entryType = meta.payment_entry_type || entry.type;
-      // Only reverse if it was a credit linked to a work
       if(workKey && entryType === 'credit') {
         const linkedWork = allWorks.find(x=>x._key===workKey);
         if(linkedWork) {
@@ -6554,18 +6824,17 @@ function shiftSummaryDate(delta){
 function renderSummary(){
   const dateVal=document.getElementById('summaryDate').value;
   if(!dateVal){document.getElementById('summaryBody').innerHTML='<div class="nd">Select a date</div>';return;}
-  // Normalize to DD/MM/YYYY with leading zeros to match stored format
   const [sy,sm,sd] = dateVal.split('-');
   const selDate = sd.padStart(2,'0')+'/'+sm.padStart(2,'0')+'/'+sy;
-  // Also try without leading zeros for compatibility
   const selDateAlt = new Date(dateVal).toLocaleDateString('en-IN');
   const works=allWorks.filter(w=>w.date===selDate||w.date===selDateAlt);
   const completed=works.filter(w=>w.status==='done');
   const open=works.filter(w=>w.status==='open');
   const totalCollected=works.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
-  const totalSpent=completed.reduce((s,w)=>s+(w.receiptAmount||0),0);
-  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>(l.date===selDate||l.date===selDateAlt)&&l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
+  // Fix: define ledgerEntries FIRST
   const ledgerEntries=allLedger.filter(l=>l.date===selDate||l.date===selDateAlt);
+  const totalSpent=ledgerEntries.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
+  const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+ledgerEntries.filter(l=>l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
   document.getElementById('summaryBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Daily Report — ${selDate}</h2><p>Generated on ${new Date().toLocaleDateString('en-IN')}</p></div>
     <div class="stats-row">
@@ -6662,13 +6931,59 @@ async function renderAccessLog(){
   const {data} = await _sb.from('access_log').select('*').order('timestamp',{ascending:false});
   const logs=(data||[]).map(r=>({...r,_key:r.id}));
   logs.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+
+  // Split: audit actions vs login entries
+  const auditEntries = logs.filter(l=>l.action && ['DELETE_WORK','EDIT_WORK','DELETE_PAYMENT','DELETE_RTO'].includes(l.action));
+  const loginEntries = logs.filter(l=>!l.action || !['DELETE_WORK','EDIT_WORK','DELETE_PAYMENT','DELETE_RTO'].includes(l.action));
+
   const roleBadge=(role)=>role==='owner'?`<span class="badge bo">👑 Owner</span>`:role==='manager'?`<span class="badge" style="background:#e0e7ff;color:#3730a3;">🔑 Manager</span>`:`<span class="badge bb">👤 Staff</span>`;
-  document.getElementById('accessLogBody').innerHTML=logs.length===0?'<tr><td colspan="5" class="nd">No records</td></tr>':logs.map(l=>`<tr>
-    <td><strong>${esc(l.name)}</strong></td>
-    <td>${roleBadge(l.role)}</td>
-    <td>${esc(l.date)}</td><td>${esc(l.time)}</td>
-    <td style="font-size:.75rem;">${l.location&&l.location!=='—'?`<a href="https://maps.google.com/?q=${esc(l.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 Map</a>`:'—'}</td>
-  </tr>`).join('');
+
+  const actionLabels = {
+    DELETE_WORK:'🗑️ Work Deleted', EDIT_WORK:'✏️ Work Edited',
+    DELETE_PAYMENT:'🗑️ Payment Deleted', DELETE_RTO:'🗑️ RTO Spend Deleted'
+  };
+
+  // Audit trail section
+  const auditHtml = auditEntries.length === 0
+    ? '<div class="nd">No deletions or edits recorded yet</div>'
+    : `<div class="ox"><table class="wt"><thead><tr><th>Action</th><th>By</th><th>Role</th><th>Date</th><th>Time</th><th>Details</th></tr></thead><tbody>
+      ${auditEntries.map(l=>{
+        let det={};try{det=JSON.parse(l.details||'{}');}catch(e){}
+        const isDelete=l.action.startsWith('DELETE');
+        return `<tr style="background:${isDelete?'#fff1f2':'#fffbeb'};">
+          <td><span style="font-weight:800;color:${isDelete?'#be123c':'#b45309'};font-size:.82rem;">${actionLabels[l.action]||l.action}</span></td>
+          <td><strong>${esc(l.name||'—')}</strong></td>
+          <td>${roleBadge(l.role)}</td>
+          <td style="font-size:.78rem;">${esc(l.date||'—')}</td>
+          <td style="font-size:.78rem;">${esc(l.time||'—')}</td>
+          <td style="font-size:.75rem;color:#374151;max-width:220px;">
+            ${det.workNum?`<div><strong>#${det.workNum}</strong> ${esc(det.ownerName||det.clientName||'')} / ${esc(det.vehicle||'')}</div>`:''}
+            ${det.workType?`<div style="color:var(--gray);">${esc(det.workType)} · ₹${(det.workValue||0).toLocaleString('en-IN')}</div>`:''}
+            ${det.description?`<div style="color:var(--gray);">${esc(String(det.description).slice(0,60))}</div>`:''}
+            ${det.changes?`<div style="color:#7c3aed;">Changes: ${esc(det.changes)}</div>`:''}
+            ${det.amount?`<div>₹${Number(det.amount).toLocaleString('en-IN')} · ${esc(det.bank||'—')}</div>`:''}
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody></table></div>`;
+
+  // Login log section
+  const loginHtml = loginEntries.length === 0
+    ? '<div class="nd">No logins yet</div>'
+    : `<div class="ox"><table class="wt"><thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Time</th><th>Location</th></tr></thead><tbody>
+      ${loginEntries.map(l=>`<tr>
+        <td><strong>${esc(l.name)}</strong></td>
+        <td>${roleBadge(l.role)}</td>
+        <td>${esc(l.date)}</td><td>${esc(l.time)}</td>
+        <td style="font-size:.75rem;">${l.location&&l.location!=='—'?`<a href="https://maps.google.com/?q=${esc(l.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 Map</a>`:'—'}</td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+
+  document.getElementById('accessLogBody').innerHTML = `
+    <div style="font-weight:800;font-size:.9rem;margin-bottom:8px;color:#be123c;">🔍 Audit Trail — Deletions & Edits</div>
+    ${auditHtml}
+    <div style="font-weight:800;font-size:.9rem;margin:18px 0 8px;color:var(--p);">🔐 Login History</div>
+    ${loginHtml}`;
 }
 
 // ============================================================
@@ -7468,7 +7783,8 @@ function renderPnL() {
   const monthSalary = allSalary.filter(s=>{if(!s.timestamp)return false;const d=new Date(s.timestamp);return d.getMonth()===m&&d.getFullYear()===y;});
 
   const totalCollected = monthWorks.reduce((s,w)=>s+(w.payMode!=='Unpaid'?(w.totalPaid||w.amount||0):0),0);
-  const totalSpent = monthWorks.filter(w=>w.status!=='open').reduce((s,w)=>s+(w.receiptAmount||0),0);
+  // Use ledger debits (from Payments page debit entries + any auto entries)
+  const totalSpent = monthLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const totalSalary = monthSalary.reduce((s,x)=>s+(x.amount||0),0);
   const totalMiscPnL = monthWorks.reduce((s,w)=>s+(w.miscExpense||0),0)+allLedger.filter(l=>{ const ld=new Date(l.timestamp); return l.ospEntry&&ld.getMonth()===m&&ld.getFullYear()===y; }).reduce((s,l)=>s+(l.amount||0),0);
   const netProfit = totalCollected - totalSpent - totalSalary - totalMiscPnL;
