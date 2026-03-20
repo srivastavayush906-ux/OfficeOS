@@ -96,57 +96,186 @@ input, select, textarea { font-family: inherit; outline: none; }
 /* ═══════════ LOGIN ═══════════ */
 #loginPage {
   display: none; min-height: 100vh;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%);
+  background: #0a0f1e;
   align-items: center; justify-content: center;
-  flex-direction: column; gap: 20px; padding: 20px;
+  flex-direction: column; gap: 24px; padding: 24px;
+  position: relative; overflow: hidden;
+}
+#loginPage::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(79,70,229,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 30%, rgba(16,185,129,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(139,92,246,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+#loginPage::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
 }
 #loginPage.show { display: flex; }
 
+/* Login card */
 .login-card {
-  background: #fff; border-radius: 20px;
-  padding: 36px 32px; width: 100%; max-width: 420px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.25);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 24px;
+  padding: 40px 36px;
+  width: 100%; max-width: 420px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 32px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
+  position: relative; z-index: 1;
+  animation: slideUp .5s cubic-bezier(.16,1,.3,1) both;
 }
-.login-card .brand {
-  font-size: 1.7rem; font-weight: 800; color: var(--p);
-  margin-bottom: 2px; letter-spacing: -1px;
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(24px); }
+  to   { opacity:1; transform: translateY(0); }
 }
-.login-card .sub { color: var(--text3); font-size: .85rem; margin-bottom: 22px; }
 
+/* Logo area */
+.login-logo-wrap {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 32px;
+}
+.login-logo-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; box-shadow: 0 8px 24px rgba(79,70,229,.4);
+  flex-shrink: 0;
+}
+.login-logo-text { line-height: 1.2; }
+.login-card .brand {
+  font-size: 1.1rem; font-weight: 800; color: #fff;
+  letter-spacing: -.3px; margin: 0;
+}
+.login-card .sub {
+  font-size: .75rem; color: rgba(255,255,255,.4);
+  margin: 0; font-weight: 400; letter-spacing: .3px;
+}
+
+/* Divider */
+.login-divider {
+  height: 1px; background: rgba(255,255,255,.07);
+  margin-bottom: 28px;
+}
+
+/* Form label */
+.login-card .field label {
+  color: rgba(255,255,255,.5); font-size: .72rem;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
+}
+.login-card .field input {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #fff; border-radius: 12px;
+  padding: 12px 16px; font-size: .9rem;
+  transition: all .2s;
+}
+.login-card .field input:focus {
+  border-color: rgba(99,102,241,.6);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.login-card .field input::placeholder { color: rgba(255,255,255,.2); }
+.login-card .pw-wrap .pw-eye {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%); background: none;
+  border: none; cursor: pointer; opacity: .5; font-size: 1rem;
+  color: #fff;
+}
+.login-card .pw-wrap { position: relative; }
+.login-card .pw-wrap input { padding-right: 44px; }
+
+/* Login button */
+.login-card .btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none; color: #fff; font-weight: 700;
+  padding: 13px 20px; border-radius: 12px;
+  font-size: .9rem; width: 100%; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(79,70,229,.35);
+  transition: all .2s; letter-spacing: .2px;
+  margin-top: 8px;
+}
+.login-card .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(79,70,229,.5);
+}
+.login-card .btn-primary:active { transform: translateY(0); }
+
+/* Status badge */
 .fb-status {
   display: flex; align-items: center; gap: 8px;
-  padding: 8px 14px; border-radius: var(--rads);
-  font-size: .8rem; font-weight: 700; margin-bottom: 18px;
+  padding: 8px 12px; border-radius: 10px;
+  font-size: .75rem; font-weight: 600; margin-bottom: 20px;
+  border: 1px solid;
 }
-.fb-status.connected  { background: var(--gl); color: var(--gd); }
-.fb-status.disconnected { background: var(--rl); color: var(--rd); }
-.fb-status.checking   { background: var(--yl); color: #92400e; }
-.fb-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+.fb-status.connected  { background: rgba(16,185,129,.1); color: #34d399; border-color: rgba(16,185,129,.2); }
+.fb-status.disconnected { background: rgba(239,68,68,.1); color: #f87171; border-color: rgba(239,68,68,.2); }
+.fb-status.checking   { background: rgba(245,158,11,.1); color: #fbbf24; border-color: rgba(245,158,11,.2); }
+.fb-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; flex-shrink:0; }
 
+/* Forgot password */
+.login-card .forgot-btn {
+  background: none; border: none; color: rgba(255,255,255,.35);
+  font-size: .78rem; cursor: pointer; text-align: center;
+  width: 100%; margin-top: 14px; padding: 4px;
+  transition: color .2s;
+}
+.login-card .forgot-btn:hover { color: rgba(255,255,255,.7); }
+
+/* Client tracking card */
 .client-card {
-  background: rgba(255,255,255,.08); border-radius: 20px;
-  padding: 22px 28px; width: 100%; max-width: 420px;
-  border: 1px solid rgba(255,255,255,.15);
-  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px; padding: 24px 28px;
+  width: 100%; max-width: 420px;
+  backdrop-filter: blur(20px);
+  position: relative; z-index: 1;
+  animation: slideUp .5s .1s cubic-bezier(.16,1,.3,1) both;
 }
-.client-card h3 { color: #fff; font-size: .95rem; margin-bottom: 6px; }
-.client-card p  { color: rgba(255,255,255,.55); font-size: .8rem; margin-bottom: 14px; }
-.client-card input {
-  width: 100%; padding: 10px 14px;
-  border: 1px solid rgba(255,255,255,.2);
-  background: rgba(255,255,255,.1);
-  color: #fff; border-radius: var(--rads);
-  font-size: .9rem; margin-bottom: 10px; letter-spacing: 2px;
+.client-card-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
 }
-.client-card input::placeholder { color: rgba(255,255,255,.35); letter-spacing: 0; }
+.client-card-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(16,185,129,.15); border: 1px solid rgba(16,185,129,.25);
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.client-card h3 { color: #fff; font-size: .92rem; font-weight: 700; margin: 0; }
+.client-card p  { color: rgba(255,255,255,.35); font-size: .75rem; margin: 0; }
+.client-id-input {
+  width: 100%; padding: 13px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px; color: #fff;
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-bottom: 10px; transition: all .2s;
+  font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+}
+.client-id-input:focus {
+  border-color: rgba(16,185,129,.5);
+  background: rgba(255,255,255,.08);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.1);
+  outline: none;
+}
+.client-id-input::placeholder { color: rgba(255,255,255,.2); letter-spacing: 2px; font-weight: 400; }
 .btn-white {
-  background: #fff; color: var(--p);
-  font-weight: 700; padding: 11px 20px;
-  border-radius: var(--rads); cursor: pointer;
-  width: 100%; font-size: .9rem;
-  transition: .18s; border: none;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff; font-weight: 700; padding: 12px 20px;
+  border-radius: 12px; cursor: pointer; width: 100%;
+  font-size: .88rem; transition: all .2s; border: none;
+  box-shadow: 0 6px 20px rgba(16,185,129,.3); letter-spacing: .2px;
 }
-.btn-white:hover { background: #eef2ff; }
+.btn-white:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(16,185,129,.4); }
+
+/* Login error */
+#loginErr { color: #f87171; font-size: .82rem; margin-top: 10px; font-weight: 600; }
 
 /* ═══════════ FORM FIELDS ═══════════ */
 .field { margin-bottom: 14px; }
@@ -924,6 +1053,9 @@ input[type="number"]:focus {
   box-shadow: 0 4px 12px rgba(79,70,229,.4) !important;
 }
 
+
+/* Staff cannot print/export/import/backup */
+.staff-restricted { display:none !important; }
 </style>
 </head>
 <body>
@@ -944,23 +1076,90 @@ input[type="number"]:focus {
 <!-- LOGIN PAGE -->
 <div id="loginPage">
   <div class="login-card">
-    <div class="brand">⚖️ Nandan Legal Services</div>
-    <div class="sub">Staff Login — Enter your credentials</div>
-    <div class="fb-status checking" id="fbStatus">
-      <span class="fb-dot"></span> <span id="fbStatusText">Checking Firebase connection…</span>
+    <div class="login-logo-wrap">
+      <div class="login-logo-icon">⚖️</div>
+      <div class="login-logo-text">
+        <div class="brand">Nandan Legal Services</div>
+        <div class="sub">Work Management System</div>
+      </div>
     </div>
-    <div class="field"><label>Email</label><input type="email" id="loginUser" placeholder="your@gmail.com" autocomplete="email"/></div>
-    <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password"/><button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1">👁️</button></div></div>
-    <button class="btn btn-primary btn-full" onclick="doLogin()">Login →</button>
-    <div id="loginErr" style="color:var(--r);font-size:.83rem;margin-top:9px;display:none;font-weight:700;"></div>
-    <div style="text-align:center;margin-top:12px;"><button onclick="forgotPassword()" style="background:none;border:none;color:var(--p);font-size:.82rem;cursor:pointer;text-decoration:underline;">Forgot password?</button></div>
+    <div class="login-divider"></div>
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="loginUser" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+        <button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1">👁️</button>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In →</button>
+    <div id="loginErr" style="display:none;"></div>
+    <button class="forgot-btn" onclick="forgotPassword()">Forgot password?</button>
+    <div id="fbStatus" style="display:none;"></div>
+    <span id="fbStatusText" style="display:none;"></span>
   </div>
+
   <div class="client-card">
-    <h3>🔍 Track Your Works</h3>
-    <p>Enter your Client ID given by our office</p>
-    <input type="text" id="clientUID" placeholder="Enter Client ID  e.g. C-A3K9X2" style="text-transform:uppercase;"/>
+    <div class="client-card-header">
+      <div class="client-card-icon">🔍</div>
+      <div>
+        <h3>Track Your Work Status</h3>
+        <p>Enter your Client ID to check progress</p>
+      </div>
+    </div>
+    <input type="text" class="client-id-input" id="clientUID" placeholder="C-XXXXXX" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')clientTrack()"/>
     <button class="btn-white" onclick="clientTrack()">Check Status →</button>
     <div id="clientResult" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- Login Page Footer -->
+  <div style="text-align:center;padding:16px 20px;font-size:.74rem;color:rgba(255,255,255,.35);position:relative;z-index:1;">
+    <strong style="color:rgba(255,255,255,.55);">Nandan Legal Services</strong>
+    &nbsp;·&nbsp; RTO Work Specialists
+    <br/><br/>
+    <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>alert('Number copied!'))" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">📞 94505 56304</a>
+    &nbsp;·&nbsp;
+    <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
+  </div>
+</div>
+
+<!-- CLIENT PORTAL FULL PAGE -->
+<div id="clientPortalPage" style="display:none;">
+  <!-- Header -->
+  <div class="cp-header">
+    <div class="cp-header-inner">
+      <div class="cp-logo">
+        <div class="cp-logo-icon">⚖️</div>
+        <div>
+          <div class="cp-logo-text">Nandan Legal Services</div>
+          <div class="cp-logo-sub">Work Status Portal</div>
+        </div>
+      </div>
+      <button class="cp-back-btn" onclick="clientPortalBack()">← Back to Search</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="cp-body" id="clientPortalBody">
+    <!-- Filled dynamically -->
+  </div>
+
+  <!-- Footer -->
+  <div class="cp-footer">
+    <div style="margin-bottom:4px;">
+      <strong>Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists
+    </div>
+    <div>
+      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="cursor:pointer;">94505 56304</a>
+      &nbsp;·&nbsp;
+      <a href="https://nandanlegalservices.in" target="_blank">nandanlegalservices.in</a>
+    </div>
+    <div style="margin-top:8px;font-size:.68rem;opacity:.5;">
+      For any queries, please contact us at the number above
+    </div>
   </div>
 </div>
 
@@ -1022,6 +1221,7 @@ input[type="number"]:focus {
         <div class="ns">Owner Only</div>
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
         <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙️</span> Manage Staff</a>
+        <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">🖥️</span> Trusted Devices</a>
         <a onclick="showFirebaseRulesGuide()" style="cursor:pointer;"><span class="ico">🔒</span> DB Security Setup</a>
       </div>
     </nav>
@@ -1030,6 +1230,7 @@ input[type="number"]:focus {
       <div class="urole" id="sidebarRole">—</div>
       <button onclick="openModal('pinboardModal');loadPins()">📝 Pinboard</button>
       <button onclick="openModal('setPinModal')">🔒 App Lock PIN</button>
+      <button onclick="openDeviceNameSetup()" id="deviceNameBtn" style="display:none;">🖥️ <span id="deviceNameDisplay">Name This Device</span></button>
       <button onclick="showChangePassword()">🔑 Change Password</button>
       <button onclick="doLogout()">↩ Logout</button>
     </div>
@@ -1241,7 +1442,7 @@ input[type="number"]:focus {
               </select>
               <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select>
               <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" tabindex="9" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
-              <input type="date" class="pay-date-inp" tabindex="-1" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/>
+              <input type="date" class="pay-date-inp" tabindex="-1" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date" id="firstPayDate"/>
               <button onclick="addPayRow()" tabindex="-1" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button>
             </div>
           </div>
@@ -1261,18 +1462,18 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date" tabindex="11"/>
+            <input type="date" id="w_date" tabindex="10"/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes" placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="12"></textarea>
+            <textarea id="w_notes"  placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="11"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="13" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="12" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -1284,9 +1485,9 @@ input[type="number"]:focus {
       <div class="card">
         <div class="sh"><div class="card-title" style="margin:0;">📋 All Works</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm btn-outline" onclick="exportWorksExcel()">📥 Export Excel</button>
-            <button class="btn btn-sm btn-outline" onclick="exportFullDBBackup()" title="Download full database backup as JSON">💾 Full Backup</button>
-            <button class="btn btn-sm btn-gray" onclick="exportWorksPDF()">🖨️ Print / PDF</button>
+            <button class="btn btn-sm btn-outline" onclick="exportWorksExcel()" data-restrict="print-export">📥 Export Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="exportFullDBBackup()" data-restrict="owner-only-btn" title="Download full database backup as JSON">💾 Full Backup</button>
+            <button class="btn btn-sm btn-gray" onclick="exportWorksPDF()" data-restrict="print-export">🖨️ Print / PDF</button>
           </div>
         </div>
         <!-- Open / Closed toggle -->
@@ -1333,7 +1534,7 @@ input[type="number"]:focus {
           <div class="card-title" style="margin:0;">🔍 Works Pending Verification</div>
           <div style="display:flex;gap:8px;align-items:center;">
             <div id="verificationBadgeCount" style="background:var(--o);color:#fff;border-radius:20px;padding:3px 12px;font-size:.78rem;font-weight:800;display:none;"></div>
-            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-sm btn-outline" onclick="window.print()" data-restrict="print-export">🖨️ Print</button>
           </div>
         </div>
         <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
@@ -1391,7 +1592,7 @@ input[type="number"]:focus {
           <div style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:800;">⚖️ Client Balances</div>
           <div style="font-size:.78rem;opacity:.65;margin-top:2px;">Track dues, partial payments &amp; excess paid</div>
         </div>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()" data-restrict="print-export">🖨️ Print</button>
       </div>
       <div class="card">
         <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
@@ -1416,7 +1617,7 @@ input[type="number"]:focus {
       <div class="card">
         <div class="sh">
           <div class="card-title" style="margin:0;">🔔 Expiry</div>
-          <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()">📥 Export Excel</button>
+          <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()" data-restrict="print-export">📥 Export Excel</button>
         </div>
         <div class="tab-row" style="margin-bottom:14px;">
           <button class="tb expiry-filter-btn active" id="expiryFilterBtn" onclick="setExpiryFilter('all',this)">All Upcoming</button>
@@ -1470,8 +1671,8 @@ input[type="number"]:focus {
           <div class="card-title" style="margin:0;">💳 Dues (by Client)</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button class="btn btn-sm btn-primary" onclick="openManualDueModal()">➕ Manual Entry</button>
-            <button class="btn btn-sm btn-outline" onclick="exportDuesExcel()">📊 Excel</button>
-            <button class="btn btn-sm btn-outline" onclick="printDuesPage()">🖨️ Print PDF</button>
+            <button class="btn btn-sm btn-outline" onclick="exportDuesExcel()" data-restrict="print-export">📊 Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="printDuesPage()" data-restrict="print-export">🖨️ Print PDF</button>
           </div>
         </div>
         <div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap;">
@@ -1540,7 +1741,7 @@ input[type="number"]:focus {
       <div class="card">
         <div class="sh"><div class="card-title" style="margin:0;">💰 Combined Balance Overview</div>
           <button class="btn btn-sm btn-outline" onclick="renderCombinedBalance()">🔄 Refresh</button>
-          <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print / Export PDF</button>
+          <button class="btn btn-sm btn-outline" onclick="window.print()" data-restrict="print-export">🖨️ Print / Export PDF</button>
         </div>
         <div id="combinedBalBody"><div class="nd">Loading…</div></div>
       </div>
@@ -1658,7 +1859,7 @@ input[type="number"]:focus {
               <option value="ICICI">ICICI</option>
               <option value="Canara">Canara</option>
             </select>
-            <button class="btn btn-sm btn-outline" onclick="exportOffExpExcel()">📥 Excel</button>
+            <button class="btn btn-sm btn-outline" onclick="exportOffExpExcel()" data-restrict="print-export">📥 Excel</button>
           </div>
         </div>
         <div class="ox">
@@ -1693,7 +1894,7 @@ input[type="number"]:focus {
           <div style="font-weight:700;margin-bottom:4px;">Upload Bank Statement</div>
           <div style="font-size:.8rem;color:var(--gray);margin-bottom:12px;">CSV or Excel (.xlsx) file from your bank's internet banking</div>
           <input type="file" id="recoFile" accept=".csv,.xlsx,.xls" onchange="handleRecoUpload(this)" style="display:none;"/>
-          <button class="btn btn-primary" onclick="document.getElementById('recoFile').click()">📂 Choose File</button>
+          <button class="btn btn-primary" onclick="document.getElementById('recoFile').click()" data-restrict="print-export">📂 Choose File</button>
           <div id="recoFileName" style="margin-top:8px;font-size:.8rem;color:var(--gray);"></div>
         </div>
 
@@ -1707,7 +1908,7 @@ input[type="number"]:focus {
             <div class="field"><label>Debit (money OUT) column</label><select id="recoColDebit"></select></div>
           </div>
           <div class="field"><label>Opening Balance in statement (₹)</label><input type="number" id="recoOpeningBal" placeholder="e.g. 45000"/></div>
-          <button class="btn btn-primary" onclick="runReconciliation()">🔍 Run Reconciliation</button>
+          <button class="btn btn-primary" onclick="runReconciliation()" data-restrict="print-export">🔍 Run Reconciliation</button>
         </div>
 
         <!-- Results -->
@@ -1737,7 +1938,7 @@ input[type="number"]:focus {
             <input type="date" id="summaryDate" onchange="renderSummary()" style="padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"/>
             <button class="btn btn-sm btn-gray" onclick="shiftSummaryDate(1)">Next →</button>
             <button class="btn btn-sm btn-outline" onclick="document.getElementById('summaryDate').value=new Date().toISOString().split('T')[0];renderSummary()">Today</button>
-            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-sm btn-outline" onclick="window.print()" data-restrict="print-export">🖨️ Print</button>
           </div>
         </div>
         <div id="summaryBody"></div>
@@ -1829,7 +2030,7 @@ input[type="number"]:focus {
             <option value="9">October</option><option value="10">November</option><option value="11">December</option>
           </select>
           <select id="pnlYear" onchange="renderPnL()" style="padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"></select>
-          <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
+          <button class="btn btn-sm btn-outline" onclick="window.print()" data-restrict="print-export">🖨️ Print</button>
         </div>
       </div>
       <div id="pnlBody"></div>
@@ -1904,7 +2105,7 @@ input[type="number"]:focus {
       </div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showPage('addInquiry')">➕ New</button>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="window.print()" data-restrict="print-export">🖨️ Print</button>
       </div>
     </div>
     <div class="card">
@@ -2016,7 +2217,7 @@ input[type="number"]:focus {
         <div class="card-title" style="margin:0;">📋 All Payment Entries</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <input type="text" id="pmtSearch" placeholder="🔍 Search name, vehicle…" oninput="renderPayments()" style="padding:7px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.84rem;width:180px;"/>
-          <button class="btn btn-sm btn-outline" onclick="exportPaymentsExcel()">📥 Excel</button>
+          <button class="btn btn-sm btn-outline" onclick="exportPaymentsExcel()" data-restrict="print-export">📥 Excel</button>
         </div>
       </div>
       <div class="ox">
@@ -2031,6 +2232,94 @@ input[type="number"]:focus {
   </div>
 </div>
 
+
+<!-- PERMISSION SLIP MODAL -->
+<div class="mo" id="permSlipModal">
+  <div class="md" style="max-width:460px;">
+    <button class="md-close" onclick="permSlipCancel()">×</button>
+    <div class="md-title" style="color:#b45309;">🔐 Permission Required</div>
+    <p style="font-size:.83rem;color:var(--gray);margin-bottom:16px;">This action requires a permission slip signed by the owner. Upload a photo of it below.</p>
+    <div id="permSlipActionLabel" style="background:#fef9c3;border:1.5px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:.85rem;font-weight:700;color:#92400e;"></div>
+    <div class="field">
+      <label>Reason <span style="color:var(--r);">*</span></label>
+      <textarea id="permSlipReason" placeholder="Why are you making this change?" style="min-height:70px;resize:vertical;"></textarea>
+    </div>
+    <div class="field">
+      <label>Permission Slip Photo <span style="color:var(--r);">*</span></label>
+      <input type="file" id="permSlipFile" accept="image/*,application/pdf" style="width:100%;padding:8px;border:1.5px solid var(--grayb);border-radius:9px;"/>
+      <div class="hint">Photo of the physical permission slip signed by the owner</div>
+    </div>
+    <div id="permSlipPreview" style="display:none;margin-top:8px;">
+      <img id="permSlipImg" style="max-width:100%;max-height:120px;border-radius:8px;border:2px solid var(--grayb);"/>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="permSlipCancel()">Cancel</button>
+      <button class="btn btn-primary" id="permSlipSubmitBtn" onclick="permSlipSubmit()" style="background:linear-gradient(135deg,#b45309,#d97706);">📎 Upload &amp; Proceed</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEVICE SETUP MODAL (owner only — after login on new device) -->
+<div class="mo" id="deviceSetupModal">
+  <div class="md" style="max-width:420px;">
+    <div class="md-title">🖥️ Name This Device?</div>
+    <p style="font-size:.84rem;color:var(--gray);margin-bottom:16px;">Do you want to register this device as a trusted office computer? Staff will be able to log in from it without needing your approval.</p>
+    <div style="background:#eff6ff;border-radius:10px;padding:12px;margin-bottom:16px;font-size:.82rem;color:#1d4ed8;">
+      💡 Name it something like <strong>Office Desktop 1</strong>. Skip if this is your personal phone/laptop.
+    </div>
+    <div class="field">
+      <label>Device Name</label>
+      <input type="text" id="deviceNameInput" placeholder="e.g. Office Desktop 1" maxlength="30"/>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="skipDeviceNaming()">Skip — Don't Save</button>
+      <button class="btn btn-primary" onclick="saveDeviceName()">💾 Save & Trust Device</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRUSTED DEVICES MANAGER MODAL (owner only) -->
+<div class="mo" id="trustedDevicesModal">
+  <div class="md" style="max-width:500px;">
+    <button class="md-close" onclick="closeModal('trustedDevicesModal')">×</button>
+    <div class="md-title">🖥️ Trusted Devices</div>
+    <p style="font-size:.83rem;color:var(--gray);margin-bottom:16px;">Only devices listed here can be used by staff to log in without your approval.</p>
+    <div id="trustedDevicesList" style="margin-bottom:16px;"></div>
+    <div style="background:#f8fafc;border-radius:10px;padding:14px;border:1.5px solid #e2e8f0;">
+      <div style="font-weight:700;font-size:.83rem;margin-bottom:10px;">➕ Add Current Device</div>
+      <div class="field" style="margin-bottom:8px;">
+        <input type="text" id="newTrustedDeviceName" placeholder="e.g. Office Desktop 1" maxlength="30"/>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addTrustedDevice()">Add This Device as Trusted</button>
+    </div>
+  </div>
+</div>
+
+<!-- UNKNOWN DEVICE WAITING MODAL -->
+<div class="mo" id="unknownDeviceModal">
+  <div class="md" style="max-width:420px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">🔐</div>
+    <div class="md-title">Approval Required</div>
+    <p style="font-size:.84rem;color:var(--gray);margin-bottom:16px;">You are logging in from an <strong>unknown device</strong>. The owner has been notified and must approve your access.</p>
+    <div style="background:#fef9c3;border-radius:10px;padding:12px;margin-bottom:16px;font-size:.83rem;color:#92400e;font-weight:600;">
+      ⏳ Waiting for owner approval…
+    </div>
+    <div id="unknownDeviceStatus" style="font-size:.8rem;color:var(--gray);margin-bottom:16px;">Keep this page open. You will be logged in automatically once approved.</div>
+    <button class="btn btn-gray btn-full" onclick="cancelUnknownDeviceLogin()">Cancel</button>
+  </div>
+</div>
+
+<!-- OWNER DEVICE APPROVAL MODAL -->
+<div class="mo" id="deviceApprovalModal">
+  <div class="md" style="max-width:460px;">
+    <div class="md-title" style="color:#b45309;">🔔 Unknown Device Login Request</div>
+    <div id="deviceApprovalBody"></div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="respondDeviceRequest('deny')">❌ Deny</button>
+      <button class="btn btn-success" onclick="respondDeviceRequest('approve')">✅ Approve (8 hrs)</button>
+    </div>
+  </div>
+</div>
 
 <!-- AUDIT NOTIFICATION MODAL (owner only) -->
 <div class="mo" id="auditNotifModal">
@@ -2325,13 +2614,7 @@ input[type="number"]:focus {
 </div>
 
 <!-- CLIENT STATUS -->
-<div class="mo" id="clientStatusModal">
-  <div class="md" style="max-width:460px;">
-    <button class="md-close" onclick="closeModal('clientStatusModal')">×</button>
-    <div class="md-title">🔍 Your Works with Us</div>
-    <div id="clientStatusBody"></div>
-  </div>
-</div>
+<!-- Client status modal removed — now uses full page portal -->
 
 <!-- IMAGE PREVIEW -->
 <div class="mo" id="imgPreviewModal" onclick="closeModal('imgPreviewModal')">
@@ -2522,10 +2805,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const el = document.getElementById('fbStatus');
   const txt = document.getElementById('fbStatusText');
 
-  // Test Supabase connection
+  // Silent connection check — no status shown, only errors shown on login failure
   _sb.from('staff').select('id').limit(1).then(({error}) => {
-    if(!error) { el.className='fb-status connected'; txt.textContent='Supabase Connected — Data is saving online ✓'; }
-    else { el.className='fb-status disconnected'; txt.textContent='Supabase Disconnected — Check internet connection'; }
+    // Connection status hidden — errors shown only when login fails
   });
 
   setTimeout(() => {
@@ -2538,9 +2820,22 @@ window.addEventListener('DOMContentLoaded', () => {
       if(savedSession) {
         try {
           const sess = JSON.parse(savedSession);
-          if(sess && sess.id && (Date.now() - sess.loginTime) < 24*60*60*1000) {
+          const expiry = parseInt(localStorage.getItem('nl_session_expires')||'0');
+          if(sess && sess.id && Date.now() < expiry) {
             currentUser = sess;
-            await loginSuccess();
+            // Owner always restored, non-owners validate session token
+            if(currentUser.role === 'owner') {
+              await loginSuccess(getDeviceName() || 'Owner Device');
+            } else {
+              const valid = await validateSession(currentUser.uid || currentUser.id);
+              if(valid) {
+                await loginSuccess(getDeviceName() || 'Unknown Device');
+              } else {
+                localStorage.removeItem('nl_session');
+                document.getElementById('loginPage').classList.add('show');
+                checkFirstRun();
+              }
+            }
             return;
           }
         } catch(e) { localStorage.removeItem('nl_session'); }
@@ -2565,6 +2860,16 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
   document.getElementById('loginUser').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
   document.getElementById('clientUID').addEventListener('keydown', e => { if(e.key==='Enter') clientTrack(); });
+  // Auto-load if URL has ?track= parameter (bookmarked client portal)
+  const urlParams = new URLSearchParams(window.location.search);
+  const trackId = urlParams.get('track');
+  if(trackId) {
+    const loginPage = document.getElementById('loginPage');
+    if(loginPage && loginPage.classList.contains('show')) {
+      document.getElementById('clientUID').value = trackId.toUpperCase();
+      clientTrack();
+    }
+  }
   document.getElementById('chSearch').addEventListener('keydown', e => { if(e.key==='Enter') searchClientHistory(); });
   // Activity listeners for app lock
   ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
@@ -2725,59 +3030,143 @@ async function doLogin() {
   if(!email||!password){ showErr('Please enter email and password.'); return; }
 
   const btn = document.querySelector('#loginPage .btn-primary');
-  if(btn){ btn.textContent='Signing in...'; btn.disabled=true; }
+  if(btn){ btn.textContent='Signing in…'; btn.disabled=true; }
 
   try {
-    // Supabase auth — sign in with email/password
     const {data: authData, error: authError} = await _sb.auth.signInWithPassword({email, password});
     if(authError) {
-      showErr('Incorrect email or password.');
-      if(btn){ btn.textContent='Login'; btn.disabled=false; }
+      const msg = authError.message?.toLowerCase()||'';
+      if(msg.includes('network')||msg.includes('fetch')||msg.includes('connection')) {
+        showErr('⚠️ Check your internet connection and try again.');
+      } else {
+        showErr('Incorrect email or password.');
+      }
+      if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
       return;
     }
     const uid = authData.user.id;
-    // Fetch staff profile
     const {data: profile, error: profError} = await _sb.from('staff').select('*').eq('id', uid).single();
     if(profError || !profile) {
       await _sb.auth.signOut();
       showErr('Account not set up. Contact owner.');
-      if(btn){ btn.textContent='Login'; btn.disabled=false; }
+      if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
       return;
     }
     currentUser = { ...toCamel(profile), uid, key: uid };
-    // Save session
-    localStorage.setItem('nl_session', JSON.stringify({...currentUser, loginTime: Date.now()}));
-    await loginSuccess();
+
+    const deviceId = getDeviceId();
+    const deviceName = getDeviceName();
+    const isOwner = currentUser.role === 'owner';
+
+    // Owner — always allowed, no device checks
+    if(isOwner) {
+      localStorage.setItem('nl_session', JSON.stringify({...currentUser, loginTime: Date.now()}));
+      await createSession(uid, deviceId, deviceName || 'Owner Device');
+      await loginSuccess(deviceName || 'Owner Device');
+      // After dashboard loads: if unnamed device, ask to name it; if named, show toast
+      if(!deviceName) {
+        setTimeout(() => {
+          document.getElementById('deviceNameInput').value = '';
+          openModal('deviceSetupModal');
+        }, 800);
+      } else {
+        setTimeout(() => toast(`🖥️ You're on: ${deviceName}`, 'success'), 800);
+      }
+      return;
+    }
+
+    // Non-owner: check Supabase trusted_devices
+    await completeNonOwnerLogin(uid, deviceId, deviceName, btn);
   } catch(e) {
-    showErr('Error: '+e.message);
+    const msg = e.message?.toLowerCase()||'';
+    if(msg.includes('network')||msg.includes('fetch')||msg.includes('failed')) {
+      showErr('⚠️ Check your internet connection and try again.');
+    } else {
+      showErr('Something went wrong. Please try again.');
+    }
   } finally {
-    if(btn){ btn.textContent='Login'; btn.disabled=false; }
+    if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
   }
 }
 function showErr(msg) { const e=document.getElementById('loginErr'); e.textContent=msg; e.style.display='block'; }
 
-async function loginSuccess() {
+async function completeNonOwnerLogin(uid, deviceId, deviceName, btn) {
+  // Check Supabase trusted_devices table — staff can ONLY use owner-approved devices
+  const trusted = await isDeviceTrusted(deviceId);
+
+  if(trusted) {
+    // Trusted device — straight in
+    // Also sync device name from Supabase to localStorage if missing
+    if(!deviceName) {
+      try {
+        const {data} = await _sb.from('trusted_devices').select('device_name').eq('device_id', deviceId).single();
+        if(data) localStorage.setItem('nl_device_name', data.device_name);
+        deviceName = data?.device_name || 'Office Device';
+      } catch(e){}
+    }
+    localStorage.setItem('nl_session', JSON.stringify({...currentUser, loginTime: Date.now()}));
+    await createSession(uid, deviceId, deviceName);
+    await loginSuccess(deviceName);
+    return;
+  }
+
+  // Not trusted — request owner approval
+  if(btn){ btn.textContent='Sign In →'; btn.disabled=false; }
+  try {
+    const requestId = await requestDeviceApproval(uid, currentUser.name, deviceId);
+    _pendingApprovalRequestId = requestId;
+    openModal('unknownDeviceModal');
+
+    // Poll every 5 seconds for owner response
+    _deviceApprovalInterval = setInterval(async () => {
+      const {data} = await _sb.from('device_requests').select('status').eq('id', requestId).single();
+      if(!data) return;
+      if(data.status === 'approved') {
+        clearInterval(_deviceApprovalInterval);
+        closeModal('unknownDeviceModal');
+        _pendingApprovalRequestId = null;
+        localStorage.setItem('nl_session', JSON.stringify({...currentUser, loginTime: Date.now()}));
+        await createSession(uid, deviceId, deviceName || 'Unknown Device (Temp)');
+        await loginSuccess((deviceName||'Unknown Device') + ' (Temp)');
+      } else if(data.status === 'denied') {
+        clearInterval(_deviceApprovalInterval);
+        _pendingApprovalRequestId = null;
+        closeModal('unknownDeviceModal');
+        currentUser = null;
+        showErr('❌ Access denied by owner.');
+      }
+    }, 5000);
+  } catch(e) {
+    showErr('Error requesting approval: '+e.message);
+  }
+}
+
+async function loginSuccess(deviceName) {
   document.getElementById('loginPage').classList.remove('show');
   document.getElementById('mainApp').classList.add('show');
   document.getElementById('sidebarName').textContent = currentUser.name;
   const roleLabel = currentUser.role==='owner'?'👑 Owner':currentUser.role==='manager'?'🔑 Manager':'👤 Staff';
   document.getElementById('sidebarRole').textContent = roleLabel;
   document.getElementById('ownerNav').style.display = currentUser.role==='owner'?'block':'none';
-  // Show verification link for owner and manager
   const verNav = document.getElementById('nav-verification');
   if(verNav) verNav.style.display = ['owner','manager'].includes(currentUser.role)?'flex':'none';
-  // Hide financial pages from staff and manager
-  // Completely hide owner-only items for non-owners
   document.querySelectorAll('.owner-only-nav').forEach(el=>{
     el.style.display = currentUser.role==='owner' ? 'flex' : 'none';
   });
-  // Hide manager-only items for staff
   document.querySelectorAll('.manager-only-nav').forEach(el=>{
     el.style.display = ['owner','manager'].includes(currentUser.role) ? 'flex' : 'none';
   });
+
+  // Log login with device name
   const now = new Date();
-  // Try to get GPS location for access log
-  const logEntry = {name:currentUser.name, role:currentUser.role, date:now.toLocaleDateString('en-IN'), time:now.toLocaleTimeString('en-IN'), timestamp:now.getTime()};
+  const dName = deviceName || getDeviceName() || 'Unknown Device';
+  const logEntry = {
+    name: currentUser.name, role: currentUser.role,
+    date: now.toLocaleDateString('en-IN'), time: now.toLocaleTimeString('en-IN'),
+    timestamp: now.getTime(),
+    action: 'LOGIN',
+    details: JSON.stringify({deviceName: dName, deviceId: getDeviceId()})
+  };
   if(navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -2790,9 +3179,15 @@ async function loginSuccess() {
   } else {
     _sb.from('access_log').insert({...logEntry, location:'—'}).then(()=>{}).catch(()=>{});
   }
+
+  // Start security watchers
+  start8HourExpiry();
+  if(currentUser.role !== 'owner') startSessionWatcher();
+  if(currentUser.role === 'owner') startApprovalWatcher();
+  updateDeviceNameDisplay();
+
   await loadAllData();
-  showPage('dashboard');
-  startClock();
+  renderDashboard(); startClock(); applyStaffRestrictions();
   setTimeout(checkExpiryNotifications, 1500);
 }
 
@@ -2842,9 +3237,14 @@ function togglePw(id, btn) {
 function doLogout() {
   if(!confirm('Are you sure you want to logout?')) return;
   clearTimeout(lockTimer);
-  try { localStorage.removeItem('nl_session'); } catch(e) {}
+  if(_sessionCheckInterval) clearInterval(_sessionCheckInterval);
+  if(_deviceApprovalInterval) clearInterval(_deviceApprovalInterval);
+  // Clear session from Supabase
+  if(currentUser && currentUser.role !== 'owner') {
+    _sb.from('device_sessions').delete().eq('user_id', currentUser.uid||currentUser.id).then(()=>{}).catch(()=>{});
+  }
+  try { localStorage.removeItem('nl_session'); localStorage.removeItem('nl_session_expires'); } catch(e) {}
   currentUser=null; allWorks=[];allStaff=[];allLedger=[];allSalary=[];allFollowups=[];allCash=[];allAttendance=[];
-
   document.getElementById('mainApp').classList.remove('show');
   document.getElementById('loginPage').classList.add('show');
   ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
@@ -2975,6 +3375,86 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 // ============================================================
 // DASHBOARD
 // ============================================================
+// ============================================================
+// PERMISSION SLIP SYSTEM
+// ============================================================
+let _permSlipCallback = null;
+let _permSlipAction = '';
+
+function requirePermSlip(actionLabel, callback) {
+  // Owner bypasses permission slip entirely
+  if(currentUser && currentUser.role === 'owner') {
+    callback(null, null); // no slip needed
+    return;
+  }
+  _permSlipCallback = callback;
+  _permSlipAction = actionLabel;
+  document.getElementById('permSlipActionLabel').textContent = '⚠️ Action: ' + actionLabel;
+  document.getElementById('permSlipReason').value = '';
+  document.getElementById('permSlipFile').value = '';
+  document.getElementById('permSlipPreview').style.display = 'none';
+  document.getElementById('permSlipImg').src = '';
+  // Preview on file select
+  document.getElementById('permSlipFile').onchange = function() {
+    const f = this.files[0];
+    if(f && f.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = e => {
+        document.getElementById('permSlipImg').src = e.target.result;
+        document.getElementById('permSlipPreview').style.display = 'block';
+      };
+      r.readAsDataURL(f);
+    }
+  };
+  openModal('permSlipModal');
+}
+
+function permSlipCancel() {
+  _permSlipCallback = null;
+  closeModal('permSlipModal');
+}
+
+async function permSlipSubmit() {
+  const reason = document.getElementById('permSlipReason').value.trim();
+  const file = document.getElementById('permSlipFile').files[0];
+  if(!reason) { toast('Enter a reason','warn'); return; }
+  if(!file) { toast('Upload the permission slip photo','warn'); return; }
+
+  const btn = document.getElementById('permSlipSubmitBtn');
+  if(btn) { btn.textContent='⏳ Uploading…'; btn.disabled=true; }
+
+  try {
+    // Upload to Supabase Storage
+    let slipUrl = '';
+    try {
+      const ext = (file.name||'slip').split('.').pop().toLowerCase()||'jpg';
+      const path = `permission-slips/${currentUser.name}_${Date.now()}.${ext}`;
+      const {data, error} = await _sb.storage.from('receipts').upload(path, file, {contentType: file.type, upsert:true});
+      if(!error) {
+        const {data: urlData} = _sb.storage.from('receipts').getPublicUrl(path);
+        slipUrl = urlData.publicUrl;
+      }
+    } catch(e) {
+      // fallback to base64
+      slipUrl = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(file);
+      });
+    }
+
+    closeModal('permSlipModal');
+    if(_permSlipCallback) {
+      await _permSlipCallback(reason, slipUrl);
+    }
+    _permSlipCallback = null;
+  } catch(e) {
+    toast('Upload failed: '+e.message,'error');
+  } finally {
+    if(btn) { btn.textContent='📎 Upload & Proceed'; btn.disabled=false; }
+  }
+}
+
 let dashVehTab = 'open';
 function dashVehicleSetTab(tab, btn) {
   dashVehTab = tab;
@@ -3121,6 +3601,290 @@ async function checkOwnerAuditNotif() {
   } catch(e) { console.warn('Audit notif error:', e.message); }
 }
 
+// ============================================================
+// DEVICE SECURITY SYSTEM
+// ============================================================
+
+// Get or generate a permanent device ID for this browser
+function getDeviceId() {
+  let did = localStorage.getItem('nl_device_id');
+  if(!did) {
+    did = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('nl_device_id', did);
+  }
+  return did;
+}
+
+function getDeviceName() {
+  return localStorage.getItem('nl_device_name') || null;
+}
+
+// ── Owner: skip naming (personal device) ──
+function skipDeviceNaming() {
+  closeModal('deviceSetupModal');
+  toast('Device not saved — staff cannot log in here without approval', 'warn');
+  if(window._pendingLoginAfterSetup) {
+    window._pendingLoginAfterSetup(null); // null = unnamed
+    window._pendingLoginAfterSetup = null;
+  }
+}
+
+// ── Owner: save device name locally + to Supabase trusted list ──
+async function saveDeviceName() {
+  const name = document.getElementById('deviceNameInput').value.trim();
+  if(!name) { toast('Enter a device name','warn'); return; }
+  const btn = document.querySelector('#deviceSetupModal .btn-primary');
+  if(btn) { btn.textContent='Saving…'; btn.disabled=true; }
+  try {
+    const deviceId = getDeviceId();
+    // Save to Supabase trusted_devices table
+    await _sb.from('trusted_devices').upsert({
+      device_id: deviceId,
+      device_name: name,
+      named_by: currentUser?.name || 'Owner',
+      named_at: Date.now()
+    }, {onConflict: 'device_id'});
+    // Save locally too for fast lookup
+    localStorage.setItem('nl_device_name', name);
+    closeModal('deviceSetupModal');
+    toast('✅ Device saved as: ' + name, 'success');
+    updateDeviceNameDisplay();
+    if(window._pendingLoginAfterSetup) {
+      window._pendingLoginAfterSetup(name);
+      window._pendingLoginAfterSetup = null;
+    }
+  } catch(e) {
+    toast('Error saving: '+e.message, 'error');
+  } finally {
+    if(btn) { btn.textContent='💾 Save & Trust Device'; btn.disabled=false; }
+  }
+}
+
+// ── Check if device is trusted (in Supabase) ──
+async function isDeviceTrusted(deviceId) {
+  try {
+    const {data} = await _sb.from('trusted_devices').select('device_id').eq('device_id', deviceId).single();
+    return !!data;
+  } catch(e) { return false; }
+}
+
+// ── Load trusted devices for owner management modal ──
+async function loadTrustedDevices() {
+  const el = document.getElementById('trustedDevicesList');
+  if(!el) return;
+  el.innerHTML = '<div style="color:var(--gray);font-size:.82rem;">Loading…</div>';
+  try {
+    const {data} = await _sb.from('trusted_devices').select('*').order('named_at', {ascending:true});
+    if(!data || data.length === 0) {
+      el.innerHTML = '<div style="color:var(--gray);font-size:.83rem;padding:10px;">No trusted devices yet. Add the current device below.</div>';
+      return;
+    }
+    const currentDid = getDeviceId();
+    el.innerHTML = data.map(d => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${d.device_id===currentDid?'#eff6ff':'#f8fafc'};border-radius:10px;margin-bottom:8px;border:1.5px solid ${d.device_id===currentDid?'#bfdbfe':'#e2e8f0'};">
+        <div>
+          <div style="font-weight:700;font-size:.88rem;">${esc(d.device_name)}${d.device_id===currentDid?' <span style="color:#2563eb;font-size:.72rem;">(this device)</span>':''}</div>
+          <div style="font-size:.72rem;color:var(--gray);">Added: ${d.named_by||'Owner'} · ${new Date(d.named_at||0).toLocaleDateString('en-IN')}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="renameTrustedDevice('${d.device_id}','${esc(d.device_name)}')" style="padding:4px 10px;border-radius:6px;background:#fef9c3;border:1px solid #fde68a;font-size:.75rem;cursor:pointer;">✏️ Rename</button>
+          <button onclick="deleteTrustedDevice('${d.device_id}','${esc(d.device_name)}')" style="padding:4px 10px;border-radius:6px;background:#fee2e2;border:1px solid #fecaca;font-size:.75rem;cursor:pointer;">🗑️</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--r);">Error loading devices</div>';
+  }
+}
+
+async function addTrustedDevice() {
+  const name = document.getElementById('newTrustedDeviceName').value.trim();
+  if(!name) { toast('Enter a device name','warn'); return; }
+  try {
+    const deviceId = getDeviceId();
+    await _sb.from('trusted_devices').upsert({
+      device_id: deviceId, device_name: name,
+      named_by: currentUser.name, named_at: Date.now()
+    }, {onConflict: 'device_id'});
+    localStorage.setItem('nl_device_name', name);
+    updateDeviceNameDisplay();
+    document.getElementById('newTrustedDeviceName').value = '';
+    toast('✅ Device added: '+name,'success');
+    loadTrustedDevices();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+async function renameTrustedDevice(deviceId, currentName) {
+  const newName = prompt('Rename device:', currentName);
+  if(!newName || !newName.trim()) return;
+  try {
+    await _sb.from('trusted_devices').update({device_name: newName.trim()}).eq('device_id', deviceId);
+    if(deviceId === getDeviceId()) {
+      localStorage.setItem('nl_device_name', newName.trim());
+      updateDeviceNameDisplay();
+    }
+    toast('✅ Renamed to: '+newName.trim(),'success');
+    loadTrustedDevices();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+async function deleteTrustedDevice(deviceId, name) {
+  if(!confirm(`Remove "${name}" from trusted devices?\nStaff will need owner approval to log in from it.`)) return;
+  try {
+    await _sb.from('trusted_devices').delete().eq('device_id', deviceId);
+    if(deviceId === getDeviceId()) {
+      localStorage.removeItem('nl_device_name');
+      updateDeviceNameDisplay();
+    }
+    toast('Device removed from trusted list','success');
+    loadTrustedDevices();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+function openDeviceNameSetup() {
+  const current = getDeviceName();
+  document.getElementById('deviceNameInput').value = current || '';
+  openModal('deviceSetupModal');
+}
+
+function updateDeviceNameDisplay() {
+  const name = getDeviceName();
+  const el = document.getElementById('deviceNameDisplay');
+  if(el) el.textContent = name ? name : 'Name This Device';
+  // Show/hide button based on role
+  const btn = document.getElementById('deviceNameBtn');
+  if(btn) btn.style.display = currentUser?.role === 'owner' ? '' : 'none';
+}
+
+// ── Session token (single session enforcement) ──
+let _sessionToken = null;
+let _sessionCheckInterval = null;
+let _deviceApprovalInterval = null;
+let _pendingApprovalRequestId = null;
+
+async function createSession(userId, deviceId, deviceName) {
+  const token = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  _sessionToken = token;
+  await _sb.from('device_sessions').upsert({
+    user_id: userId, session_token: token,
+    device_id: deviceId, device_name: deviceName || 'Unknown Device',
+    created_at: Date.now(), expires_at: Date.now() + 8*60*60*1000
+  }, {onConflict: 'user_id'});
+  return token;
+}
+
+async function validateSession(userId) {
+  if(!_sessionToken) return false;
+  try {
+    const {data} = await _sb.from('device_sessions').select('session_token,expires_at').eq('user_id', userId).single();
+    if(!data) return false;
+    if(data.session_token !== _sessionToken) return false;
+    if(Date.now() > data.expires_at) return false;
+    return true;
+  } catch(e) { return false; }
+}
+
+function startSessionWatcher() {
+  if(_sessionCheckInterval) clearInterval(_sessionCheckInterval);
+  _sessionCheckInterval = setInterval(async () => {
+    if(!currentUser || currentUser.role === 'owner') return;
+    const valid = await validateSession(currentUser.uid || currentUser.id);
+    if(!valid) {
+      clearInterval(_sessionCheckInterval);
+      forceLogout('Your session has expired or you were logged in from another device. Please log in again.');
+    }
+  }, 30000);
+}
+
+function forceLogout(message) {
+  clearTimeout(lockTimer);
+  if(_sessionCheckInterval) clearInterval(_sessionCheckInterval);
+  if(_deviceApprovalInterval) clearInterval(_deviceApprovalInterval);
+  try {
+    localStorage.removeItem('nl_session');
+    localStorage.removeItem('nl_session_expires');
+  } catch(e) {}
+  currentUser = null;
+  allWorks=[]; allStaff=[]; allLedger=[]; allSalary=[]; allFollowups=[]; allCash=[]; allAttendance=[];
+  document.getElementById('mainApp').classList.remove('show');
+  document.getElementById('loginPage').classList.add('show');
+  ['loginUser','loginPass'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  if(message) {
+    const errEl = document.getElementById('loginErr');
+    if(errEl) { errEl.textContent=message; errEl.style.display='block'; }
+  }
+}
+
+// ── Device approval request flow ──
+async function requestDeviceApproval(userId, userName, deviceId) {
+  const {data, error} = await _sb.from('device_requests').insert({
+    user_id: userId, user_name: userName,
+    device_id: deviceId, status: 'pending', requested_at: Date.now()
+  }).select().single();
+  if(error) throw error;
+  return data.id;
+}
+
+async function cancelUnknownDeviceLogin() {
+  if(_deviceApprovalInterval) clearInterval(_deviceApprovalInterval);
+  if(_pendingApprovalRequestId) {
+    await _sb.from('device_requests').update({status:'cancelled'}).eq('id', _pendingApprovalRequestId);
+    _pendingApprovalRequestId = null;
+  }
+  closeModal('unknownDeviceModal');
+}
+
+let _currentApprovalRequestId = null;
+async function respondDeviceRequest(action) {
+  if(!_currentApprovalRequestId) return;
+  await _sb.from('device_requests').update({
+    status: action==='approve'?'approved':'denied',
+    responded_at: Date.now(), responded_by: currentUser.name
+  }).eq('id', _currentApprovalRequestId);
+  closeModal('deviceApprovalModal');
+  toast(action==='approve'?'✅ Access approved':'❌ Access denied', action==='approve'?'success':'error');
+  _currentApprovalRequestId = null;
+}
+
+// ── Owner: watch for pending approval requests ──
+function startApprovalWatcher() {
+  if(!currentUser || currentUser.role !== 'owner') return;
+  setInterval(async () => {
+    const {data} = await _sb.from('device_requests').select('*').eq('status','pending');
+    if(!data || data.length === 0) return;
+    const req = data[0];
+    if(_currentApprovalRequestId === req.id) return;
+    _currentApprovalRequestId = req.id;
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [880,1100].forEach((freq,i) => {
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value=freq; g.gain.value=0.3;
+        o.start(ctx.currentTime+i*0.4); o.stop(ctx.currentTime+i*0.4+0.3);
+      });
+    } catch(e){}
+    document.getElementById('deviceApprovalBody').innerHTML = `
+      <div style="background:#fef9c3;border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:800;font-size:.9rem;margin-bottom:6px;">👤 ${esc(req.user_name)}</div>
+        <div style="font-size:.82rem;color:#92400e;">is requesting access from an unknown device</div>
+        <div style="font-size:.75rem;color:var(--gray);margin-top:6px;">Requested: ${new Date(req.requested_at).toLocaleTimeString('en-IN')}</div>
+      </div>
+      <p style="font-size:.82rem;color:var(--gray);">If approved, they get access for 8 hours or until logout.</p>`;
+    openModal('deviceApprovalModal');
+  }, 5000);
+}
+
+// ── 8-hour session expiry ──
+function start8HourExpiry() {
+  const expiresAt = Date.now() + 8*60*60*1000;
+  localStorage.setItem('nl_session_expires', expiresAt.toString());
+  setInterval(() => {
+    if(!currentUser) return;
+    const exp = parseInt(localStorage.getItem('nl_session_expires')||'0');
+    if(Date.now() > exp) forceLogout('Your session has expired. Please log in again.');
+  }, 60000);
+}
+
 function renderDashboard() {
   const now=Date.now();
   const total=allWorks.length, done=allWorks.filter(w=>w.status==='done').length;
@@ -3230,7 +3994,15 @@ function renderDashboard() {
 // payModeChange replaced by payRowChange()
 
 // Set date default when new work page loads — called from showPage
-function initNewWorkDate(){const today=new Date().toISOString().split('T')[0];const el=document.getElementById('w_date');if(el)el.value=today;document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=today;});}
+function initNewWorkDate(){
+  const today=new Date().toISOString().split('T')[0];
+  const el=document.getElementById('w_date');
+  if(el) el.value=today;
+  // Set date on ALL pay-date-inp fields including first row
+  document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=today;});
+  const fp=document.getElementById('firstPayDate');
+  if(fp) fp.value=today;
+}
 
 function resetNewWorkForm() {
   try {
@@ -3720,7 +4492,7 @@ async function _doSubmitWork() {
     resetVWRows();
     document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid / Due</option></select><select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/><input type="date" class="pay-date-inp" value="${new Date().toISOString().split('T')[0]}" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/><button onclick="addPayRow()" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button></div>`;
     await loadAllData();
-    renderDashboard(); startClock();
+    renderDashboard(); startClock(); applyStaffRestrictions();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
   } catch(e){toast('Error: '+e.message,'error');}
 }
@@ -3733,32 +4505,33 @@ async function deleteWork(key) {
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
   if(!confirm('Delete Work #'+w.workNum+' for '+(w.ownerName||w.clientName)+'?\nThis will also delete all related ledger entries. Cannot be undone.')) return;
-  try {
-    // AUDIT LOG — save full snapshot before deletion
-    await auditLog('DELETE_WORK', {
-      workNum: w.workNum, clientName: w.clientName, ownerName: w.ownerName,
-      vehicle: w.vehicles||w.vehicle, workType: w.workType,
-      workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
-      status: w.status, phone: w.phone, date: w.date,
-      takenBy: w.takenBy, addedAt: w.timestamp
-    });
-    // Delete related ledger entries by work_ref pattern
-    const workRef = '#'+w.workNum+' —';
-    const {data: ledgerRows} = await _sb.from('ledger').select('id').ilike('work_ref', workRef+'%');
-    if(ledgerRows && ledgerRows.length > 0) {
-      const ids = ledgerRows.map(r=>r.id);
-      await _sb.from('ledger').delete().in('id', ids);
-    }
-    await _sb.from('works').delete().eq('id', key);
-    toast('Work #'+w.workNum+' and '+(ledgerRows?.length||0)+' ledger entries deleted','success');
-    await loadAllData();
-    renderDashboard();
-    const activePage = document.querySelector('.page.active');
-    if(activePage) {
-      if(activePage.id==='page-allWork') renderWorkTable();
-      else if(activePage.id==='page-verification') renderVerification();
-    }
-  } catch(e) { toast('Error: '+e.message,'error'); }
+
+  requirePermSlip('Delete Work #'+w.workNum+' — '+(w.ownerName||w.clientName), async (reason, slipUrl) => {
+    try {
+      await auditLog('DELETE_WORK', {
+        workNum: w.workNum, clientName: w.clientName, ownerName: w.ownerName,
+        vehicle: w.vehicles||w.vehicle, workType: w.workType,
+        workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
+        status: w.status, phone: w.phone, date: w.date,
+        takenBy: w.takenBy, addedAt: w.timestamp,
+        reason: reason||'Owner — no slip required',
+        permissionSlipUrl: slipUrl||''
+      });
+      const workRef = '#'+w.workNum+' —';
+      const {data: ledgerRows} = await _sb.from('ledger').select('id').ilike('work_ref', workRef+'%');
+      if(ledgerRows && ledgerRows.length > 0) {
+        await _sb.from('ledger').delete().in('id', ledgerRows.map(r=>r.id));
+      }
+      await _sb.from('works').delete().eq('id', key);
+      toast('Work #'+w.workNum+' deleted','success');
+      await loadAllData(); renderDashboard();
+      const activePage = document.querySelector('.page.active');
+      if(activePage) {
+        if(activePage.id==='page-allWork') renderWorkTable();
+        else if(activePage.id==='page-verification') renderVerification();
+      }
+    } catch(e) { toast('Error: '+e.message,'error'); }
+  });
 }
 
 // Print single work receipt
@@ -3787,7 +4560,7 @@ function printWorkReceipt(key) {
     +'<div class="row"><span class="label">Status</span><span class="value">'+(w.status==='done'?'Completed':w.status==='partial'?'Partial Completion':'In Progress')+'</span></div>'
     +(w.expiryDate?'<div class="row"><span class="label">Expiry Date</span><span class="value" style="color:#ea580c;">'+fmtDate(w.expiryDate)+'</span></div>':'')
     +'<div class="footer">Thank you! Keep this Unique ID to track your work.</div>'
-    +'<br/><button onclick="window.print()" style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">Print</button>'
+    +'<br/><button onclick="window.print()" data-restrict="print-export" style="width:100%;padding:10px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;">Print</button>'
     +'</body></html>');
   win.document.close();
 }
@@ -3857,7 +4630,7 @@ function renderWorkTable(){
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
         ${w.status!=='done'?`<button class="btn btn-sm btn-gray" onclick="openEditWork('${w._key}')">✏️</button>`:''}
-        <button class="btn btn-sm btn-outline" onclick="printReceipt('${w._key}')" title="Print Receipt">🖨️</button>
+        <button class="btn btn-sm btn-outline" onclick="printReceipt('${w._key}')" data-restrict="print-export" title="Print Receipt">🖨️</button>
         <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp">📱</button>
         ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-danger" onclick="deleteWork('${w._key}')">🗑️</button>`:''}
       </div>
@@ -3865,6 +4638,20 @@ function renderWorkTable(){
   </tr>`).join('');
 }
 function filterWorks(){renderWorkTable();}
+
+// ── Staff Print/Export/Import restrictions ──
+function applyStaffRestrictions() {
+  if(!currentUser) return;
+  const isStaff = currentUser.role === 'staff';
+  const isNotOwner = currentUser.role !== 'owner';
+  document.querySelectorAll('[data-restrict="print-export"]').forEach(el => {
+    el.style.display = isStaff ? 'none' : '';
+  });
+  // Full Backup — owner only (hidden from managers too)
+  document.querySelectorAll('[data-restrict="owner-only-btn"]').forEach(el => {
+    el.style.display = isNotOwner ? 'none' : '';
+  });
+}
 
 // ── New Work page Tab order enforcer ──
 document.addEventListener('keydown', function(e) {
@@ -4215,7 +5002,7 @@ function renderDateWise(){
     <div class="sc"><div class="sl">Open</div><div class="sv">${list.length-done}</div></div>
     <div class="sc yellow"><div class="sl">Total Collected</div><div class="sv">${inr(totalAmt)}</div></div>
     ${typeSummary}
-    ${isMonth?`<div style="margin-top:12px;width:100%;display:flex;justify-content:flex-end;"><button class="btn btn-sm btn-outline" onclick="printDateWise()">🖨️ Print Report</button></div>`:''}
+    ${isMonth?`<div style="margin-top:12px;width:100%;display:flex;justify-content:flex-end;"><button class="btn btn-sm btn-outline" onclick="printDateWise()" data-restrict="print-export">🖨️ Print Report</button></div>`:''}
   `;
   const tbody=document.getElementById('dateTableBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="10" class="nd">No works for this period</td></tr>';return;}
@@ -4791,7 +5578,7 @@ function viewWork(key){
   }catch(e){payInfo=`<div class="di"><div class="dl">${esc(w.payMode||'—')}</div><div class="dv">${inr(w.amount||0)}</div></div>`;}
   document.getElementById('workDetailBody').innerHTML=`
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')">🖨️ Print Receipt</button>
+      <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')" data-restrict="print-export">🖨️ Print Receipt</button>
       <button class="btn btn-success btn-sm" onclick="waFromWork('${key}')">📱 WhatsApp</button>
       ${w.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="closeModal('workDetailModal');openCloseWork('${key}')">✅ Complete Work</button>`:''}
     </div>
@@ -4889,25 +5676,31 @@ function ewGetRows() {
 
 function openEditWork(key){
   const w=allWorks.find(x=>x._key===key); if(!w) return;
-  editingWorkKey=key;
+
+  requirePermSlip('Edit Work #'+w.workNum+' — '+(w.ownerName||w.clientName), (reason, slipUrl) => {
+    if(reason !== null || currentUser.role === 'owner') {
+      // Store slip info for audit on save
+      editingWorkKey=key;
+      window._editPermReason = reason;
+      window._editPermSlipUrl = slipUrl;
+      _doOpenEditWork(w);
+    }
+  });
+}
+
+function _doOpenEditWork(w){
   document.getElementById('ew_name').value=w.ownerName||w.clientName||'';
   document.getElementById('ew_clientName').value=w.clientName&&w.clientName!==w.ownerName?w.clientName:'';
   document.getElementById('ew_phone').value=w.phone||'';
   document.getElementById('ew_amount').value=w.totalPaid||w.amount||'';
   document.getElementById('ew_notes').value=w.notes||'';
-  // Populate vehicle+work rows
   const list = document.getElementById('ew_vwList');
   list.innerHTML = '';
   try {
     const items = JSON.parse(w.vehicleWorkItems||'[]');
-    if(items.length>0) {
-      items.forEach(r=>ewAddVWRow(r.vehicle||'', r.workType||'', r.rowWorkValue||0));
-    } else {
-      ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0);
-    }
-  } catch(e) {
-    ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0);
-  }
+    if(items.length>0) { items.forEach(r=>ewAddVWRow(r.vehicle||'', r.workType||'', r.rowWorkValue||0)); }
+    else { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0); }
+  } catch(e) { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0); }
   ewCalcTotal();
   closeModal('workDetailModal');
   openModal('editWorkModal');
@@ -4945,7 +5738,9 @@ async function saveEditWork(){
       workNum: w.workNum, ownerName: w.ownerName, clientName: w.clientName,
       vehicle: w.vehicles||w.vehicle, workType: w.workType,
       workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
-      changes: changes.join(' | ') || 'Minor details updated'
+      changes: changes.join(' | ') || 'Minor details updated',
+      reason: window._editPermReason||'Owner — no slip required',
+      permissionSlipUrl: window._editPermSlipUrl||''
     });
     await _sb.from('works').update(toSnake({
       ownerName, clientName, phone,
@@ -5142,7 +5937,6 @@ function cwBackToStep1() {
 }
 
 // Stubs for compatibility
-function setCompleteType(t){}
 function updatePartialDescFromCheckboxes(){}
 function closePaySrcChange(sel){}
 function closingBankChange(sel){}
@@ -6058,7 +6852,322 @@ function printReceipt(key) {
     .unpaid{background:#fee2e2;color:#be123c;}
     .footer{text-align:center;margin-top:16px;font-size:10px;color:#999;}
     @media print{button{display:none!important;}.no-print{display:none!important;}}
-  </style></head><body>
+  
+/* ═══════════ CLIENT PORTAL FULL PAGE ═══════════ */
+#clientPortalPage {
+  display: none;
+  min-height: 100vh;
+  background: #f0f4ff;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  overflow-y: auto;
+}
+#clientPortalPage.show { display: flex; }
+
+.cp-header {
+  background: linear-gradient(135deg, #0a0f1e 0%, #1e1b4b 50%, #2d2b7a 100%);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 24px rgba(0,0,0,.3);
+}
+.cp-header-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cp-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cp-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(79,70,229,.4);
+  flex-shrink: 0;
+}
+.cp-logo-text {
+  font-weight: 800;
+  font-size: .9rem;
+  color: #fff;
+  letter-spacing: -.2px;
+  line-height: 1.2;
+}
+.cp-logo-sub {
+  font-size: .65rem;
+  color: rgba(255,255,255,.4);
+  font-weight: 400;
+}
+.cp-back-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.7);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all .2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cp-back-btn:hover {
+  background: rgba(255,255,255,.18);
+  color: #fff;
+}
+
+.cp-body {
+  flex: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 28px 20px 40px;
+  box-sizing: border-box;
+}
+
+/* Greeting */
+.cp-greeting {
+  margin-bottom: 24px;
+}
+.cp-greeting-time {
+  font-size: .75rem;
+  color: #6366f1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.cp-greeting-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -.5px;
+  line-height: 1.2;
+}
+.cp-greeting-sub {
+  font-size: .83rem;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+/* Client info strip */
+.cp-id-strip {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(30,27,75,.2);
+}
+.cp-id-label {
+  font-size: .65rem;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+.cp-id-value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #a5b4fc;
+  letter-spacing: 5px;
+  font-family: monospace;
+}
+.cp-id-phone {
+  font-size: .78rem;
+  color: rgba(255,255,255,.5);
+  margin-top: 4px;
+}
+.cp-copy-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.6);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: .72rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.cp-copy-btn:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+/* Stats */
+.cp-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.cp-stat {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  border: 1.5px solid #e2e8f0;
+}
+.cp-stat-num {
+  font-size: 1.8rem;
+  font-weight: 900;
+  font-family: 'Sora', sans-serif;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.cp-stat-label {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* Expiry alert */
+.cp-expiry-alert {
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.cp-expiry-title {
+  font-weight: 800;
+  font-size: .82rem;
+  color: #92400e;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cp-expiry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(234,179,8,.25);
+  font-size: .83rem;
+}
+.cp-expiry-row:last-child { border-bottom: none; }
+
+/* Section title */
+.cp-section-title {
+  font-weight: 800;
+  font-size: .75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cp-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+/* Work card */
+.cp-work-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  transition: box-shadow .2s;
+}
+.cp-work-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+.cp-work-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+.cp-work-type {
+  font-weight: 800;
+  font-size: .95rem;
+  color: #1e293b;
+}
+.cp-work-vehicle {
+  font-size: .78rem;
+  color: #64748b;
+  font-family: monospace;
+  font-weight: 600;
+  margin-top: 3px;
+  letter-spacing: .5px;
+}
+.cp-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cp-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.cp-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: .71rem;
+  font-weight: 600;
+}
+.cp-download-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  color: #fff;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: .84rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(79,70,229,.3);
+  transition: all .2s;
+}
+.cp-download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(79,70,229,.4);
+}
+
+/* Footer */
+.cp-footer {
+  background: #0a0f1e;
+  color: rgba(255,255,255,.6);
+  text-align: center;
+  padding: 24px 20px;
+  font-size: .78rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.cp-footer strong { color: #fff; }
+.cp-footer a { color: #818cf8; text-decoration: none; font-weight: 600; }
+.cp-footer a:hover { color: #a5b4fc; }
+</style></head><body>
   <h2>🏢 Nandan Legal Services</h2>
   <div class="sub">RTO & Vehicle Documentation Office</div>
   <div class="sub">Work Receipt</div>
@@ -6105,7 +7214,7 @@ function printReceipt(key) {
     Thank you for choosing Nandan Legal Services!<br/>Keep this receipt for your records.
   </div>
   <br/>
-  <button onclick="window.print()" style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨️ Print Receipt</button>
+  <button onclick="window.print()" data-restrict="print-export" style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨️ Print Receipt</button>
   </body></html>`);
   win.document.close();
 }
@@ -6319,17 +7428,20 @@ async function renderOspHistory() {
 
 async function deleteOspEntry(id) {
   if(!confirm('Delete this RTO Inside Spend entry?')) return;
-  try {
-    const entry = allOspSpend?.find(s=>s._key===id);
-    await auditLog('DELETE_RTO', {
-      description: entry?.description||'—', amount: entry?.amount||0,
-      bank: entry?.bank||'—', date: entry?.date||'—',
-      workRef: entry?.workRef||'—', spentBy: entry?.spentBy||entry?.by||'—'
-    });
-    await _sb.from('ledger').delete().eq('id', id);
-    toast('Entry deleted ✅','success');
-    renderOspHistory();
-  } catch(e){ toast('Error: '+e.message,'error'); }
+  const entry = allOspSpend?.find(s=>s._key===id);
+  requirePermSlip('Delete RTO Spend — '+(entry?.description||'entry'), async (reason, slipUrl) => {
+    try {
+      await auditLog('DELETE_RTO', {
+        description: entry?.description||'—', amount: entry?.amount||0,
+        bank: entry?.bank||'—', date: entry?.date||'—',
+        workRef: entry?.workRef||'—', spentBy: entry?.spentBy||entry?.by||'—',
+        reason: reason||'Owner', permissionSlipUrl: slipUrl||''
+      });
+      await _sb.from('ledger').delete().eq('id', id);
+      toast('Entry deleted ✅','success');
+      renderOspHistory();
+    } catch(e){ toast('Error: '+e.message,'error'); }
+  });
 }
 
 // PAYMENTS
@@ -6525,13 +7637,21 @@ function editPaymentEntry(id) {
   let meta = {};
   try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
 
+  requirePermSlip('Edit Payment — '+(entry.description||'entry').slice(0,40), (reason, slipUrl) => {
+    if(reason === null && currentUser.role !== 'owner') return; // cancelled
+    window._editPermReason = reason||'Owner';
+    window._editPermSlipUrl = slipUrl||'';
+    _doEditPaymentEntry(entry, meta);
+  });
+}
+
+function _doEditPaymentEntry(entry, meta) {
   // Show form
   const form = document.getElementById('pmtForm');
   form.style.display = 'block';
   document.getElementById('pmtToggleBtn').textContent = '✕ Cancel';
 
   // Fill fields
-  // Convert date from en-IN format back to ISO
   const dateParts = (entry.date||'').split('/');
   const isoDate = dateParts.length===3
     ? `${dateParts[2]}-${dateParts[1].padStart(2,'0')}-${dateParts[0].padStart(2,'0')}`
@@ -6544,9 +7664,8 @@ function editPaymentEntry(id) {
   document.getElementById('pmt_remarks').value = meta.payment_remarks || '';
   pmtSetType(meta.payment_entry_type || entry.type || 'debit');
 
-  // Set work link
   const workKey = meta.payment_work_key || '';
-  if(workKey) pmtVehicleInput(); // rebuild work dropdown
+  if(workKey) pmtVehicleInput();
   setTimeout(()=>{
     const ws = document.getElementById('pmt_work');
     if(ws && workKey) ws.value = workKey;
@@ -6557,53 +7676,48 @@ function editPaymentEntry(id) {
     }
   }, 200);
 
-  // Store editing ID so save knows to delete old entry first
-  form.dataset.editingId = id;
+  // Fix #7: use entry._key instead of undefined `id`
+  form.dataset.editingId = entry._key || '';
   form.dataset.editingWorkKey = meta.payment_work_key || '';
   form.dataset.editingType = meta.payment_entry_type || entry.type || 'debit';
   form.dataset.editingAmount = entry.amount || 0;
 
-  // Scroll to form
   form.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 async function deletePaymentEntry(id) {
   if(!confirm('Delete this payment entry? This will also reverse any work balance changes.')) return;
-  try {
-    // Find the entry first to reverse work balance if it was a credit
-    const entry = allLedger.find(l=>l._key===id);
-    if(entry) {
-      let meta = {};
-      try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
-      // AUDIT LOG
+  const entry = allLedger.find(l=>l._key===id);
+  let meta = {};
+  try { meta = JSON.parse(entry?.receiptUrls||'{}'); } catch(e){}
+
+  requirePermSlip('Delete Payment — '+(entry?.description||'entry').slice(0,40), async (reason, slipUrl) => {
+    try {
       await auditLog('DELETE_PAYMENT', {
-        description: entry.description||'—', amount: entry.amount||0,
-        bank: entry.bank||'—', date: entry.date||'—',
-        entryType: entry.type, paymentName: meta.payment_name||'—',
-        vehicle: meta.payment_vehicle||'—', workRef: entry.workRef||'—'
+        description: entry?.description||'—', amount: entry?.amount||0,
+        bank: entry?.bank||'—', date: entry?.date||'—',
+        entryType: entry?.type, paymentName: meta.payment_name||'—',
+        vehicle: meta.payment_vehicle||'—', workRef: entry?.workRef||'—',
+        reason: reason||'Owner', permissionSlipUrl: slipUrl||''
       });
       const workKey = meta.payment_work_key;
-      const entryType = meta.payment_entry_type || entry.type;
+      const entryType = meta.payment_entry_type || entry?.type;
       if(workKey && entryType === 'credit') {
         const linkedWork = allWorks.find(x=>x._key===workKey);
         if(linkedWork) {
-          const reversedTotal = Math.max(0, (linkedWork.totalPaid||linkedWork.amount||0) - (entry.amount||0));
+          const reversedTotal = Math.max(0, (linkedWork.totalPaid||linkedWork.amount||0) - (entry?.amount||0));
           const reversedRemaining = (linkedWork.workValue||0) > 0
-            ? Math.max(0, (linkedWork.workValue||0) - reversedTotal)
-            : 0;
+            ? Math.max(0, (linkedWork.workValue||0) - reversedTotal) : 0;
           await _sb.from('works').update({
-            remaining_balance: reversedRemaining,
-            total_paid: reversedTotal,
-            amount: reversedTotal
+            remaining_balance: reversedRemaining, total_paid: reversedTotal, amount: reversedTotal
           }).eq('id', workKey);
         }
       }
-    }
-    await _sb.from('ledger').delete().eq('id', id);
-    toast('Entry deleted and work balance reversed ✅','success');
-    await loadAllData();
-    renderPayments();
-  } catch(e) { toast('Error: '+e.message,'error'); }
+      await _sb.from('ledger').delete().eq('id', id);
+      toast('Entry deleted ✅','success');
+      await loadAllData(); renderPayments();
+    } catch(e) { toast('Error: '+e.message,'error'); }
+  });
 }
 
 function renderPayments() {
@@ -6981,6 +8095,8 @@ async function renderAccessLog(){
             ${det.description?`<div style="color:var(--gray);">${esc(String(det.description).slice(0,60))}</div>`:''}
             ${det.changes?`<div style="color:#7c3aed;">Changes: ${esc(det.changes)}</div>`:''}
             ${det.amount?`<div>₹${Number(det.amount).toLocaleString('en-IN')} · ${esc(det.bank||'—')}</div>`:''}
+            ${det.reason?`<div style="color:#b45309;font-weight:600;margin-top:3px;">📝 ${esc(det.reason)}</div>`:''}
+            ${det.permissionSlipUrl?`<div style="margin-top:3px;"><a href="${esc(det.permissionSlipUrl)}" target="_blank" style="color:var(--p);font-weight:700;">📎 Permission Slip</a></div>`:'<div style="color:#6b7280;font-size:.7rem;">No slip (Owner action)</div>'}
           </td>
         </tr>`;
       }).join('')}
@@ -6989,13 +8105,19 @@ async function renderAccessLog(){
   // Login log section
   const loginHtml = loginEntries.length === 0
     ? '<div class="nd">No logins yet</div>'
-    : `<div class="ox"><table class="wt"><thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Time</th><th>Location</th></tr></thead><tbody>
-      ${loginEntries.map(l=>`<tr>
-        <td><strong>${esc(l.name)}</strong></td>
-        <td>${roleBadge(l.role)}</td>
-        <td>${esc(l.date)}</td><td>${esc(l.time)}</td>
-        <td style="font-size:.75rem;">${l.location&&l.location!=='—'?`<a href="https://maps.google.com/?q=${esc(l.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 Map</a>`:'—'}</td>
-      </tr>`).join('')}
+    : `<div class="ox"><table class="wt"><thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Time</th><th>Device</th><th>Location</th></tr></thead><tbody>
+      ${loginEntries.map(l=>{
+        let det={};try{det=JSON.parse(l.details||'{}');}catch(e){}
+        const dName = det.deviceName || '—';
+        const isUnknown = dName.includes('Temp') || dName === 'Unknown Device' || dName === '—';
+        return `<tr${isUnknown?' style="background:#fff7ed;"':''}>
+          <td><strong>${esc(l.name)}</strong></td>
+          <td>${roleBadge(l.role)}</td>
+          <td>${esc(l.date)}</td><td>${esc(l.time)}</td>
+          <td style="font-size:.78rem;${isUnknown?'color:#b45309;font-weight:700;':''}">${esc(dName)}${isUnknown?' ⚠️':''}</td>
+          <td style="font-size:.75rem;">${l.location&&l.location!=='—'?`<a href="https://maps.google.com/?q=${esc(l.location)}" target="_blank" style="color:var(--p);text-decoration:none;">📍 Map</a>`:'—'}</td>
+        </tr>`;
+      }).join('')}
     </tbody></table></div>`;
 
   document.getElementById('accessLogBody').innerHTML = `
@@ -7122,63 +8244,152 @@ async function forgotPassword(){
 // ============================================================
 // CLIENT TRACKER
 // ============================================================
-async function clientTrack(){
-  const cid=document.getElementById('clientUID').value.trim().toUpperCase();
-  if(!cid||cid.length<4){document.getElementById('clientResult').innerHTML='<div style="background:var(--rl);color:var(--r);padding:9px 13px;border-radius:var(--rads);font-weight:700;font-size:.83rem;">Enter a valid Client ID</div>';return;}
-  document.getElementById('clientResult').innerHTML='<div style="color:var(--gray);font-size:.83rem;padding:8px;">Looking up...</div>';
-  // Read from works table by clientId — Supabase public access
-  const {data: rawData} = await _sb.from('works').select('*').eq('client_id', cid).order('timestamp',{ascending:false});
-  const works = (rawData||[]).map(r=>({...toCamel(r), _key:r.id}));
-  if(!works.length){document.getElementById('clientResult').innerHTML='<div style="background:var(--rl);color:var(--r);padding:9px 13px;border-radius:var(--rads);font-weight:700;font-size:.83rem;">No works found for Client ID: '+esc(cid)+'</div>';return;}
-  const w0=works[0];
-  const openW=works.filter(w=>w.status==='open').length;
-  const doneW=works.filter(w=>w.status==='done').length;
-  const today=new Date();
-  const expiring=works.filter(w=>w.status==='done'&&w.expiryDate&&new Date(w.expiryDate)>=today).sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
-  let html='';
-  html+='<div style="background:var(--pl);border-radius:var(--rads);padding:13px;margin-bottom:14px;text-align:center;">';
-  html+='<div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:3px;">Your Client ID</div>';
-  html+='<div style="font-size:1.55rem;font-weight:800;font-family:Baloo 2,sans-serif;color:var(--p);letter-spacing:3px;">'+esc(cid)+'</div>';
-  html+='<div style="font-size:.82rem;color:var(--gray);margin-top:4px;">'+esc(w0.clientName)+' &nbsp;·&nbsp; '+esc(w0.phone)+'</div></div>';
-  html+='<div style="display:flex;gap:10px;margin-bottom:16px;">';
-  html+='<div style="flex:1;background:var(--gl);border-radius:var(--rads);padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:var(--g);">'+doneW+'</div><div style="font-size:.72rem;color:var(--g);font-weight:700;">Completed</div></div>';
-  html+='<div style="flex:1;background:var(--pl);border-radius:var(--rads);padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:var(--p);">'+openW+'</div><div style="font-size:.72rem;color:var(--p);font-weight:700;">In Progress</div></div>';
-  html+='<div style="flex:1;background:var(--graylite);border-radius:var(--rads);padding:10px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:#374151;">'+works.length+'</div><div style="font-size:.72rem;color:var(--gray);font-weight:700;">Total Works</div></div>';
-  html+='</div>';
-  if(expiring.length){
-    html+='<div style="background:var(--yl);border-radius:var(--rads);padding:10px 13px;margin-bottom:14px;">';
-    html+='<div style="font-weight:800;font-size:.82rem;color:var(--y);margin-bottom:6px;">Upcoming Expirations</div>';
-    expiring.slice(0,3).forEach(w=>{
-      const days=Math.ceil((new Date(w.expiryDate)-today)/86400000);
-      html+='<div style="display:flex;justify-content:space-between;font-size:.82rem;padding:3px 0;"><span>'+wtLabel(w.workType)+' — '+esc(w.vehicle)+'</span><span style="font-weight:800;color:'+(days<=30?'var(--r)':'var(--o)')+';">'+esc(w.expiryDate)+' ('+days+'d)</span></div>';
-    });
-    html+='</div>';
-  }
-  html+='<div style="font-weight:800;font-size:.85rem;color:var(--pd);margin-bottom:8px;">All Works</div>';
-  works.forEach(w=>{
-    const dp=Math.floor((Date.now()-(w.timestamp||0))/86400000);
-    const st=w.status==='done'?'Completed':(dp>7?'Delayed':'In Progress');
-    const sc=w.status==='done'?'var(--g)':(dp>7?'var(--r)':'var(--p)');
-    html+='<div style="border:1.5px solid var(--grayb);border-radius:var(--rads);padding:11px 13px;margin-bottom:8px;">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
-    html+='<span style="font-weight:800;font-size:.88rem;">'+wtLabel(w.workType)+(w.othersSpecify?' — '+esc(w.othersSpecify):'')+'</span>';
-    html+='<span style="font-weight:800;font-size:.8rem;color:'+sc+';">'+st+'</span></div>';
-    html+='<div style="font-size:.78rem;color:var(--gray);display:flex;gap:12px;flex-wrap:wrap;">';
-    html+='<span>'+esc(w.vehicle)+'</span><span>'+esc(w.date)+'</span><span>Work #'+w.workNum+'</span>';
-    if(w.status==='done' && w.expiryDate) html+='<span style="color:var(--o);font-weight:700;">Expires: '+fmtDate(w.expiryDate)+'</span>';
-    html+='<span>'+(w.payMode==='Unpaid'?'Payment Pending':'Paid')+'</span></div>';
-    if(w.status==='done') {
-      html+='<div style="margin-top:8px;">';
-      html+='<button onclick="downloadClientDoc(\''+w._key+'\','+w.workNum+')" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1e3a6e,#2563eb);color:#fff;padding:7px 16px;border-radius:20px;font-size:.8rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.3);">⬇️ Download Your Papers (PDF)</button>';
-      html+='</div>';
-    }
-    html+='</div>';
-  });
-  document.getElementById('clientStatusBody').innerHTML=html;
-  document.getElementById('clientResult').innerHTML='';
-  openModal('clientStatusModal');
+function clientPortalBack() {
+  document.getElementById('clientPortalPage').classList.remove('show');
+  document.getElementById('clientPortalPage').style.display = 'none';
+  document.getElementById('clientResult').innerHTML = '';
+  document.getElementById('clientUID').value = '';
+  // Ensure login page is visible
+  const lp = document.getElementById('loginPage');
+  if(lp && !lp.classList.contains('show')) lp.classList.add('show');
+  history.replaceState(null, '', window.location.pathname);
 }
 
+async function clientTrack(){
+  const cid=document.getElementById('clientUID').value.trim().toUpperCase();
+  if(!cid||cid.length<4){
+    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">Please enter a valid Client ID</div>';
+    return;
+  }
+  document.getElementById('clientResult').innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.82rem;padding:8px;text-align:center;">🔍 Looking up your works…</div>';
+
+  const {data: rawData, error: fetchError} = await _sb.from('works').select('*').eq('client_id', cid).order('timestamp',{ascending:false});
+
+  if(fetchError) {
+    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">⚠️ Check your internet connection and try again.</div>';
+    return;
+  }
+
+  const works = (rawData||[]).map(r=>({...toCamel(r), _key:r.id}));
+
+  if(!works.length){
+    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">❌ Client ID <strong>'+esc(cid)+'</strong> not found. Please check and try again.</div>';
+    return;
+  }
+
+  document.getElementById('clientResult').innerHTML='';
+
+  // Update URL
+  history.replaceState(null, '', '?track='+encodeURIComponent(cid));
+
+  const w0 = works[0];
+  const clientName = w0.ownerName || w0.clientName || 'Client';
+  const openW = works.filter(w=>w.status==='open'||w.status==='partial').length;
+  const doneW = works.filter(w=>w.status==='done').length;
+  const today = new Date();
+
+  // Greeting based on time
+  const hr = today.getHours();
+  const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  const greetEmoji = hr < 12 ? '🌅' : hr < 17 ? '☀️' : '🌙';
+
+  // Expiring documents
+  const expiring = works.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today)
+    .sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
+
+  // Build portal HTML
+  let html = '';
+
+  // Greeting
+  html += `<div class="cp-greeting">
+    <div class="cp-greeting-time">${greetEmoji} ${greeting}</div>
+    <div class="cp-greeting-name">${esc(clientName)} 🙏</div>
+    <div class="cp-greeting-sub">Here's a complete update on your work with us</div>
+  </div>`;
+
+  // Client ID strip
+  html += `<div class="cp-id-strip">
+    <div>
+      <div class="cp-id-label">Your Client ID</div>
+      <div class="cp-id-value">${esc(cid)}</div>
+      <div class="cp-id-phone">📞 ${esc(w0.phone||'—')}</div>
+    </div>
+    <button class="cp-copy-btn" onclick="navigator.clipboard.writeText('${esc(cid)}').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='Copy ID',1500)})">Copy ID</button>
+  </div>`;
+
+  // Stats
+  html += `<div class="cp-stats">
+    <div class="cp-stat">
+      <div class="cp-stat-num" style="color:#166534;">${doneW}</div>
+      <div class="cp-stat-label" style="color:#16a34a;">✅ Done</div>
+    </div>
+    <div class="cp-stat">
+      <div class="cp-stat-num" style="color:#1d4ed8;">${openW}</div>
+      <div class="cp-stat-label" style="color:#2563eb;">🔄 In Progress</div>
+    </div>
+    <div class="cp-stat">
+      <div class="cp-stat-num" style="color:#374151;">${works.length}</div>
+      <div class="cp-stat-label" style="color:#64748b;">📋 Total</div>
+    </div>
+  </div>`;
+
+  // Expiry alerts
+  if(expiring.length) {
+    html += `<div class="cp-expiry-alert">
+      <div class="cp-expiry-title">⚠️ Documents Expiring Soon</div>`;
+    expiring.slice(0,4).forEach(w => {
+      const days = Math.ceil((new Date(w.expiryDate) - today) / 86400000);
+      const urgent = days <= 30;
+      html += `<div class="cp-expiry-row">
+        <span style="color:#713f12;font-weight:600;">${wtLabel(w.workType)} — ${esc(w.vehicles||w.vehicle)}</span>
+        <span style="font-weight:800;color:${urgent?'#dc2626':'#d97706'};">${days <= 0 ? 'Expired' : days+'d left'}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Works list
+  html += `<div class="cp-section-title">All Your Works</div>`;
+
+  works.forEach(w => {
+    const isDone = w.status === 'done';
+    const isPartial = w.status === 'partial';
+    const dp = Math.floor((Date.now() - (w.timestamp||0)) / 86400000);
+    const isDelayed = !isDone && !isPartial && dp > 7;
+    const stLabel = isDone ? 'Completed' : isPartial ? 'Partial' : (isDelayed ? 'Delayed' : 'In Progress');
+    const stBg = isDone ? '#dcfce7' : isPartial ? '#fef9c3' : (isDelayed ? '#fee2e2' : '#eff6ff');
+    const stColor = isDone ? '#166534' : isPartial ? '#92400e' : (isDelayed ? '#be123c' : '#1d4ed8');
+    const isPaid = w.payMode !== 'Unpaid' && (w.remainingBalance||0) <= 0;
+
+    // Get vehicle list
+    let vehicleDisplay = w.vehicles || w.vehicle || '—';
+    try {
+      const items = JSON.parse(w.vehicleWorkItems||'[]');
+      if(items.length > 1) vehicleDisplay = items.map(r=>r.vehicle).filter(Boolean).join(', ');
+    } catch(e){}
+
+    html += `<div class="cp-work-card">
+      <div class="cp-work-top">
+        <div>
+          <div class="cp-work-type">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div>
+          <div class="cp-work-vehicle">${esc(vehicleDisplay)}</div>
+        </div>
+        <span class="cp-status-badge" style="background:${stBg};color:${stColor};">${stLabel}</span>
+      </div>
+      <div class="cp-tags">
+        <span class="cp-tag" style="background:#f1f5f9;color:#475569;">Work #${w.workNum}</span>
+        <span class="cp-tag" style="background:#f1f5f9;color:#475569;">${esc(w.date)}</span>
+        <span class="cp-tag" style="background:${isPaid?'#dcfce7':'#fef9c3'};color:${isPaid?'#166534':'#92400e'};">${isPaid?'✅ Paid':'⏳ Payment Pending'}</span>
+        ${isDone && w.expiryDate ? `<span class="cp-tag" style="background:#fff7ed;color:#c2410c;">📅 Expires: ${fmtDate(w.expiryDate)}</span>` : ''}
+        ${w.completedDate ? `<span class="cp-tag" style="background:#f0fdf4;color:#166534;">Completed: ${esc(w.completedDate)}</span>` : ''}
+      </div>
+      ${isDone ? `<button class="cp-download-btn" onclick="downloadClientDoc('${w._key}',${w.workNum})">⬇️ Download Your Document (PDF)</button>` : ''}
+    </div>`;
+  });
+
+  document.getElementById('clientPortalBody').innerHTML = html;
+  const cpPage = document.getElementById('clientPortalPage'); cpPage.style.display='flex'; cpPage.classList.add('show');
+}
 // ============================================================
 // EXPORT
 // ============================================================
