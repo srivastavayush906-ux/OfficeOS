@@ -1127,36 +1127,7 @@ input[type="number"]:focus {
 </div>
 
 <!-- CLIENT PORTAL FULL PAGE -->
-<div id="clientPortalPage">
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#0a0f1e,#1e1b4b,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
-    <div style="max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚖️</div>
-        <div>
-          <div style="font-weight:800;font-size:.9rem;color:#fff;">Nandan Legal Services</div>
-          <div style="font-size:.65rem;color:rgba(255,255,255,.4);">Work Status Portal</div>
-        </div>
-      </div>
-      <button onclick="clientPortalBack()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">← Back</button>
-    </div>
-  </div>
 
-  <!-- Body -->
-  <div id="clientPortalBody" style="flex:1;max-width:680px;margin:0 auto;width:100%;padding:24px 16px 40px;box-sizing:border-box;">
-  </div>
-
-  <!-- Footer -->
-  <div style="background:#1e1b4b;color:rgba(255,255,255,.5);text-align:center;padding:20px;font-size:.75rem;border-top:1px solid rgba(255,255,255,.08);">
-    <div style="margin-bottom:4px;"><strong style="color:#fff;">Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists</div>
-    <div>
-      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">94505 56304</a>
-      &nbsp;·&nbsp;
-      <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
-    </div>
-    <div style="margin-top:6px;font-size:.68rem;opacity:.5;">For any queries, please contact us at the number above</div>
-  </div>
-</div>
 
 <!-- MAIN APP -->
 <div id="mainApp">
@@ -9405,5 +9376,36 @@ function closeModal(id){document.getElementById(id).classList.remove('show');}
 function previewImg(src){document.getElementById('imgPreviewSrc').src=src;openModal('imgPreviewModal');}
 function toast(msg,type=''){const el=document.createElement('div');el.className='tm'+(type?' '+type:'');el.textContent=msg;document.getElementById('toast').appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400);},3500);}
 </script>
+
+<div id="clientPortalPage">
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0a0f1e,#1e1b4b,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
+    <div style="max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚖️</div>
+        <div>
+          <div style="font-weight:800;font-size:.9rem;color:#fff;">Nandan Legal Services</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4);">Work Status Portal</div>
+        </div>
+      </div>
+      <button onclick="clientPortalBack()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">← Back</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div id="clientPortalBody" style="flex:1;max-width:680px;margin:0 auto;width:100%;padding:24px 16px 40px;box-sizing:border-box;">
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#1e1b4b;color:rgba(255,255,255,.5);text-align:center;padding:20px;font-size:.75rem;border-top:1px solid rgba(255,255,255,.08);">
+    <div style="margin-bottom:4px;"><strong style="color:#fff;">Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists</div>
+    <div>
+      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">94505 56304</a>
+      &nbsp;·&nbsp;
+      <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
+    </div>
+    <div style="margin-top:6px;font-size:.68rem;opacity:.5;">For any queries, please contact us at the number above</div>
+  </div>
+</div>
 </body>
 </html>
