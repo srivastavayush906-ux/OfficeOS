@@ -2817,6 +2817,11 @@ window.addEventListener('DOMContentLoaded', () => {
       s.style.display = 'none';
       // Check for saved session
       const savedSession = localStorage.getItem('nl_session');
+      // If logged-in user has saved session, clear any ?track= URL first
+      if(savedSession && window.location.search.includes('track=')) {
+        history.replaceState(null, '', window.location.pathname);
+        window._pendingTrackId = null;
+      }
       if(savedSession) {
         try {
           const sess = JSON.parse(savedSession);
@@ -3187,6 +3192,13 @@ async function loginSuccess(deviceName) {
   if(currentUser.role !== 'owner') startSessionWatcher();
   if(currentUser.role === 'owner') startApprovalWatcher();
   updateDeviceNameDisplay();
+
+  // Clear any ?track= URL param — staff/owner login should show clean URL
+  if(window.location.search.includes('track=')) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+  // Clear pending track so client portal doesn't open on top of dashboard
+  window._pendingTrackId = null;
 
   await loadAllData();
   showPage('dashboard');
@@ -8256,6 +8268,7 @@ function clientPortalBack() {
   document.getElementById('clientPortalPage').style.display = 'none';
   document.getElementById('clientResult').innerHTML = '';
   document.getElementById('clientUID').value = '';
+  window._pendingTrackId = null;
   // Ensure login page is visible
   const lp = document.getElementById('loginPage');
   if(lp && !lp.classList.contains('show')) lp.classList.add('show');
@@ -8270,10 +8283,18 @@ async function clientTrack(){
   }
   document.getElementById('clientResult').innerHTML='<div style="color:rgba(255,255,255,.4);font-size:.82rem;padding:8px;text-align:center;">🔍 Looking up your works…</div>';
 
-  const {data: rawData, error: fetchError} = await _sb.from('works').select('*').eq('client_id', cid).order('timestamp',{ascending:false});
+  let rawData, fetchError;
+  try {
+    const res = await _sb.from('works').select('*').eq('client_id', cid).order('timestamp',{ascending:false});
+    rawData = res.data;
+    fetchError = res.error;
+  } catch(e) {
+    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">⚠️ Check your internet connection and try again.</div>';
+    return;
+  }
 
   if(fetchError) {
-    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">⚠️ Check your internet connection and try again.</div>';
+    document.getElementById('clientResult').innerHTML='<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:10px 14px;border-radius:10px;font-weight:600;font-size:.82rem;margin-top:8px;">⚠️ Error: '+esc(fetchError.message||'Could not fetch data')+'. Check internet connection.</div>';
     return;
   }
 
