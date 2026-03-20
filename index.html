@@ -1562,7 +1562,7 @@ input[type="number"]:focus {
         </div>
         <div id="dateFilterControls" style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;">
           <input type="date" id="datePickerSingle" style="padding:9px 13px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.9rem;display:none;" onchange="renderDateWise()"/>
-          <div id="monthPicker" style="display:none;display:flex;gap:8px;flex-wrap:wrap;">
+          <div id="monthPicker" style="display:none;gap:8px;flex-wrap:wrap;">
             <select id="monthSel" onchange="renderDateWise()" style="padding:9px 13px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.9rem;">
               <option value="0">January</option><option value="1">February</option><option value="2">March</option>
               <option value="3">April</option><option value="4">May</option><option value="5">June</option>
@@ -3998,8 +3998,10 @@ function initNewWorkDate(){
   const today=new Date().toISOString().split('T')[0];
   const el=document.getElementById('w_date');
   if(el) el.value=today;
-  // Set date on ALL pay-date-inp fields including first row
-  document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=today;});
+  // Set today on ALL pay-date-inp including firstPayDate
+  document.querySelectorAll('#payModeList .pay-date-inp, .pay-date-inp').forEach(d=>{
+    d.value=today;
+  });
   const fp=document.getElementById('firstPayDate');
   if(fp) fp.value=today;
 }
