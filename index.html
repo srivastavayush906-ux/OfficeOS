@@ -2817,8 +2817,9 @@ window.addEventListener('DOMContentLoaded', () => {
       s.style.display = 'none';
       // Check for saved session
       const savedSession = localStorage.getItem('nl_session');
-      // If logged-in user has saved session, clear any ?track= URL first
-      if(savedSession && window.location.search.includes('track=')) {
+      // If there's a saved session, immediately clear track URL and pending track
+      // to prevent client portal showing on top of dashboard
+      if(savedSession) {
         history.replaceState(null, '', window.location.pathname);
         window._pendingTrackId = null;
       }
@@ -3193,11 +3194,12 @@ async function loginSuccess(deviceName) {
   if(currentUser.role === 'owner') startApprovalWatcher();
   updateDeviceNameDisplay();
 
-  // Clear any ?track= URL param — staff/owner login should show clean URL
-  if(window.location.search.includes('track=')) {
-    history.replaceState(null, '', window.location.pathname);
-  }
-  // Clear pending track so client portal doesn't open on top of dashboard
+  // Forcefully hide client portal — never show on top of staff/owner dashboard
+  const cpEl = document.getElementById('clientPortalPage');
+  if(cpEl) { cpEl.classList.remove('show'); cpEl.style.display = 'none'; }
+  // Clear ?track= URL param
+  history.replaceState(null, '', window.location.pathname);
+  // Cancel any pending client track
   window._pendingTrackId = null;
 
   await loadAllData();
@@ -3905,9 +3907,20 @@ function start8HourExpiry() {
 function renderDashboard() {
   const now=Date.now();
   const total=allWorks.length, done=allWorks.filter(w=>w.status==='done').length;
-  const open=allWorks.filter(w=>w.status==='open').length;
-  const overdue=allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000).length;
-  const udhari=allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid').length;
+  const open=allWorks.filter(w=>w.status==='open'||w.status==='partial').length;
+
+  // Use work date for overdue — same logic as renderOverdue page
+  const overdueList=allWorks.filter(w=>{
+    if(w.status!=='open'&&w.status!=='partial') return false;
+    const pts=(w.date||'').split('/');
+    const d=pts.length===3?new Date(pts[2]+'-'+pts[1].padStart(2,'0')+'-'+pts[0].padStart(2,'0')):new Date(w.timestamp||0);
+    return (now-d.getTime())>7*86400000;
+  });
+  const overdue=overdueList.length;
+
+  // Udhari = any done work with remaining balance OR unpaid
+  const udhariList=allWorks.filter(w=>w.status==='done'&&((w.remainingBalance||0)>0||w.payMode==='Unpaid'));
+  const udhari=udhariList.length;
   const cashLedger=allLedger.filter(l=>l.bank==='Cash');
   const cashOpening=cashLedger.filter(l=>l.type==='opening').reduce((s,l)=>s+(l.amount||0),0);
   const cashIn=cashLedger.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
@@ -3976,12 +3989,12 @@ function renderDashboard() {
       <div style="font-size:.75rem;color:var(--gray);">${esc(w.vehicle)} · ${wtLabel(w.workType)}</div></div>
       <span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span>
     </div>`).join('')||'<div style="text-align:center;padding:24px;color:#94a3b8;"><div style="font-size:2rem;margin-bottom:8px;">📭</div><div style="font-weight:700;">No works yet</div></div>';
-  // Overdue snippet
-  const ovList=allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000).slice(0,4);
+  // Overdue snippet — use overdueList already computed above
+  const ovList=overdueList.slice(0,4);
   document.getElementById('overdueSnippet').innerHTML=ovList.length===0?'<div class="nd">🎉 No overdue works!</div>':ovList.map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--rl);cursor:pointer;">
-      <div><div style="font-weight:700;font-size:.87rem;color:var(--r);">${esc(w.clientName)}</div>
-      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicle)}</div></div>
+      <div><div style="font-weight:700;font-size:.87rem;color:var(--r);">${esc(w.ownerName||w.clientName)}</div>
+      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)} · ${wtLabel(w.workType)}</div></div>
       <span class="badge br">${(()=>{const pts=w.date?w.date.split('/'):[];const d=pts.length===3?new Date(pts[2]+'-'+pts[1].padStart(2,'0')+'-'+pts[0].padStart(2,'0')):new Date(w.timestamp||0);return Math.max(0,Math.floor((Date.now()-d.getTime())/86400000));})()}d</span>
     </div>`).join('');
   // Expiry snippet
@@ -3994,12 +4007,12 @@ function renderDashboard() {
       <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicle)} · ${wtLabel(w.workType)}</div></div>
       <span class="badge ${days<=7?'br':'by'}">${days}d left</span>
     </div>`;}).join('');
-  // Udhari snippet
-  const udList=allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid').slice(0,4);
+  // Udhari snippet — use udhariList (remaining balance OR unpaid)
+  const udList=udhariList.slice(0,4);
   document.getElementById('udhariSnippet').innerHTML=udList.length===0?'<div class="nd">No dues pending</div>':udList.map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);cursor:pointer;">
-      <div><div style="font-weight:700;font-size:.87rem;">${esc(w.clientName)}</div>
-      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicle)}</div></div>
+      <div><div style="font-weight:700;font-size:.87rem;">${esc(w.ownerName||w.clientName)}</div>
+      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)}</div></div>
       <span class="badge br">Unpaid</span>
     </div>`).join('');
 }
@@ -8416,7 +8429,13 @@ async function clientTrack(){
   });
 
   document.getElementById('clientPortalBody').innerHTML = html;
-  const cpPage = document.getElementById('clientPortalPage'); cpPage.style.display='flex'; cpPage.classList.add('show');
+  // Hide login page, show portal
+  document.getElementById('loginPage').classList.remove('show');
+  const cpPage = document.getElementById('clientPortalPage');
+  cpPage.style.display='flex';
+  cpPage.classList.add('show');
+  // Scroll to top
+  cpPage.scrollTop = 0;
 }
 // ============================================================
 // EXPORT
