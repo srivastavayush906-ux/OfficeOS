@@ -1127,39 +1127,34 @@ input[type="number"]:focus {
 </div>
 
 <!-- CLIENT PORTAL FULL PAGE -->
-<div id="clientPortalPage" style="display:none;">
+<div id="clientPortalPage">
   <!-- Header -->
-  <div class="cp-header">
-    <div class="cp-header-inner">
-      <div class="cp-logo">
-        <div class="cp-logo-icon">⚖️</div>
+  <div style="background:linear-gradient(135deg,#0a0f1e,#1e1b4b,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
+    <div style="max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚖️</div>
         <div>
-          <div class="cp-logo-text">Nandan Legal Services</div>
-          <div class="cp-logo-sub">Work Status Portal</div>
+          <div style="font-weight:800;font-size:.9rem;color:#fff;">Nandan Legal Services</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4);">Work Status Portal</div>
         </div>
       </div>
-      <button class="cp-back-btn" onclick="clientPortalBack()">← Back to Search</button>
+      <button onclick="clientPortalBack()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">← Back</button>
     </div>
   </div>
 
   <!-- Body -->
-  <div class="cp-body" id="clientPortalBody">
-    <!-- Filled dynamically -->
+  <div id="clientPortalBody" style="flex:1;max-width:680px;margin:0 auto;width:100%;padding:24px 16px 40px;box-sizing:border-box;">
   </div>
 
   <!-- Footer -->
-  <div class="cp-footer">
-    <div style="margin-bottom:4px;">
-      <strong>Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists
-    </div>
+  <div style="background:#1e1b4b;color:rgba(255,255,255,.5);text-align:center;padding:20px;font-size:.75rem;border-top:1px solid rgba(255,255,255,.08);">
+    <div style="margin-bottom:4px;"><strong style="color:#fff;">Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists</div>
     <div>
-      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="cursor:pointer;">94505 56304</a>
+      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">94505 56304</a>
       &nbsp;·&nbsp;
-      <a href="https://nandanlegalservices.in" target="_blank">nandanlegalservices.in</a>
+      <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
     </div>
-    <div style="margin-top:8px;font-size:.68rem;opacity:.5;">
-      For any queries, please contact us at the number above
-    </div>
+    <div style="margin-top:6px;font-size:.68rem;opacity:.5;">For any queries, please contact us at the number above</div>
   </div>
 </div>
 
@@ -3196,7 +3191,7 @@ async function loginSuccess(deviceName) {
 
   // Forcefully hide client portal — never show on top of staff/owner dashboard
   const cpEl = document.getElementById('clientPortalPage');
-  if(cpEl) { cpEl.classList.remove('show'); cpEl.style.display = ''; }
+  if(cpEl) { cpEl.classList.remove('show'); }
   // Clear ?track= URL param
   history.replaceState(null, '', window.location.pathname);
   // Cancel any pending client track
@@ -6896,16 +6891,16 @@ function printReceipt(key) {
   
 /* ═══════════ CLIENT PORTAL FULL PAGE ═══════════ */
 #clientPortalPage {
-  display: none;
+  display: none !important;
   min-height: 100vh;
-  background: #f0f4ff;
+  background: #f1f5f9;
   flex-direction: column;
   position: fixed;
   inset: 0;
   z-index: 5000;
   overflow-y: auto;
 }
-#clientPortalPage.show { display: flex; }
+#clientPortalPage.show { display: flex !important; }
 
 .cp-header {
   background: linear-gradient(135deg, #0a0f1e 0%, #1e1b4b 50%, #2d2b7a 100%);
@@ -8287,7 +8282,6 @@ async function forgotPassword(){
 // ============================================================
 function clientPortalBack() {
   document.getElementById('clientPortalPage').classList.remove('show');
-  document.getElementById('clientPortalPage').style.display = '';
   document.getElementById('clientResult').innerHTML = '';
   document.getElementById('clientUID').value = '';
   window._pendingTrackId = null;
@@ -8347,101 +8341,91 @@ async function clientTrack(){
   const expiring = works.filter(w=>w.expiryDate&&new Date(w.expiryDate)>=today)
     .sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
 
-  // Build portal HTML
+  // Build portal HTML — fully inline styles for reliability
   let html = '';
 
   // Greeting
-  html += `<div class="cp-greeting">
-    <div class="cp-greeting-time">${greetEmoji} ${greeting}</div>
-    <div class="cp-greeting-name">${esc(clientName)} 🙏</div>
-    <div class="cp-greeting-sub">Here's a complete update on your work with us</div>
+  const hr2 = today.getHours();
+  const greetingText = hr2 < 12 ? 'Good morning' : hr2 < 17 ? 'Good afternoon' : 'Good evening';
+  const greetEmoji2 = hr2 < 12 ? '🌅' : hr2 < 17 ? '☀️' : '🌙';
+
+  html += `<div style="margin-bottom:20px;">
+    <div style="font-size:.72rem;color:#6366f1;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${greetEmoji2} ${greetingText}</div>
+    <div style="font-size:1.5rem;font-weight:800;color:#1e1b4b;font-family:sans-serif;letter-spacing:-.5px;">${esc(clientName)} 🙏</div>
+    <div style="font-size:.83rem;color:#64748b;margin-top:4px;">Here's a complete update on your work with us</div>
   </div>`;
 
-  // Client ID strip
-  html += `<div class="cp-id-strip">
+  html += `<div style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:16px;padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 24px rgba(30,27,75,.2);">
     <div>
-      <div class="cp-id-label">Your Client ID</div>
-      <div class="cp-id-value">${esc(cid)}</div>
-      <div class="cp-id-phone">📞 ${esc(w0.phone||'—')}</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">Your Client ID</div>
+      <div style="font-size:1.4rem;font-weight:900;color:#a5b4fc;letter-spacing:5px;font-family:monospace;">${esc(cid)}</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.5);margin-top:4px;">📞 ${esc(w0.phone||'—')}</div>
     </div>
-    <button class="cp-copy-btn" onclick="navigator.clipboard.writeText('${esc(cid)}').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='Copy ID',1500)})">Copy ID</button>
+    <button onclick="navigator.clipboard.writeText('${esc(cid)}').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='Copy ID',1500)})" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:6px 12px;border-radius:8px;font-size:.72rem;cursor:pointer;flex-shrink:0;">Copy ID</button>
   </div>`;
 
-  // Stats
-  html += `<div class="cp-stats">
-    <div class="cp-stat">
-      <div class="cp-stat-num" style="color:#166534;">${doneW}</div>
-      <div class="cp-stat-label" style="color:#16a34a;">✅ Done</div>
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+    <div style="background:#fff;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #e2e8f0;">
+      <div style="font-size:1.8rem;font-weight:900;color:#166534;line-height:1;margin-bottom:4px;">${doneW}</div>
+      <div style="font-size:.68rem;font-weight:700;color:#16a34a;text-transform:uppercase;">✅ Done</div>
     </div>
-    <div class="cp-stat">
-      <div class="cp-stat-num" style="color:#1d4ed8;">${openW}</div>
-      <div class="cp-stat-label" style="color:#2563eb;">🔄 In Progress</div>
+    <div style="background:#fff;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #e2e8f0;">
+      <div style="font-size:1.8rem;font-weight:900;color:#1d4ed8;line-height:1;margin-bottom:4px;">${openW}</div>
+      <div style="font-size:.68rem;font-weight:700;color:#2563eb;text-transform:uppercase;">🔄 In Progress</div>
     </div>
-    <div class="cp-stat">
-      <div class="cp-stat-num" style="color:#374151;">${works.length}</div>
-      <div class="cp-stat-label" style="color:#64748b;">📋 Total</div>
+    <div style="background:#fff;border-radius:14px;padding:16px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #e2e8f0;">
+      <div style="font-size:1.8rem;font-weight:900;color:#374151;line-height:1;margin-bottom:4px;">${works.length}</div>
+      <div style="font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;">📋 Total</div>
     </div>
   </div>`;
 
-  // Expiry alerts
   if(expiring.length) {
-    html += `<div class="cp-expiry-alert">
-      <div class="cp-expiry-title">⚠️ Documents Expiring Soon</div>`;
+    html += `<div style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid #fde68a;border-radius:14px;padding:16px 18px;margin-bottom:20px;">
+      <div style="font-weight:800;font-size:.82rem;color:#92400e;margin-bottom:10px;">⚠️ Documents Expiring Soon</div>`;
     expiring.slice(0,4).forEach(w => {
       const days = Math.ceil((new Date(w.expiryDate) - today) / 86400000);
-      const urgent = days <= 30;
-      html += `<div class="cp-expiry-row">
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(234,179,8,.25);font-size:.83rem;">
         <span style="color:#713f12;font-weight:600;">${wtLabel(w.workType)} — ${esc(w.vehicles||w.vehicle)}</span>
-        <span style="font-weight:800;color:${urgent?'#dc2626':'#d97706'};">${days <= 0 ? 'Expired' : days+'d left'}</span>
+        <span style="font-weight:800;color:${days<=30?'#dc2626':'#d97706'};">${days<=0?'Expired':days+'d left'}</span>
       </div>`;
     });
     html += '</div>';
   }
 
-  // Works list
-  html += `<div class="cp-section-title">All Your Works</div>`;
+  html += `<div style="font-weight:800;font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">All Your Works</div>`;
 
   works.forEach(w => {
     const isDone = w.status === 'done';
     const isPartial = w.status === 'partial';
-    const dp = Math.floor((Date.now() - (w.timestamp||0)) / 86400000);
-    const isDelayed = !isDone && !isPartial && dp > 7;
-    const stLabel = isDone ? 'Completed' : isPartial ? 'Partial' : (isDelayed ? 'Delayed' : 'In Progress');
-    const stBg = isDone ? '#dcfce7' : isPartial ? '#fef9c3' : (isDelayed ? '#fee2e2' : '#eff6ff');
-    const stColor = isDone ? '#166534' : isPartial ? '#92400e' : (isDelayed ? '#be123c' : '#1d4ed8');
-    const isPaid = w.payMode !== 'Unpaid' && (w.remainingBalance||0) <= 0;
-
-    // Get vehicle list
-    let vehicleDisplay = w.vehicles || w.vehicle || '—';
-    try {
-      const items = JSON.parse(w.vehicleWorkItems||'[]');
-      if(items.length > 1) vehicleDisplay = items.map(r=>r.vehicle).filter(Boolean).join(', ');
-    } catch(e){}
-
-    html += `<div class="cp-work-card">
-      <div class="cp-work-top">
+    const dp = Math.floor((Date.now()-(w.timestamp||0))/86400000);
+    const isDelayed = !isDone&&!isPartial&&dp>7;
+    const stLabel = isDone?'Completed':isPartial?'Partial':(isDelayed?'Delayed':'In Progress');
+    const stBg = isDone?'#dcfce7':isPartial?'#fef9c3':(isDelayed?'#fee2e2':'#eff6ff');
+    const stColor = isDone?'#166534':isPartial?'#92400e':(isDelayed?'#be123c':'#1d4ed8');
+    const isPaid = w.payMode!=='Unpaid'&&(w.remainingBalance||0)<=0;
+    let vd=w.vehicles||w.vehicle||'—';
+    try{const it=JSON.parse(w.vehicleWorkItems||'[]');if(it.length>1)vd=it.map(r=>r.vehicle).filter(Boolean).join(', ');}catch(e){}
+    html += `<div style="background:#fff;border-radius:16px;border:1.5px solid #e2e8f0;padding:18px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,.05);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px;">
         <div>
-          <div class="cp-work-type">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div>
-          <div class="cp-work-vehicle">${esc(vehicleDisplay)}</div>
+          <div style="font-weight:800;font-size:.95rem;color:#1e293b;">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}</div>
+          <div style="font-size:.78rem;color:#64748b;font-family:monospace;font-weight:600;margin-top:3px;">${esc(vd)}</div>
         </div>
-        <span class="cp-status-badge" style="background:${stBg};color:${stColor};">${stLabel}</span>
+        <span style="background:${stBg};color:${stColor};padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:800;white-space:nowrap;flex-shrink:0;">${stLabel}</span>
       </div>
-      <div class="cp-tags">
-        <span class="cp-tag" style="background:#f1f5f9;color:#475569;">Work #${w.workNum}</span>
-        <span class="cp-tag" style="background:#f1f5f9;color:#475569;">${esc(w.date)}</span>
-        <span class="cp-tag" style="background:${isPaid?'#dcfce7':'#fef9c3'};color:${isPaid?'#166534':'#92400e'};">${isPaid?'✅ Paid':'⏳ Payment Pending'}</span>
-        ${isDone && w.expiryDate ? `<span class="cp-tag" style="background:#fff7ed;color:#c2410c;">📅 Expires: ${fmtDate(w.expiryDate)}</span>` : ''}
-        ${w.completedDate ? `<span class="cp-tag" style="background:#f0fdf4;color:#166534;">Completed: ${esc(w.completedDate)}</span>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${isDone?'14px':'0'};">
+        <span style="background:#f1f5f9;color:#475569;padding:4px 10px;border-radius:6px;font-size:.71rem;font-weight:600;">Work #${w.workNum}</span>
+        <span style="background:#f1f5f9;color:#475569;padding:4px 10px;border-radius:6px;font-size:.71rem;">${esc(w.date)}</span>
+        <span style="background:${isPaid?'#dcfce7':'#fef9c3'};color:${isPaid?'#166534':'#92400e'};padding:4px 10px;border-radius:6px;font-size:.71rem;font-weight:600;">${isPaid?'✅ Paid':'⏳ Payment Pending'}</span>
+        ${isDone&&w.expiryDate?`<span style="background:#fff7ed;color:#c2410c;padding:4px 10px;border-radius:6px;font-size:.71rem;font-weight:600;">📅 Expires: ${fmtDate(w.expiryDate)}</span>`:''}
       </div>
-      ${isDone ? `<button class="cp-download-btn" onclick="downloadClientDoc('${w._key}',${w.workNum})">⬇️ Download Your Document (PDF)</button>` : ''}
+      ${isDone?`<button onclick="downloadClientDoc('${w._key}',${w.workNum})" style="width:100%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;padding:11px 16px;border-radius:10px;font-size:.84rem;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(79,70,229,.3);">⬇️ Download Your Document (PDF)</button>`:''}
     </div>`;
   });
-
   document.getElementById('clientPortalBody').innerHTML = html;
   // Hide login page, show portal
   document.getElementById('loginPage').classList.remove('show');
   const cpPage = document.getElementById('clientPortalPage');
-  cpPage.style.display = ''; // clear inline style so CSS class takes over
   cpPage.classList.add('show');
   cpPage.scrollTop = 0;
 }
