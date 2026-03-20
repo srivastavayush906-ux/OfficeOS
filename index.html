@@ -3196,7 +3196,7 @@ async function loginSuccess(deviceName) {
 
   // Forcefully hide client portal — never show on top of staff/owner dashboard
   const cpEl = document.getElementById('clientPortalPage');
-  if(cpEl) { cpEl.classList.remove('show'); cpEl.style.display = 'none'; }
+  if(cpEl) { cpEl.classList.remove('show'); cpEl.style.display = ''; }
   // Clear ?track= URL param
   history.replaceState(null, '', window.location.pathname);
   // Cancel any pending client track
@@ -3919,16 +3919,25 @@ function renderDashboard() {
   const overdue=overdueList.length;
 
   // Udhari = any done work with remaining balance OR unpaid
-  const udhariList=allWorks.filter(w=>w.status==='done'&&((w.remainingBalance||0)>0||w.payMode==='Unpaid'));
+  // Match renderDues logic — include open/partial/done works with outstanding balance
+  const udhariList=allWorks.filter(w=>{
+    if(w.status==='pending_verification'||w.status==='rejected') return false;
+    return (w.remainingBalance||0)>0 || w.payMode==='Unpaid' ||
+           (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue);
+  });
   const udhari=udhariList.length;
   const cashLedger=allLedger.filter(l=>l.bank==='Cash');
   const cashOpening=cashLedger.filter(l=>l.type==='opening').reduce((s,l)=>s+(l.amount||0),0);
   const cashIn=cashLedger.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
   const cashOut=cashLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const cashBalance=cashOpening+cashIn-cashOut;
-  const pendingDue=allWorks.filter(w=>(w.remainingBalance>0||w.payMode==='Unpaid')&&w.status==='done').reduce((s,w)=>{
-    if(w.payMode==='Unpaid') return s+(w.workValue||w.amount||0);
-    return s+(w.remainingBalance||0);
+  const pendingDue=allWorks.filter(w=>{
+    if(w.status==='pending_verification'||w.status==='rejected') return false;
+    return (w.remainingBalance||0)>0 || w.payMode==='Unpaid' ||
+           (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue);
+  }).reduce((s,w)=>{
+    const due = w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0));
+    return s+due;
   },0);
   const pendingOpen=allWorks.filter(w=>w.remainingBalance>0&&w.status==='open').reduce((s,w)=>s+(w.remainingBalance||0),0);
   const todayStr=new Date().toLocaleDateString('en-IN');
@@ -4013,7 +4022,7 @@ function renderDashboard() {
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);cursor:pointer;">
       <div><div style="font-weight:700;font-size:.87rem;">${esc(w.ownerName||w.clientName)}</div>
       <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)}</div></div>
-      <span class="badge br">Unpaid</span>
+      <span class="badge br">${inr(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)))}</span>
     </div>`).join('');
 }
 
@@ -8278,7 +8287,7 @@ async function forgotPassword(){
 // ============================================================
 function clientPortalBack() {
   document.getElementById('clientPortalPage').classList.remove('show');
-  document.getElementById('clientPortalPage').style.display = 'none';
+  document.getElementById('clientPortalPage').style.display = '';
   document.getElementById('clientResult').innerHTML = '';
   document.getElementById('clientUID').value = '';
   window._pendingTrackId = null;
@@ -8432,9 +8441,8 @@ async function clientTrack(){
   // Hide login page, show portal
   document.getElementById('loginPage').classList.remove('show');
   const cpPage = document.getElementById('clientPortalPage');
-  cpPage.style.display='flex';
+  cpPage.style.display = ''; // clear inline style so CSS class takes over
   cpPage.classList.add('show');
-  // Scroll to top
   cpPage.scrollTop = 0;
 }
 // ============================================================
