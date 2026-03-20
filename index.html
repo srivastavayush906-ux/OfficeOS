@@ -2842,6 +2842,11 @@ window.addEventListener('DOMContentLoaded', () => {
       }
       document.getElementById('loginPage').classList.add('show');
       checkFirstRun();
+      if(window._pendingTrackId) {
+        document.getElementById('clientUID').value = window._pendingTrackId;
+        window._pendingTrackId = null;
+        setTimeout(clientTrack, 300);
+      }
     }, 500);
   }, 1400);
 
@@ -2864,17 +2869,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const trackId = urlParams.get('track');
   if(trackId) {
-    const loginPage = document.getElementById('loginPage');
-    if(loginPage && loginPage.classList.contains('show')) {
-      document.getElementById('clientUID').value = trackId.toUpperCase();
-      clientTrack();
-    }
+    // Wait for login page to be visible (after splash), then auto-track
+    window._pendingTrackId = trackId.toUpperCase();
   }
   document.getElementById('chSearch').addEventListener('keydown', e => { if(e.key==='Enter') searchClientHistory(); });
   // Activity listeners for app lock
   ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
   // Check backup reminder on load
-  setTimeout(checkBackupReminder, 4000);
+  // Check backup reminder only after owner logs in (moved to loginSuccess)
 });
 
 async function checkFirstRun() {
@@ -3187,7 +3189,10 @@ async function loginSuccess(deviceName) {
   updateDeviceNameDisplay();
 
   await loadAllData();
-  renderDashboard(); startClock(); applyStaffRestrictions();
+  showPage('dashboard');
+  startClock();
+  applyStaffRestrictions();
+  if(currentUser.role === 'owner') setTimeout(checkBackupReminder, 4000);
   setTimeout(checkExpiryNotifications, 1500);
 }
 
@@ -9344,12 +9349,15 @@ async function exportFullDBBackup() {
 
 
 function checkBackupReminder() {
+  // Only show to owner when logged in
+  if(!currentUser || currentUser.role !== 'owner') return;
   try {
     const last = localStorage.getItem('officeOS_lastBackup');
     if(!last) { localStorage.setItem('officeOS_lastBackup', Date.now()); return; }
     const daysSince = (Date.now()-parseInt(last))/(86400000);
     if(daysSince>=7) {
       setTimeout(()=>{
+        if(!currentUser || currentUser.role !== 'owner') return; // double-check
         toast('📥 Reminder: It has been '+Math.floor(daysSince)+' days since last Excel export. Consider exporting!','warn');
       }, 3000);
     }
