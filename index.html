@@ -9,50 +9,69 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap');
 
 :root {
-  --p: #4f46e5;      /* indigo */
+  /* Brand */
+  --p: #4f46e5;
   --pd: #3730a3;
   --pl: #eef2ff;
   --pm: #6366f1;
+  --p-rgb: 79,70,229;
 
-  --g: #10b981;
-  --gl: #d1fae5;
-  --gd: #059669;
+  /* Semantic */
+  --g: #059669;   --gl: #d1fae5;  --gd: #047857;
+  --r: #e11d48;   --rl: #ffe4e6;  --rd: #be123c;
+  --o: #d97706;   --ol: #fef3c7;
+  --y: #ca8a04;   --yl: #fef9c3;
 
-  --r: #f43f5e;
-  --rl: #ffe4e6;
-  --rd: #e11d48;
+  /* Neutrals — tighter, cleaner */
+  --gray:     #64748b;
+  --grayb:    #e2e8f0;
+  --graylite: #f8fafc;
 
-  --o: #f59e0b;
-  --ol: #fef3c7;
-
-  --y: #eab308;
-  --yl: #fef9c3;
-
-  --gray: #6b7280;
-  --grayb: #e5e7eb;
-  --graylite: #f9fafb;
-
-  --bg: #f5f6fa;
+  /* Backgrounds */
+  --bg:    #f1f5f9;
   --white: #ffffff;
-  --text: #111827;
-  --text2: #374151;
-  --text3: #6b7280;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
-  --shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.1), 0 1px 3px rgba(0,0,0,.06);
-  --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
+  /* Text */
+  --text:  #0f172a;
+  --text2: #334155;
+  --text3: #64748b;
 
-  --rad: 14px;
-  --rads: 9px;
-  --rad-sm: 6px;
-  --sidebar-w: 248px;
+  /* Shadows — subtle, layered */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow:    0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg: 0 20px 40px rgba(0,0,0,.1);
+
+  /* Radii */
+  --rad:    12px;
+  --rads:   8px;
+  --rad-sm: 5px;
+
+  /* Layout */
+  --sidebar-w:    256px;
+  --content-maxw: 1100px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1,h2,h3,h4,.brand { font-family: 'Space Grotesk', sans-serif; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: inherit; outline: none; }
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1057,178 +1076,337 @@ input[type="number"]:focus {
 /* Staff cannot print/export/import/backup */
 .staff-restricted { display:none !important; }
 
-/* ═══════════ UI UPLIFT ═══════════ */
-/* Refined sidebar */
+/* ═══════════ PROFESSIONAL UI REDESIGN ═══════════ */
+
+/* ── Sidebar ── */
 #sidebar {
-  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+  background: #0f172a;
+  border-right: 1px solid rgba(255,255,255,.06);
 }
-#sidebar nav a.active {
-  background: linear-gradient(90deg, rgba(99,102,241,.28) 0%, rgba(99,102,241,.08) 100%);
-  border-left: 3px solid #818cf8;
-  color: #e0e7ff;
+.sidebar-header { padding: 20px 16px 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.sidebar-logo .logo-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--p); box-shadow: 0 0 0 1px rgba(255,255,255,.1);
 }
-#sidebar nav a:hover {
-  background: rgba(255,255,255,.06);
-  color: #c7d2fe;
+.sidebar-logo .logo-text { font-size: 1rem; font-weight: 700; letter-spacing: -.3px; }
+.sidebar-logo .logo-sub  { font-size: .6rem; color: rgba(255,255,255,.3); letter-spacing: .8px; }
+#sidebar nav { padding: 8px 0; }
+#sidebar nav .ns {
+  padding: 12px 16px 4px;
+  font-size: .58rem; font-weight: 700; color: rgba(255,255,255,.2);
+  letter-spacing: 1.5px; text-transform: uppercase;
 }
+#sidebar nav a {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 12px 7px 14px;
+  margin: 1px 8px 1px 0;
+  border-radius: 0 8px 8px 0;
+  color: rgba(255,255,255,.55);
+  font-size: .81rem; font-weight: 500;
+  border-left: 2px solid transparent;
+  transition: all .12s; cursor: pointer; line-height: 1.4;
+}
+#sidebar nav a:hover { background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); border-left-color: rgba(99,102,241,.3); }
+#sidebar nav a.active { background: rgba(99,102,241,.15); color: #fff; border-left-color: #818cf8; font-weight: 600; }
+#sidebar nav a .ico { font-size: .8rem; width: 16px; text-align: center; flex-shrink: 0; opacity: .8; }
+#sidebar nav a.active .ico { opacity: 1; }
+#sidebar .ubox { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,.06); background: rgba(0,0,0,.15); }
+#sidebar .ubox .uname { font-weight: 600; font-size: .83rem; color: #fff; }
+#sidebar .ubox .urole { font-size: .65rem; color: rgba(255,255,255,.35); margin-bottom: 8px; text-transform: capitalize; }
+#sidebar .ubox button {
+  width: 100%; padding: 6px 10px; background: rgba(255,255,255,.06); color: rgba(255,255,255,.65);
+  border-radius: 6px; font-weight: 500; font-size: .74rem; border: 1px solid rgba(255,255,255,.07);
+  cursor: pointer; margin-bottom: 4px; transition: .12s; text-align: left;
+}
+#sidebar .ubox button:hover { background: rgba(255,255,255,.12); color: #fff; }
 
-/* Content area */
-#content {
-  background: #f1f5f9;
-}
-
-/* Cards — cleaner, more depth */
-.card {
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 20px rgba(0,0,0,.06);
-  border: 1px solid rgba(226,232,240,.8);
-}
-
-/* vw-row styling uplift */
-.vw-row {
-  transition: box-shadow .15s;
-}
-.vw-row:hover {
-  box-shadow: 0 2px 12px rgba(79,70,229,.1);
-}
-
-/* Extra fields styling — consistent */
-.wtype-extras input,
-.wtype-extras select,
-.wtype-extras textarea {
-  font-family: inherit;
-  transition: border-color .15s, box-shadow .15s;
-}
-.wtype-extras input:focus,
-.wtype-extras select:focus {
-  outline: none;
-  border-color: #818cf8 !important;
-  box-shadow: 0 0 0 3px rgba(99,102,241,.12);
-}
-
-/* xLabel */
-.wtype-extras .xlbl {
-  font-size: .68rem;
-  font-weight: 800;
-  color: #6366f1;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin: 6px 0 3px;
-  display: block;
-}
-
-/* Topbar refinement */
+/* ── Layout ── */
+#content { background: var(--bg); padding: 24px 28px; }
 #topbar {
-  background: transparent;
-  border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--grayb); flex-wrap: wrap; gap: 10px;
 }
 #topbar h2 {
-  background: linear-gradient(135deg, #1e1b4b, #4f46e5);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.25rem; font-weight: 700; color: var(--text);
+  letter-spacing: -.4px;
+}
+.tdate {
+  font-size: .75rem; color: var(--text3); background: var(--surface);
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--grayb);
+  font-weight: 500;
 }
 
-/* Form fields in cards */
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--rad);
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  border: 1px solid var(--grayb);
+}
+.card-title {
+  font-size: .9rem; font-weight: 700; color: var(--text);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.sh { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 7px 14px; border-radius: var(--rads); font-size: .82rem;
+  font-weight: 600; cursor: pointer; border: none; transition: all .12s;
+  white-space: nowrap; line-height: 1.4;
+}
+.btn-primary { background: var(--p); color: #fff; box-shadow: 0 1px 4px rgba(var(--p-rgb),.25); }
+.btn-primary:hover { background: var(--pd); transform: translateY(-1px); }
+.btn-success { background: var(--g); color: #fff; }
+.btn-success:hover { background: var(--gd); transform: translateY(-1px); }
+.btn-danger  { background: var(--r); color: #fff; }
+.btn-danger:hover { background: var(--rd); }
+.btn-outline { background: transparent; color: var(--p); border: 1px solid var(--grayb); }
+.btn-outline:hover { background: var(--pl); border-color: var(--p); }
+.btn-gray    { background: var(--graylite); color: var(--text2); border: 1px solid var(--grayb); }
+.btn-gray:hover { background: var(--grayb); }
+.btn-orange  { background: var(--o); color: #fff; }
+.btn-sm  { padding: 5px 10px; font-size: .76rem; }
+.btn-lg  { padding: 10px 20px; font-size: .92rem; }
+.btn-full { width: 100%; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 5px;
+  font-size: .69rem; font-weight: 600; white-space: nowrap; line-height: 1.5;
+}
+.bb  { background: #dbeafe; color: #1e40af; }
+.bg  { background: #d1fae5; color: #065f46; }
+.br  { background: #fee2e2; color: #991b1b; }
+.bo  { background: #ffedd5; color: #9a3412; }
+.by  { background: #fef3c7; color: #78350f; }
+.bp  { background: #ede9fe; color: #5b21b6; }
+.bgr { background: var(--graylite); color: var(--gray); border: 1px solid var(--grayb); }
+
+/* ── Tables ── */
+.ox { overflow-x: auto; }
+.wt { width: 100%; border-collapse: collapse; }
+.wt thead th {
+  background: var(--graylite); color: var(--text3);
+  font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; padding: 9px 12px;
+  border-bottom: 1px solid var(--grayb);
+  white-space: nowrap; text-align: left;
+}
+.wt tbody td {
+  padding: 10px 12px; font-size: .82rem; color: var(--text2);
+  border-bottom: 1px solid #f8fafc; vertical-align: middle;
+}
+.wt tbody tr:hover td { background: #f8fafc; }
+.wt tbody tr:last-child td { border-bottom: none; }
+
+/* ── Forms ── */
+.field { margin-bottom: 12px; }
 .field label {
-  font-size: .72rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 5px;
-  display: block;
+  display: block; font-size: .71rem; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px;
 }
 .field input, .field select, .field textarea {
-  border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
-  padding: 9px 12px;
-  font-size: .88rem;
-  width: 100%;
-  background: #fff;
+  width: 100%; padding: 9px 12px; font-size: .88rem; font-family: inherit;
+  border: 1.5px solid var(--grayb); border-radius: var(--rads);
+  background: var(--surface); color: var(--text);
   transition: border-color .15s, box-shadow .15s;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
-  outline: none;
-  border-color: #818cf8;
-  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+  outline: none; border-color: var(--p); box-shadow: 0 0 0 3px rgba(var(--p-rgb),.08);
 }
+.hint { font-size: .72rem; color: var(--text3); margin-top: 4px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:560px){ .g2 { grid-template-columns: 1fr; } }
 
-/* Step numbers in new work */
-.step-num {
-  min-width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: .8rem; flex-shrink: 0;
+/* ── Modals ── */
+.mo {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(15,23,42,.5); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 16px;
 }
-
-/* Badges uplift */
-.badge {
-  border-radius: 6px;
-  font-size: .7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  white-space: nowrap;
-}
-
-/* Table uplift */
-.wt { border-collapse: separate; border-spacing: 0; }
-.wt thead tr th {
-  background: #f8fafc;
-  font-size: .68rem;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: #64748b;
-  font-weight: 700;
-  padding: 10px 12px;
-  border-bottom: 2px solid #e2e8f0;
-  position: sticky; top: 0;
-}
-.wt tbody tr:hover { background: #f8fafc; }
-.wt tbody tr td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: .83rem;
-}
-
-/* Modal uplift */
+.mo.show { display: flex; animation: moIn .15s ease; }
+@keyframes moIn { from { opacity:0; transform: scale(.97); } to { opacity:1; transform: scale(1); } }
 .md {
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
+  background: var(--surface); border-radius: 14px; padding: 24px;
+  max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto;
+  position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.2);
 }
+.md-close {
+  position: absolute; top: 14px; right: 14px; width: 28px; height: 28px;
+  border-radius: 6px; background: var(--graylite); color: var(--text3);
+  font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: .12s; border: 1px solid var(--grayb);
+}
+.md-close:hover { background: var(--grayb); color: var(--text); }
 .md-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f1f5f9;
+  font-size: .95rem; font-weight: 700; color: var(--text);
+  margin-bottom: 18px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--grayb);
+}
+.md-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--grayb);
 }
 
-/* Button polish */
-.btn { border-radius: 10px; font-weight: 600; }
-.btn-primary {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  box-shadow: 0 2px 8px rgba(99,102,241,.3);
-}
-.btn-success {
-  background: linear-gradient(135deg, #059669, #10b981);
-  box-shadow: 0 2px 8px rgba(16,185,129,.25);
-}
-
-/* Dashboard stat cards */
+/* ── Stat Cards ── */
+.stats-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
 .sc {
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
-  transition: transform .15s, box-shadow .15s;
+  background: var(--surface); border: 1px solid var(--grayb);
+  border-radius: var(--rads); padding: 12px 16px; min-width: 110px;
+  flex: 1; box-shadow: var(--shadow-sm); transition: transform .12s, box-shadow .12s;
 }
-.sc:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+.sc:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.sc .sl { font-size: .69rem; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; }
+.sc .sv { font-size: 1.3rem; font-weight: 700; color: var(--text); font-family: 'Space Grotesk',sans-serif; letter-spacing: -.5px; }
+.sc.green { border-left: 3px solid var(--g); }
+.sc.green .sv { color: var(--g); }
+.sc.red   { border-left: 3px solid var(--r); }
+.sc.red .sv   { color: var(--r); }
+.sc.orange { border-left: 3px solid var(--o); }
+.sc.orange .sv { color: var(--o); }
+.sc.yellow { border-left: 3px solid var(--y); }
+.sc.yellow .sv { color: var(--y); }
+
+/* ── Search/Filter bar ── */
+.sbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.sbar input { flex: 1; min-width: 200px; padding: 8px 12px; font-size: .84rem; border: 1.5px solid var(--grayb); border-radius: var(--rads); background: var(--surface); }
+.sbar input:focus { outline: none; border-color: var(--p); box-shadow: 0 0 0 3px rgba(var(--p-rgb),.07); }
+.sbar select { padding: 8px 10px; font-size: .82rem; border: 1.5px solid var(--grayb); border-radius: var(--rads); background: var(--surface); }
+
+/* ── Tab buttons ── */
+.tb {
+  padding: 5px 12px; border-radius: 6px; font-size: .78rem; font-weight: 600;
+  background: transparent; color: var(--text3); cursor: pointer;
+  border: 1px solid transparent; transition: .12s;
+}
+.tb:hover { background: var(--graylite); color: var(--text2); }
+.tb.active { background: var(--pl); color: var(--p); border-color: #c7d2fe; }
+.tab-row { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ── Work number ── */
+.wnum { font-family: 'Space Grotesk',sans-serif; font-weight: 700; font-size: .82rem; color: var(--p); }
+.uid-tag { font-family: monospace; font-size: .75rem; background: var(--pl); color: var(--pd); padding: 2px 8px; border-radius: 5px; }
+
+/* ── vw-row ── */
+.vw-row {
+  background: var(--graylite); border: 1.5px solid var(--grayb);
+  border-radius: 10px; padding: 12px; margin-bottom: 8px;
+  transition: border-color .12s;
+}
+.vw-row:focus-within { border-color: #c7d2fe; background: #fafbff; }
+
+/* ── Extras fields ── */
+.wtype-extras input, .wtype-extras select {
+  font-family: inherit; width: 100%; margin-bottom: 4px;
+  padding: 7px 10px; font-size: .81rem;
+  border: 1.5px solid #e0e7ff; border-radius: 7px; background: #fafbff;
+  transition: border-color .12s, box-shadow .12s;
+}
+.wtype-extras input:focus, .wtype-extras select:focus {
+  outline: none; border-color: var(--p); box-shadow: 0 0 0 2px rgba(var(--p-rgb),.08);
 }
 
-/* wtype-dropdown z-index ensure */
-.wtype-dropdown { z-index: 500 !important; }</style>
+/* ── Work type dropdown ── */
+.wtype-dropdown { z-index: 500 !important; }
+.wtopt {
+  padding: 8px 12px; font-size: .83rem; cursor: pointer;
+  border-bottom: 1px solid var(--graylite); color: var(--text2);
+  transition: background .1s;
+}
+.wtopt:hover, .wtopt.kb-active { background: var(--pl); color: var(--p); font-weight: 600; }
+.wtopt:last-child { border-bottom: none; }
+
+/* ── Expiry alerts ── */
+.expiry-alert {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-radius: 8px; margin-bottom: 8px;
+  background: #fff5f5; border-left: 3px solid var(--r);
+  gap: 10px; flex-wrap: wrap;
+}
+.expiry-alert.warn {
+  background: #fffbeb; border-left-color: var(--o);
+}
+
+/* ── Work detail info grid ── */
+.di { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--graylite); }
+.dl { font-size: .68rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; }
+.dv { font-size: .84rem; color: var(--text2); font-weight: 500; }
+.row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.label { font-weight: 500; color: var(--text3); font-size: .82rem; }
+.value { font-weight: 600; color: var(--text); font-size: .82rem; }
+
+/* ── Submit work button ── */
+.submit-work-btn {
+  width: 100%; padding: 14px; background: var(--p); color: #fff;
+  border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; letter-spacing: -.1px;
+  box-shadow: 0 4px 12px rgba(var(--p-rgb),.3);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s; font-family: 'Space Grotesk',sans-serif;
+}
+.submit-work-btn:hover { background: var(--pd); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(var(--p-rgb),.35); }
+.submit-work-btn:active { transform: translateY(0); }
+
+/* ── Dashboard welcome ── */
+#dashWelcome {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, var(--p) 100%) !important;
+  border-radius: var(--rad); padding: 20px 24px; margin-bottom: 16px;
+  color: #fff; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+
+/* ── Page animation ── */
+.page { display: none; }
+.page.active { display: block; animation: pgIn .18s ease; }
+@keyframes pgIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+
+/* ── Responsive ── */
+@media(max-width:768px) {
+  #content { margin-left:0; padding:12px; padding-top:60px; }
+  .card { padding: 14px 16px; }
+  #topbar { margin-bottom: 14px; }
+  .stats-row { gap: 6px; }
+  .sc { min-width: 80px; padding: 10px 12px; }
+  .sc .sv { font-size: 1.1rem; }
+}
+
+/* ── Misc ── */
+.nd { text-align: center; padding: 32px; color: var(--text3); font-size: .85rem; }
+.pay-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px; background: var(--graylite); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--grayb); }
+#remainingBal { border-radius: var(--rads); padding: 8px 12px; font-weight: 600; font-size: .85rem; }
+.orange { border-left: 3px solid var(--o) !important; }
+
+/* ── Work detail modal side-by-side grid ── */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+@media(max-width:480px){ .detail-grid { grid-template-columns: 1fr; } }
+
+/* ── Topbar quick search button ── */
+#quickSearchTrigger {
+  display:flex; align-items:center; gap:6px; padding:6px 12px;
+  background:var(--graylite); border:1px solid var(--grayb); border-radius:var(--rads);
+  font-size:.78rem; font-weight:500; color:var(--text3); cursor:pointer;
+  transition:.12s;
+}
+#quickSearchTrigger:hover { background:var(--grayb); color:var(--text); }
+
+/* ── wtype-dropdown ── */
+.wtype-dropdown {
+  background: var(--surface); border: 1px solid var(--grayb) !important;
+  border-radius: var(--rads); box-shadow: var(--shadow-md) !important;
+}
+
+/* ─── CLIENT PORTAL HIDDEN ─── */
+#clientPortalPage {
+  display: none !important; visibility: hidden; pointer-events: none;
+  position: fixed; inset: 0; z-index: 5000; min-height: 100vh;
+  background: #f1f5f9; flex-direction: column; overflow-y: auto;
+}
+#clientPortalPage.show { display: flex !important; visibility: visible; pointer-events: auto; }</style>
 </head>
 <body>
 
@@ -1304,153 +1482,211 @@ input[type="number"]:focus {
 <!-- MAIN APP -->
 <div id="mainApp">
   <div id="sidebar">
+    <!-- Brand -->
     <div class="sidebar-header" onclick="showPage('dashboard')" style="cursor:pointer;">
       <div class="sidebar-logo">
-        <div class="logo-icon">🏢</div>
+        <div class="logo-icon" style="font-size:.9rem;">⚖️</div>
         <div>
-          <div class="logo-text">Nandan Legal Services</div>
-          <div class="logo-sub">Work Manager</div>
+          <div class="logo-text">Nandan Legal</div>
+          <div class="logo-sub">RTO Work Manager</div>
         </div>
       </div>
     </div>
+
     <nav>
-      <!-- MAIN: always visible -->
-      <div class="ns">Main</div>
-      <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">🏠</span> Dashboard</a>
-      <a onclick="showPage('newWork')" id="nav-newWork"><span class="ico">➕</span> New Work</a>
-      <a onclick="showPage('verification')" id="nav-verification"><span class="ico">🔍</span> Verification <span id="badge-verification" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">📋</span> All Works</a>
-      <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">📝</span> New Inquiry</a>
-      <a onclick="showPage('allInquiry')" id="nav-allInquiry"><span class="ico">📂</span> All Inquiries <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('payments')" id="nav-payments"><span class="ico">💰</span> Payments</a>
+      <!-- Quick Actions -->
+      <div class="ns">Workspace</div>
+      <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">◻</span> Dashboard</a>
+      <a onclick="showPage('newWork')" id="nav-newWork" style="color:#818cf8;font-weight:600;"><span class="ico">＋</span> New Work</a>
+      <a onclick="showPage('verification')" id="nav-verification">
+        <span class="ico">◈</span> Verification
+        <span id="badge-verification" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
 
-      <!-- WORKS: detailed views -->
+      <!-- Works -->
       <div class="ns">Works</div>
-      <a onclick="showPage('datewise')" id="nav-datewise"><span class="ico">📅</span> Date / Month Filter</a>
-      <a onclick="showPage('overdue')" id="nav-overdue"><span class="ico">⚠️</span> Overdue Works <span id="badge-overdue" style="margin-left:auto;background:var(--r);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('expiry')" id="nav-expiry"><span class="ico">🔔</span> Expiry Alerts <span id="badge-expiry" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('clientHistory')" id="nav-clientHistory"><span class="ico">👤</span> Client History</a>
-      <a onclick="showPage('followup')" id="nav-followup"><span class="ico">📌</span> Follow-ups <span id="badge-followup" style="margin-left:auto;background:var(--p);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
+      <a onclick="showPage('allWork')" id="nav-allWork"><span class="ico">≡</span> All Works</a>
+      <a onclick="showPage('overdue')" id="nav-overdue">
+        <span class="ico">!</span> Overdue
+        <span id="badge-overdue" style="margin-left:auto;background:var(--r);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
+      <a onclick="showPage('expiry')" id="nav-expiry">
+        <span class="ico">◷</span> Expiry Alerts
+        <span id="badge-expiry" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
+      <a onclick="showPage('followup')" id="nav-followup">
+        <span class="ico">◎</span> Follow-ups
+        <span id="badge-followup" style="margin-left:auto;background:var(--p);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
+      <a onclick="showPage('datewise')" id="nav-datewise"><span class="ico">▦</span> Date Filter</a>
 
-      <!-- FINANCE: owner-only items hidden for others -->
+      <!-- Clients -->
+      <div class="ns">Clients</div>
+      <a onclick="showPage('clientHistory')" id="nav-clientHistory"><span class="ico">◉</span> Client History</a>
+      <a onclick="showPage('udhari')" id="nav-udhari">
+        <span class="ico">₹</span> Balances
+        <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
+      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">◑</span> Dues by Client</a>
+      <a onclick="showPage('addInquiry')" id="nav-addInquiry"><span class="ico">+</span> New Inquiry</a>
+      <a onclick="showPage('allInquiry')" id="nav-allInquiry">
+        <span class="ico">◿</span> All Inquiries
+        <span id="badge-inquiry" style="margin-left:auto;background:#8b5cf6;color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
+      </a>
+
+      <!-- Finance -->
       <div class="ns">Finance</div>
-      <a onclick="showPage('udhari')" id="nav-udhari"><span class="ico">⚖️</span> Client Balances <span id="badge-udhari" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;display:none;"></span></a>
-      <a onclick="showPage('dues')" id="nav-dues"><span class="ico">💳</span> Dues (by Client)</a>
-      <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">🏦</span> Bank Ledger</a>
-      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">🔍</span> Reconciliation</a>
-      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">💰</span> Combined Balance</a>
-      <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">💵</span> Cash in Hand</a>
-      <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">📈</span> Monthly P&amp;L</a>
+      <a onclick="showPage('payments')" id="nav-payments"><span class="ico">◈</span> Payments</a>
+      <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">▤</span> Bank Ledger</a>
+      <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">◯</span> Cash in Hand</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">▣</span> Combined Balance</a>
+      <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">↗</span> Monthly P&amp;L</a>
 
-      <!-- EXPENDITURE -->
-      <div class="ns">Expenditure</div>
-      <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">🧾</span> RTO Inside Spend</a>
-      <a onclick="showPage('officeExpenditure')" id="nav-officeExpenditure"><span class="ico">💼</span> Office Expenditure</a>
-      <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">📊</span> Daily Summary</a>
+      <!-- Expenses -->
+      <div class="ns">Expenses</div>
+      <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">▩</span> RTO Spend</a>
+      <a onclick="showPage('officeExpenditure')" id="nav-officeExpenditure"><span class="ico">▦</span> Office Expenses</a>
+      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">⇄</span> Reconciliation</a>
+      <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">▦</span> Daily Summary</a>
 
-      <!-- OFFICE: all owner-only -->
-      <div class="ns">Office</div>
-      <a onclick="showPage('staff')" id="nav-staff" class="owner-only-nav"><span class="ico">👥</span> Staff & Salary</a>
-      <a onclick="showPage('performance')" id="nav-performance" class="owner-only-nav"><span class="ico">🏆</span> Staff Performance</a>
-      <a onclick="showPage('accessLog')" id="nav-accessLog" class="owner-only-nav"><span class="ico">📜</span> Access Log</a>
-      <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">🕐</span> Attendance</a>
+      <!-- People -->
+      <div class="ns">People</div>
+      <a onclick="showPage('staff')" id="nav-staff" class="owner-only-nav"><span class="ico">◉</span> Staff & Salary</a>
+      <a onclick="showPage('performance')" id="nav-performance" class="owner-only-nav"><span class="ico">↗</span> Performance</a>
+      <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">◷</span> Attendance</a>
 
+      <!-- Admin (owner only) -->
       <div id="ownerNav" style="display:none;">
-        <div class="ns">Owner Only</div>
-        <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
-        <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙️</span> Manage Staff</a>
-        <a onclick="showPage('complaints')" id="nav-complaints"><span class="ico">📣</span> Complaints</a>
-        <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">🖥️</span> Trusted Devices</a>
-        <a onclick="showFirebaseRulesGuide()" style="cursor:pointer;"><span class="ico">🔒</span> DB Security Setup</a>
+        <div class="ns">Admin</div>
+        <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙</span> Manage Staff</a>
+        <a onclick="showPage('complaints')" id="nav-complaints"><span class="ico">◎</span> Complaints</a>
+        <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">✕</span> Rejected Works</a>
+        <a onclick="showPage('accessLog')" id="nav-accessLog"><span class="ico">▤</span> Access Log</a>
+        <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">▣</span> Trusted Devices</a>
       </div>
     </nav>
+
+    <!-- User box -->
     <div class="ubox">
       <div class="uname" id="sidebarName">—</div>
       <div class="urole" id="sidebarRole">—</div>
-      <button onclick="openModal('pinboardModal');loadPins()">📝 Pinboard</button>
-      <button onclick="openModal('setPinModal')">🔒 App Lock PIN</button>
-      <button onclick="openDeviceNameSetup()" id="deviceNameBtn" style="display:none;">🖥️ <span id="deviceNameDisplay">Name This Device</span></button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;">
+        <button onclick="openModal('pinboardModal');loadPins()" style="text-align:center;">📌 Pins</button>
+        <button onclick="openModal('setPinModal')" style="text-align:center;">🔒 PIN</button>
+      </div>
+      <button onclick="openDeviceNameSetup()" id="deviceNameBtn" style="display:none;">🖥️ <span id="deviceNameDisplay">Name Device</span></button>
       <button onclick="showChangePassword()">🔑 Change Password</button>
-      <button onclick="doLogout()">↩ Logout</button>
+      <button onclick="doLogout()" style="color:#fca5a5;border-color:rgba(252,165,165,.2);">↩ Sign Out</button>
     </div>
   </div>
 
   <div id="content">
     <div id="topbar">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <h2 id="pageTitle">Dashboard</h2>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="openQuickSearch()" style="display:flex;align-items:center;gap:6px;padding:5px 11px;background:var(--graylite);border:1px solid var(--grayb);border-radius:7px;font-size:.78rem;font-weight:500;color:var(--text3);cursor:pointer;transition:.12s;" onmouseover="this.style.background='var(--grayb)'" onmouseout="this.style.background='var(--graylite)'">
+          🔍 <span style="display:none;" class="show-md">Search</span> <kbd style="background:var(--grayb);border-radius:3px;padding:1px 5px;font-family:monospace;font-size:.7rem;">/</kbd>
+        </button>
         <span class="tdate" id="topbarDate"></span>
-        <span class="tdate" id="topbarClock" style="font-family:'Baloo 2',sans-serif;font-weight:800;color:var(--p);min-width:70px;text-align:center;"></span>
+        <span class="tdate" id="topbarClock" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--p);min-width:65px;text-align:center;letter-spacing:-.3px;"></span>
       </div>
     </div>
 
     <!-- DASHBOARD -->
     <div class="page" id="page-dashboard">
-      <div id="dashWelcome" style="margin-bottom:18px;padding:20px 24px;background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 100%);border-radius:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+
+      <!-- Welcome bar -->
+      <div id="dashWelcome" style="margin-bottom:20px;">
         <div>
-          <div style="font-family:'Sora',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.3px;" id="dashGreeting">Good morning 👋</div>
-          <div style="font-size:.82rem;opacity:.65;margin-top:3px;" id="dashSubtitle">Here's what's happening today</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;letter-spacing:-.3px;" id="dashGreeting">Good morning 👋</div>
+          <div style="font-size:.8rem;opacity:.6;margin-top:2px;" id="dashSubtitle">Here's your office at a glance</div>
         </div>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showPage('newWork')">＋ New Work</button>
-      </div>
-      <div class="stats-row" id="dashStats"></div>
-      <div id="dashExpiryBanner"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-        <button class="btn btn-primary" onclick="showPage('newWork')">➕ New Work</button>
-        <button class="btn btn-outline" onclick="showPage('allWork')">📋 All Works</button>
-        <button class="btn btn-outline" onclick="showPage('dues')">💳 Check Dues</button>
-        <button class="btn btn-outline" onclick="showPage('dailySummary')">📊 Today Summary</button>
-        <button class="btn btn-outline" onclick="showPage('cashTracker')">💵 Cash Tracker</button>
-      </div>
-      <!-- Vehicle Search Widget -->
-      <div class="card" style="margin-bottom:20px;border-left:4px solid #0891b2;">
-        <div class="sh" style="margin-bottom:12px;">
-          <div class="card-title" style="margin:0;">🔍 Search Vehicle</div>
-          <div style="font-size:.75rem;color:var(--gray);">Find all works for a vehicle</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);" onclick="showPage('newWork')">＋ New Work</button>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.14);" onclick="showPage('dailySummary')">Today's Summary</button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <input type="text" id="dashVehicleInput" placeholder="Enter vehicle number…" style="flex:1;padding:10px 14px;border:1.5px solid var(--grayb);border-radius:10px;font-size:.9rem;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')dashVehicleSearch()"/>
-          <div style="display:flex;gap:6px;">
-            <button class="btn btn-sm btn-outline tb active" id="dashVehTabOpen" onclick="dashVehicleSetTab('open',this)" style="font-size:.78rem;">Open</button>
-            <button class="btn btn-sm btn-outline tb" id="dashVehTabClosed" onclick="dashVehicleSetTab('closed',this)" style="font-size:.78rem;">Closed</button>
-            <button class="btn btn-sm btn-outline tb" id="dashVehTabAll" onclick="dashVehicleSetTab('all',this)" style="font-size:.78rem;">All</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="dashStats" style="margin-bottom:20px;"></div>
+
+      <!-- Alerts -->
+      <div id="dashExpiryBanner" style="margin-bottom:16px;"></div>
+
+      <!-- Vehicle search + recent works side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+        <!-- Vehicle Quick Search -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-title" style="margin-bottom:12px;">Vehicle Search</div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <input type="text" id="dashVehicleInput" placeholder="UP32AB1234" style="flex:1;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;text-transform:uppercase;background:var(--graylite);" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')dashVehicleSearch()"/>
+            <button class="btn btn-primary btn-sm" onclick="dashVehicleSearch()">Search</button>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="dashVehicleSearch()">Search</button>
+          <div style="display:flex;gap:4px;margin-bottom:8px;">
+            <button class="tb active btn-sm" id="dashVehTabOpen" onclick="dashVehicleSetTab('open',this)">Open</button>
+            <button class="tb btn-sm" id="dashVehTabClosed" onclick="dashVehicleSetTab('closed',this)">Closed</button>
+            <button class="tb btn-sm" id="dashVehTabAll" onclick="dashVehicleSetTab('all',this)">All</button>
+          </div>
+          <div id="dashVehicleResults" style="display:none;max-height:200px;overflow-y:auto;"></div>
         </div>
-        <div id="dashVehicleResults" style="display:none;"></div>
+
+        <!-- Recent works -->
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-title" style="margin-bottom:12px;">Recent Works</div>
+          <div id="recentList" style="max-height:220px;overflow-y:auto;"></div>
+        </div>
       </div>
-      <div class="g2">
-        <div class="card"><div class="card-title">📋 Recent Works</div><div id="recentList"></div></div>
-        <div class="card"><div class="card-title">⚠️ Overdue (&gt;1 week)</div><div id="overdueSnippet"></div></div>
+
+      <!-- Overdue + Expiry side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card" style="margin-bottom:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="card-title" style="margin:0;">Overdue Works</div>
+            <button class="btn btn-sm btn-outline" onclick="showPage('overdue')">View all</button>
+          </div>
+          <div id="overdueSnippet"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="card-title" style="margin:0;">Expiring Soon</div>
+            <button class="btn btn-sm btn-outline" onclick="showPage('expiry')">View all</button>
+          </div>
+          <div id="expirySnippet"></div>
+        </div>
       </div>
-      <div class="g2">
-        <div class="card"><div class="card-title">🔔 Expiring Soon (30 days)</div><div id="expirySnippet"></div></div>
-        <div class="card"><div class="card-title">⚖️ Client Balances Pending</div><div id="udhariSnippet"></div></div>
+
+      <!-- Balances + Pinboard -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card" style="margin-bottom:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="card-title" style="margin:0;">Pending Balances</div>
+            <button class="btn btn-sm btn-outline" onclick="showPage('udhari')">View all</button>
+          </div>
+          <div id="udhariSnippet"></div>
+        </div>
+        <div class="card" id="pinboardDashCard" style="margin-bottom:0;">
+          <div class="card-title" style="margin-bottom:12px;">📌 Pinboard</div>
+          <div id="pinsDash"></div>
+        </div>
       </div>
-      <div class="card" id="pinboardDashCard"><div class="card-title">📌 Pinboard</div><div id="pinsDash"></div></div>
     </div>
 
     <!-- NEW WORK -->
     <div class="page" id="page-newWork">
-
-      <!-- Page Header -->
-      <div style="background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 60%,#6366f1 100%);border-radius:18px;padding:22px 26px;margin-bottom:22px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:0 8px 32px rgba(79,70,229,.28);">
+      <!-- Clean header row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
-          <div style="font-family:'Sora',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.4px;display:flex;align-items:center;gap:9px;">
-            <span style="background:rgba(255,255,255,.18);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">➕</span>
-            Add New Work
-          </div>
-          <div style="font-size:.78rem;opacity:.65;margin-top:4px;padding-left:45px;">Work goes to Verification before appearing in All Works</div>
+          <div style="font-size:1.1rem;font-weight:700;color:var(--text);">New Work Entry</div>
+          <div style="font-size:.76rem;color:var(--text3);margin-top:2px;">Submitted works go to Verification before appearing in All Works</div>
         </div>
-        <button onclick="resetNewWorkForm()" tabindex="-1" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:8px 16px;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">🔄 Reset</button>
+        <button onclick="resetNewWorkForm()" class="btn btn-gray btn-sm">↺ Reset Form</button>
       </div>
 
       <!-- ─── STEP 1: CLIENT INFO ─── -->
-      <div class="card" style="margin-bottom:16px;border-left:4px solid #6366f1;">
+      <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-          <div style="min-width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#818cf8);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 2px 8px rgba(79,70,229,.35);">1</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.5px;background:var(--pl);padding:2px 8px;border-radius:4px;">Step 1</div>
           <div>
             <div style="font-weight:800;font-size:.95rem;color:#1e1b4b;">Client Information</div>
             <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Who brought this work?</div>
@@ -1473,10 +1709,10 @@ input[type="number"]:focus {
       </div>
 
       <!-- ─── STEP 2: VEHICLES & WORKS ─── -->
-      <div class="card" style="margin-bottom:16px;border-left:4px solid #10b981;">
+      <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="min-width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#059669,#34d399);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 2px 8px rgba(16,185,129,.3);">2</div>
+            <div style="font-size:.65rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.5px;background:var(--gl);padding:2px 8px;border-radius:4px;">Step 2</div>
             <div>
               <div style="font-weight:800;font-size:.95rem;color:#064e3b;">Vehicle(s) &amp; Work Type(s)</div>
               <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Add one row per vehicle/work combination</div>
@@ -1499,17 +1735,22 @@ input[type="number"]:focus {
               <div style="flex:1;">
                 <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="4" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
                 <div style="display:flex;gap:4px;margin-top:5px;">
-                  <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
-                  <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
+                  <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" tabindex="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
+                  <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" tabindex="6" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
                 </div>
               </div>
-              <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+              <div style="flex-shrink:0;display:flex;flex-direction:column;gap:3px;width:110px;">
+                <div style="font-size:.6rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;text-align:center;">💰 Fee / Penalty</div>
+                <input type="number" class="wtype-fee" placeholder="Fee ₹" min="0" oninput="calcTotalWorkValue()" tabindex="8" style="width:100%;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:8px;font-size:.82rem;background:#f0fdf4;font-weight:700;text-align:right;" title="Government Fee"/>
+                <input type="number" class="wtype-penalty" placeholder="Penalty ₹" min="0" oninput="calcTotalWorkValue()" tabindex="9" style="width:100%;padding:7px 9px;border:1.5px solid #fecaca;border-radius:8px;font-size:.82rem;background:#fff5f5;font-weight:700;text-align:right;" title="Penalty Amount"/>
+                <input type="hidden" class="wtype-value" value="0"/>
+              </div>
               <div style="width:32px;height:32px;flex-shrink:0;"></div>
             </div>
             <!-- Row 2: Work Type (full width) -->
             <div style="position:relative;">
               <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">🔧 Work Type</div>
-              <input type="text" class="wtype-search" placeholder="🔍 Type to search work type…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="5" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+              <input type="text" class="wtype-search" placeholder="🔍 Type to search work type…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="7" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
               <input type="hidden" class="wtype-sel" value=""/>
               <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:400;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:220px;overflow-y:auto;margin-top:3px;">
                 <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
@@ -1551,9 +1792,9 @@ input[type="number"]:focus {
       </div>
 
       <!-- ─── STEP 3: PAYMENT ─── -->
-      <div class="card" style="margin-bottom:16px;border-left:4px solid #f59e0b;">
+      <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-          <div style="min-width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#d97706,#fbbf24);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 2px 8px rgba(217,119,6,.3);">3</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--o);text-transform:uppercase;letter-spacing:.5px;background:var(--ol);padding:2px 8px;border-radius:4px;">Step 3</div>
           <div>
             <div style="font-weight:800;font-size:.95rem;color:#78350f;">Payment Received</div>
             <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Enter 0 if nothing paid yet</div>
@@ -1562,7 +1803,7 @@ input[type="number"]:focus {
 
         <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;margin-bottom:13px;">
             <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
-            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="7" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
+            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="9" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
           </div>
         <div id="remainingBal" style="display:none;border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:.88rem;"></div>
 
@@ -1571,7 +1812,7 @@ input[type="number"]:focus {
           <div style="font-size:.72rem;color:var(--gray);margin-bottom:8px;">Each payment row has its own date — payments hit the ledger on that date</div>
           <div id="payModeList">
             <div class="pay-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;">
-              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="8" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
+              <select class="pay-mode-sel" onchange="payRowChange(this)" tabindex="10" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
                 <option value="">— Mode —</option>
                 <option value="Cash">💵 Cash</option>
                 <option value="UPI">📱 UPI / Online</option>
@@ -1579,10 +1820,10 @@ input[type="number"]:focus {
               </select>
               <select class="pay-bank-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
                 <option value="">— Bank —</option>
-                <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+                <option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option>
               </select>
               <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select>
-              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" tabindex="9" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
+              <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" tabindex="11" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
               <input type="date" class="pay-date-inp" tabindex="-1" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date" id="firstPayDate"/>
               <button onclick="addPayRow()" tabindex="-1" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button>
             </div>
@@ -1592,9 +1833,9 @@ input[type="number"]:focus {
       </div>
 
       <!-- ─── STEP 4: DATE & NOTES ─── -->
-      <div class="card" style="margin-bottom:22px;border-left:4px solid #8b5cf6;">
+      <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-          <div style="min-width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;box-shadow:0 2px 8px rgba(124,58,237,.3);">4</div>
+          <div style="font-size:.65rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;background:#ede9fe;padding:2px 8px;border-radius:4px;">Step 4</div>
           <div>
             <div style="font-weight:800;font-size:.95rem;color:#3b0764;">Date &amp; Notes</div>
             <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Optional extra details</div>
@@ -1603,18 +1844,18 @@ input[type="number"]:focus {
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date" tabindex="10"/>
+            <input type="date" id="w_date" tabindex="12"/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
             <label>Notes / Remarks <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional)</span></label>
-            <textarea id="w_notes"  placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="11"></textarea>
+            <textarea id="w_notes"  placeholder="Any extra details, special instructions…" style="min-height:52px;resize:vertical;" tabindex="13"></textarea>
           </div>
         </div>
       </div>
 
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="12" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="14" style="width:100%;padding:15px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:14px;font-size:1.05rem;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(79,70,229,.4);font-family:'Sora',sans-serif;letter-spacing:-.2px;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .18s;" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -1639,22 +1880,33 @@ input[type="number"]:focus {
         </div>
         <input type="hidden" id="allWorkTabFilter" value="open"/>
         <div class="sbar">
-          <input type="text" id="searchInput" placeholder="🔍 Search name, vehicle, #, Client ID, phone…" oninput="filterWorks()"/>
+          <input type="text" id="searchInput" placeholder="🔍 Search name, vehicle, chassis, engine, #, Client ID, phone…" oninput="filterWorks()"/>
           <select id="filterType" onchange="filterWorks()">
             <option value="">All Types</option>
-            <option value="Insurance">Insurance</option>
-            <option value="Challan-Online">Challan-Online</option>
-            <option value="Challan-Court">Challan-Court</option>
-            <option value="Fitness">Fitness</option>
-            <option value="Permit-AllIndia">Permit-AllIndia</option>
-            <option value="Permit-State">Permit-State</option>
-            <option value="Registration">Registration</option>
-            <option value="Transfer">Transfer</option>
-            <option value="PUC">PUC</option>
-            <option value="RoadTax-OTT">Road Tax-OTT</option>
-            <option value="RoadTax-Quarterly">Road Tax-Quarterly</option>
-            <option value="DrivingLicense">Driving License</option>
-            <option value="Others">Others</option>
+            <option value="NewRegistration">🆕 New Registration</option>
+            <option value="TempRegistration">📋 Temp Registration</option>
+            <option value="Transfer">🔄 RC Transfer</option>
+            <option value="ChangeOfAddress">📍 Change of Address</option>
+            <option value="ReRegistration">♻️ Re-Registration</option>
+            <option value="FRC">📄 FRC</option>
+            <option value="RCDC">📑 RC/DC</option>
+            <option value="RCParticular">📝 RC Particular</option>
+            <option value="RCSurrender">🏳️ RC Surrender</option>
+            <option value="RCCancel">❌ RC Cancel</option>
+            <option value="Hypothecation">🔗 Hypothecation</option>
+            <option value="Fitness">✅ Fitness</option>
+            <option value="Alteration">🔧 Alteration</option>
+            <option value="Conversion">🔀 Conversion</option>
+            <option value="RCNOC">📤 RC NOC</option>
+            <option value="Permit">🗺️ Permit</option>
+            <option value="TradeCertificate">🏷️ Trade Certificate</option>
+            <option value="Challan">⚖️ Challan</option>
+            <option value="Insurance">🛡️ Insurance</option>
+            <option value="RoadTax">🛣️ Road Tax</option>
+            <option value="PUC">🌿 PUC</option>
+            <option value="HSRP">🔖 HSRP</option>
+            <option value="DrivingLicense">🪪 Driving License</option>
+            <option value="Others">📦 Others</option>
           </select>
           <select id="filterStatus" onchange="syncStatusToTab();filterWorks()">
             <option value="">All Status</option>
@@ -1679,6 +1931,7 @@ input[type="number"]:focus {
           </div>
         </div>
         <p style="font-size:.83rem;color:var(--gray);margin:0 0 14px;">All newly added works appear here first. Verify to move them to All Works.</p>
+        <div id="workloadSummary"></div>
         <div id="verificationList"></div>
       </div>
     </div>
@@ -1757,14 +2010,17 @@ input[type="number"]:focus {
     <div class="page" id="page-expiry">
       <div class="card">
         <div class="sh">
-          <div class="card-title" style="margin:0;">🔔 Expiry</div>
-          <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()" data-restrict="print-export">📥 Export Excel</button>
+          <div class="card-title" style="margin:0;">🔔 Expiry Alerts</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm" style="background:#25d366;color:#fff;border:none;" onclick="bulkWAExpiryReminder()" title="Send WhatsApp reminder to all clients expiring this week">📱 Bulk WA Reminder</button>
+            <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()" data-restrict="print-export">📥 Export</button>
+          </div>
         </div>
         <div class="tab-row" style="margin-bottom:14px;">
           <button class="tb expiry-filter-btn active" id="expiryFilterBtn" onclick="setExpiryFilter('all',this)">All Upcoming</button>
-          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('month',this)">Expiring This Month</button>
-          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('week',this)">Expiring This Week</button>
-          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('expired',this)">Already Expired</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('month',this)">This Month</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('week',this)">This Week</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('expired',this)">Expired</button>
         </div>
         <div id="expiryList"></div>
       </div>
@@ -1775,7 +2031,7 @@ input[type="number"]:focus {
       <div class="card">
         <div class="card-title">👤 Client History</div>
         <div class="sbar" style="margin-bottom:20px;">
-          <input type="text" id="chSearch" placeholder="🔍 Search by phone number or vehicle number…" style="flex:1;"/>
+          <input type="text" id="chSearch" placeholder="🔍 Search by phone, vehicle, chassis (last 5), engine (last 5), name or Client ID…" style="flex:1;"/>
           <button class="btn btn-primary btn-sm" onclick="searchClientHistory()">Search</button>
         </div>
         <div id="chResult"></div>
@@ -2631,6 +2887,21 @@ input[type="number"]:focus {
 </div>
 
 <!-- REJECT WORK MODAL -->
+<!-- GLOBAL QUICK SEARCH MODAL -->
+<div class="mo" id="quickSearchModal" onclick="if(event.target===this)closeQuickSearch()">
+  <div class="md" style="max-width:520px;padding:0;overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.1rem;">🔍</span>
+      <input id="qsInput" type="text" placeholder="Search works by name, vehicle, chassis, engine, phone…" oninput="runQuickSearch()" onkeydown="if(event.key==='Escape')closeQuickSearch()" style="flex:1;border:none;outline:none;font-size:.95rem;font-family:inherit;background:transparent;"/>
+      <span style="font-size:.72rem;color:var(--gray);background:#f1f5f9;padding:2px 8px;border-radius:6px;font-weight:700;">ESC to close</span>
+    </div>
+    <div id="qsResults" style="max-height:360px;overflow-y:auto;padding:6px 8px 8px;">
+      <div style="color:var(--gray);font-size:.85rem;padding:12px;">Type to search across all works…</div>
+    </div>
+    <div style="padding:8px 16px;border-top:1px solid #f1f5f9;font-size:.72rem;color:var(--gray);">Press <kbd style="background:#f1f5f9;border-radius:4px;padding:1px 5px;font-family:monospace;">/</kbd> anywhere to open quick search</div>
+  </div>
+</div>
+
 <div class="mo" id="rejectWorkModal">
   <div class="md" style="max-width:460px;">
     <button class="md-close" onclick="closeModal('rejectWorkModal')">×</button>
@@ -2720,10 +2991,13 @@ input[type="number"]:focus {
         </select>
       </div>
       <div class="field"><label>Base Salary (₹)</label>
-        <div id="s_base_display" style="padding:9px 12px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;font-weight:800;color:#166534;font-size:.92rem;">—</div>
+        <div id="s_base_display" style="padding:9px 12px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;font-weight:700;color:#166534;font-size:.82rem;">—</div>
+      </div>
+      <div class="field"><label>🗓️ Absent Deduction</label>
+        <div id="s_absent_display" style="padding:9px 12px;background:#fff5f5;border:1.5px solid #fecaca;border-radius:9px;font-weight:700;font-size:.82rem;">₹0</div>
       </div>
       <div class="field"><label>Advance Deduction (₹)</label>
-        <div id="s_advance_display" style="padding:9px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:9px;font-weight:700;color:#c2410c;font-size:.92rem;">₹0</div>
+        <div id="s_advance_display" style="padding:9px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:9px;font-weight:700;color:#c2410c;font-size:.82rem;">₹0</div>
       </div>
       <div class="field"><label>Net Payable (₹)</label>
         <div id="s_net_display" style="padding:9px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;font-weight:800;color:#1d4ed8;font-size:1rem;">—</div>
@@ -4375,7 +4649,7 @@ function addPayRow() {
     </select>
     <select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
       <option value="">— Bank —</option>
-      <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
+      <option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option>
     </select>
     <select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">${empOpts}</select>
     <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
@@ -4601,10 +4875,14 @@ function vwTypeChange(el, forcedVal) {
       break;
 
     case 'RCNOC':
-      html = _xLabel('Vehicle Relocating To') +
+      html = _xLabel('NOC Purpose') +
+        _xSel('x-noc-purpose',[['moveself','Moving to Other Region (Owner Keeping Vehicle)'],['sold','Sold Vehicle to Other Region']],'Select') +
+        _xLabel('Buyer / Person Name (if sold)') +
+        _xInp('x-noc-person','Buyer / Person Name') +
+        _xLabel('Relocating To') +
         _xInp('x-noc-district','District') +
         _xInp('x-noc-state','State') +
-        _xInp('x-noc-rto','RTO Code (e.g. UP32)');
+        _xInp('x-noc-rto','RTO Code (e.g. MH01)');
       break;
 
     case 'Conversion':
@@ -4677,22 +4955,27 @@ function vwTypeChange(el, forcedVal) {
 
     case 'RoadTax':
       html = _xLabel('Road Tax Type') +
-        _xSel('x-roadtax-type',[['OTT','One Time Tax (OTT)'],['Quarterly','Quarterly'],['Annual','Annual']],'Type');
+        _xSel('x-roadtax-type',[['OTT','One Time Tax (OTT)'],['Quarterly','Quarterly'],['Annual','Annual']],'Type') +
+        _xLabel('Position (Vehicle Usage)') +
+        _xInp('x-roadtax-position','e.g. Private, Taxi, Goods…') +
+        _xInp('x-roadtax-district','District');
       break;
 
     case 'DrivingLicense':
-      html = _xLabel('License Category') +
-        _xSel('x-dl-category',[
-          ['MCLMV','MC / LMV'],['TV','Transport Vehicle (TV)'],
-          ['Crane','Crane'],['Hazardous','Hazardous Endorsement']
-        ],'Category') +
-        _xLabel('Sub-type') +
+      html = _xLabel('License Category & Sub-type') +
         _xSel('x-dl-subtype',[
-          ['Learner','Learner License'],['Permanent','Permanent (New)'],
-          ['Renewal','License Renewal'],['Duplicate','Duplicate License']
-        ],'Sub-type') +
-        _xLabel('Existing License / Learner No.') +
-        _xInp('x-dl-licno','License No. or Learner No. (if renewal/duplicate)');
+          ['MCLMV-Learner',  'MC/LMV — Learner'],
+          ['MCLMV-Permanent','MC/LMV — Permanent (New)'],
+          ['TV-Learner',     'TV — Learner'],
+          ['TV-Permanent',   'TV — Permanent (New)'],
+          ['Crane-Learner',  'Crane — Learner'],
+          ['Crane-Permanent','Crane — Permanent (New)'],
+          ['Hazardous',      'Hazardous Endorsement'],
+          ['Duplicate',      'Duplicate License'],
+          ['Renewal',        'License Renewal'],
+        ],'Select type') +
+        _xLabel('Existing License / Learner No. (for renewal/duplicate)') +
+        _xInp('x-dl-licno','License No. or Learner No.');
       // Validity/expiry → complete-work modal
       break;
 
@@ -4726,6 +5009,8 @@ function getRowExtras(row) {
   ex.buyerName     = g('x-buyer-name');
   ex.buyerMob      = g('x-buyer-mob');
   ex.addrChange    = g('x-addr-change');
+  ex.nocPurpose    = g('x-noc-purpose');
+  ex.nocPerson     = g('x-noc-person');
   ex.district      = g('x-district') || g('x-noc-district');
   ex.state         = g('x-state') || g('x-noc-state');
   ex.nocRto        = g('x-noc-rto');
@@ -4748,8 +5033,9 @@ function getRowExtras(row) {
   ex.insType       = g('x-ins-type');
   ex.insTransferTo = g('x-ins-transfer-to');
   ex.insValidity   = g('x-ins-validity');
-  ex.roadTaxType   = g('x-roadtax-type');
-  ex.dlCategory    = g('x-dl-category');
+  ex.roadTaxType     = g('x-roadtax-type');
+  ex.roadTaxPosition = g('x-roadtax-position');
+  ex.roadTaxDistrict = g('x-roadtax-district');
   ex.dlSubtype     = g('x-dl-subtype');
   ex.dlLicNo       = g('x-dl-licno');
   ex.othersSpec    = g('x-others-spec');
@@ -4771,11 +5057,16 @@ function addVWRow() {
       <div style="flex:1;">
         <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
         <div style="display:flex;gap:4px;margin-top:5px;">
-          <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
-          <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
+          <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" tabindex="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
+          <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" tabindex="6" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
         </div>
       </div>
-      <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+      <div style="flex-shrink:0;display:flex;flex-direction:column;gap:3px;width:110px;">
+        <div style="font-size:.6rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;text-align:center;">💰 Fee / Penalty</div>
+        <input type="number" class="wtype-fee" placeholder="Fee ₹" min="0" oninput="calcTotalWorkValue()" style="width:100%;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:8px;font-size:.82rem;background:#f0fdf4;font-weight:700;text-align:right;" title="Government Fee"/>
+        <input type="number" class="wtype-penalty" placeholder="Penalty ₹" min="0" oninput="calcTotalWorkValue()" style="width:100%;padding:7px 9px;border:1.5px solid #fecaca;border-radius:8px;font-size:.82rem;background:#fff5f5;font-weight:700;text-align:right;" title="Penalty Amount"/>
+        <input type="hidden" class="wtype-value" value="0"/>
+      </div>
       <button onclick="this.closest('.vw-row').remove();calcTotalWorkValue()" title="Remove row" style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#be123c;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;margin-top:2px;">✕</button>
     </div>
     <!-- Row 2: Work Type full width -->
@@ -4817,19 +5108,21 @@ function addVWRow() {
 function getVWRows() {
   return [...document.querySelectorAll('.vw-row')].map(row => {
     const extras = getRowExtras(row);
+    const fee = parseFloat(row.querySelector('.wtype-fee')?.value)||0;
+    const penalty = parseFloat(row.querySelector('.wtype-penalty')?.value)||0;
     return {
       vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
       chassisLast5: (row.querySelector('.chassis-input')?.value||'').trim().toUpperCase(),
       engineLast5: (row.querySelector('.engine-input')?.value||'').trim().toUpperCase(),
       workType: row.querySelector('.wtype-sel').value,
-      rowWorkValue: parseFloat(row.querySelector('.wtype-value')?.value)||0,
+      fee, penalty,
+      rowWorkValue: fee + penalty,
       // Legacy compat
       othersSpecify: extras.othersSpec,
       dlLicenseType: extras.dlSubtype,
       dlExpiryDate: extras.expiryDate,
       transferFrom: extras.sellerName,
       transferTo: extras.buyerName,
-      // All extras
       ...extras
     };
   }).filter(r => r.vehicle || r.workType);
@@ -4838,7 +5131,15 @@ function getVWRows() {
 function calcTotalWorkValue() {
   const rows = document.querySelectorAll('.vw-row');
   let total = 0;
-  rows.forEach(row => { total += parseFloat(row.querySelector('.wtype-value')?.value)||0; });
+  rows.forEach(row => {
+    const fee = parseFloat(row.querySelector('.wtype-fee')?.value)||0;
+    const pen = parseFloat(row.querySelector('.wtype-penalty')?.value)||0;
+    const combined = fee + pen;
+    // keep hidden wtype-value in sync for backwards compat
+    const hidden = row.querySelector('.wtype-value');
+    if(hidden) hidden.value = combined;
+    total += combined;
+  });
   const disp = document.getElementById('totalWorkValueDisplay');
   const amt = document.getElementById('totalWorkValueAmt');
   if(disp) disp.style.display = total > 0 ? 'flex' : 'none';
@@ -4880,7 +5181,12 @@ function resetVWRows() {
             <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;"/>
           </div>
         </div>
-        <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+        <div style="flex-shrink:0;display:flex;flex-direction:column;gap:3px;width:110px;">
+        <div style="font-size:.6rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;text-align:center;">💰 Fee / Penalty</div>
+        <input type="number" class="wtype-fee" placeholder="Fee ₹" min="0" oninput="calcTotalWorkValue()" style="width:100%;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:8px;font-size:.82rem;background:#f0fdf4;font-weight:700;text-align:right;" title="Government Fee"/>
+        <input type="number" class="wtype-penalty" placeholder="Penalty ₹" min="0" oninput="calcTotalWorkValue()" style="width:100%;padding:7px 9px;border:1.5px solid #fecaca;border-radius:8px;font-size:.82rem;background:#fff5f5;font-weight:700;text-align:right;" title="Penalty Amount"/>
+        <input type="hidden" class="wtype-value" value="0"/>
+      </div>
         <div style="width:32px;height:32px;flex-shrink:0;"></div>
       </div>
       <div style="position:relative;">
@@ -5003,6 +5309,8 @@ async function _doSubmitWork() {
     transferFrom: primaryRow.sellerName||primaryRow.transferFrom||'',
     transferTo: primaryRow.buyerName||primaryRow.transferTo||'',
     workValue, totalPaid, remainingBalance: remaining,
+    totalFee: vwRows.reduce((s,r)=>s+(r.fee||0),0),
+    totalPenalty: vwRows.reduce((s,r)=>s+(r.penalty||0),0),
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
     amount: totalPaid, notes,
@@ -5034,6 +5342,9 @@ async function _doSubmitWork() {
       });
     }
     toast(`✅ Work #${workNum} saved! Sent to Verification. Client ID: ${clientId}`,'success');
+    // Auto-create expiry follow-up reminder if expiry date was set
+    const savedExpiry = workData.expiryDate || workData.expiryNational || '';
+    if(savedExpiry) autoCreateExpiryFollowup(newWorkId, workNum, ownerName, phone, primaryRow.workType, savedExpiry);
     // Reset form
     document.getElementById('w_name').value='';
     document.getElementById('w_clientName').value='';
@@ -5148,7 +5459,19 @@ function renderWorkTable(){
     if(allWorkTab==='closed') return w.status==='done';
     return w.status!=='done'; // open = open + partial
   });
-  if(search) list=list.filter(w=>(w.clientName||'').toLowerCase().includes(search)||(w.ownerName||'').toLowerCase().includes(search)||w.vehicle?.toLowerCase().includes(search)||(w.vehicles||'').toLowerCase().includes(search)||String(w.workNum).includes(search)||w.clientId?.toLowerCase().includes(search)||w.phone?.includes(search));
+  if(search) list=list.filter(w=>
+    (w.clientName||'').toLowerCase().includes(search)||
+    (w.ownerName||'').toLowerCase().includes(search)||
+    (w.vehicle||'').toLowerCase().includes(search)||
+    (w.vehicles||'').toLowerCase().includes(search)||
+    String(w.workNum).includes(search)||
+    (w.clientId||'').toLowerCase().includes(search)||
+    (w.phone||'').includes(search)||
+    (w.chassisLast5||'').toLowerCase().includes(search)||
+    (w.engineLast5||'').toLowerCase().includes(search)||
+    // also search inside vehicleWorkItems for chassis/engine
+    (()=>{try{const items=JSON.parse(w.vehicleWorkItems||'[]');return items.some(r=>(r.chassisLast5||'').toLowerCase().includes(search)||(r.engineLast5||'').toLowerCase().includes(search));}catch(e){return false;}})()
+  );
   if(fType) list=list.filter(w=>w.workType===fType);
   if(fStatus==='open') list=list.filter(w=>w.status==='open'||w.status==='partial');
   else if(fStatus) list=list.filter(w=>w.status===fStatus);
@@ -5183,6 +5506,7 @@ function renderWorkTable(){
       <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:0;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
         ${w.status!=='done'?`<button class="btn btn-sm btn-gray" onclick="openEditWork('${w._key}')">✏️</button>`:''}
+        <button class="btn btn-sm btn-outline" onclick="duplicateWork('${w._key}')" title="Duplicate Work">📋</button>
         <button class="btn btn-sm btn-outline" onclick="printReceipt('${w._key}')" data-restrict="print-export" title="Print Receipt">🖨️</button>
         <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp">📱</button>
         ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-danger" onclick="deleteWork('${w._key}')">🗑️</button>`:''}
@@ -5191,6 +5515,138 @@ function renderWorkTable(){
   </tr>`).join('');
 }
 function filterWorks(){renderWorkTable();}
+
+// ============================================================
+// DUPLICATE WORK
+// ============================================================
+async function duplicateWork(key) {
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+  if(!confirm(`Duplicate work #${w.workNum} for ${esc(w.ownerName||w.clientName)}?\nA new pending verification entry will be created.`)) return;
+  const workNum = await getNextWorkNum();
+  const now = new Date();
+  const dupData = {
+    workNum, clientId: w.clientId||'',
+    ownerName: w.ownerName||w.clientName, clientName: w.clientName||w.ownerName,
+    vehicle: w.vehicle, vehicles: w.vehicles||w.vehicle,
+    vehicleWorkItems: w.vehicleWorkItems||'[]',
+    chassisLast5: w.chassisLast5||'', engineLast5: w.engineLast5||'',
+    phone: w.phone, workType: w.workType,
+    workExtras: w.workExtras||'{}',
+    othersSpecify: w.othersSpecify||'',
+    dlLicenseType: w.dlLicenseType||'',
+    transferFrom: w.transferFrom||'', transferTo: w.transferTo||'',
+    workValue: w.workValue||0, totalFee: w.totalFee||0, totalPenalty: w.totalPenalty||0,
+    totalPaid: 0, remainingBalance: w.workValue||0,
+    payModes: '[]', payMode: '', bank: '', amount: 0,
+    notes: w.notes||'',
+    status: 'pending_verification',
+    takenBy: currentUser.name, takenByKey: currentUser.key,
+    date: now.toLocaleDateString('en-IN'),
+    time: now.toLocaleTimeString('en-IN'),
+    timestamp: now.getTime(),
+    completedBy:'', completedDate:'', closingBank:'', receiptAmount:0, closeNotes:'',
+    receiptPhoto:'', expiryDate:'', miscExpense:0, miscReason:'', partialDesc:''
+  };
+  try {
+    await _sb.from('works').insert(toSnake(dupData));
+    toast(`✅ Work duplicated as #${workNum} — pending verification`,'success');
+    await loadAllData(); renderWorkTable(); updateSidebarBadges();
+  } catch(e){ toast('Error: '+e.message,'error'); }
+}
+
+// ============================================================
+// GLOBAL QUICK SEARCH  (press / to open)
+// ============================================================
+function openQuickSearch() {
+  const el = document.getElementById('quickSearchModal');
+  if(el) { el.classList.add('show'); setTimeout(()=>document.getElementById('qsInput')?.focus(),80); }
+}
+function closeQuickSearch() {
+  const el = document.getElementById('quickSearchModal');
+  if(el) el.classList.remove('show');
+  const inp = document.getElementById('qsInput');
+  if(inp) inp.value = '';
+  const res = document.getElementById('qsResults');
+  if(res) res.innerHTML = '';
+}
+function runQuickSearch() {
+  const q = (document.getElementById('qsInput')?.value||'').trim().toLowerCase();
+  const res = document.getElementById('qsResults');
+  if(!res) return;
+  if(q.length < 2) { res.innerHTML = '<div style="color:var(--gray);font-size:.85rem;padding:12px;">Type at least 2 characters…</div>'; return; }
+  const hits = allWorks.filter(w=>
+    (w.ownerName||'').toLowerCase().includes(q)||
+    (w.clientName||'').toLowerCase().includes(q)||
+    (w.phone||'').includes(q)||
+    (w.vehicle||'').toLowerCase().includes(q)||
+    (w.vehicles||'').toLowerCase().includes(q)||
+    String(w.workNum).includes(q)||
+    (w.clientId||'').toLowerCase().includes(q)||
+    (w.chassisLast5||'').toLowerCase().includes(q)||
+    (w.engineLast5||'').toLowerCase().includes(q)
+  ).slice(0,8);
+  if(!hits.length){ res.innerHTML='<div style="color:var(--gray);font-size:.85rem;padding:12px;">No results found</div>'; return; }
+  res.innerHTML = hits.map(w=>`
+    <div onclick="closeQuickSearch();viewWork('${w._key}')" style="padding:10px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.12s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background=''">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.88rem;">${esc(w.ownerName||w.clientName)} <span style="font-size:.72rem;color:var(--gray);">#${w.workNum}</span></div>
+        <div style="font-size:.75rem;color:var(--gray);margin-top:1px;">${esc(w.vehicles||w.vehicle||'—')} · ${wtLabel(w.workType)}</div>
+      </div>
+      <span class="badge ${w.status==='done'?'bg':w.status==='partial'?'bo':'bb'}" style="font-size:.65rem;">${w.status==='done'?'Done':w.status==='partial'?'Partial':'Open'}</span>
+    </div>`).join('');
+}
+document.addEventListener('keydown', e=>{
+  if(e.key==='/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
+    e.preventDefault(); openQuickSearch();
+  }
+  if(e.key==='Escape') closeQuickSearch();
+});
+
+// ============================================================
+// AUTO FOLLOW-UP ON EXPIRY (called after work save)
+// ============================================================
+async function autoCreateExpiryFollowup(workKey, workNum, ownerName, phone, workType, expiryDate) {
+  if(!expiryDate) return;
+  try {
+    const exp = new Date(expiryDate);
+    if(isNaN(exp.getTime())) return;
+    // Reminder 30 days before expiry
+    const reminderDate = new Date(exp.getTime() - 30*24*60*60*1000);
+    const now = new Date();
+    if(reminderDate < now) return; // expiry too soon, no point
+    await _sb.from('followups').insert({
+      client_name: ownerName, phone,
+      date: reminderDate.toLocaleDateString('en-IN'),
+      note: `⏰ Auto-reminder: ${wtLabel(workType)} expiry on ${exp.toLocaleDateString('en-IN')} for ${ownerName}. Renew soon!`,
+      work_ref: `#${workNum}`, status: 'pending',
+      created_by: currentUser?.name||'System',
+      timestamp: reminderDate.getTime()
+    });
+  } catch(e){ console.warn('Auto follow-up failed:', e.message); }
+}
+
+// ============================================================
+// STAFF WORKLOAD SUMMARY (shown on verification page)
+// ============================================================
+function renderWorkloadSummary() {
+  const el = document.getElementById('workloadSummary');
+  if(!el) return;
+  const openWorks = allWorks.filter(w=>w.status==='open'||w.status==='partial');
+  const byCurrent = {};
+  openWorks.forEach(w=>{ const k=w.assignedTo||'Unassigned'; byCurrent[k]=(byCurrent[k]||0)+1; });
+  if(!Object.keys(byCurrent).length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+    <div style="font-size:.72rem;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">👤 Current Workload</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${Object.entries(byCurrent).map(([name,count])=>`
+        <div style="background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:5px 12px;font-size:.8rem;">
+          <span style="font-weight:700;">${esc(name)}</span>
+          <span style="background:#dcfce7;color:#166534;border-radius:20px;padding:1px 8px;margin-left:6px;font-weight:800;font-size:.75rem;">${count}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
 
 // ── Staff Print/Export/Import restrictions ──
 function applyStaffRestrictions() {
@@ -5224,15 +5680,20 @@ document.addEventListener('keydown', function(e) {
   // Step 2: Each vehicle row in order
   page.querySelectorAll('.vw-row').forEach(row => {
     const vi = row.querySelector('.vehicle-input');
+    const ch = row.querySelector('.chassis-input');
+    const en = row.querySelector('.engine-input');
     const ws = row.querySelector('.wtype-search');
-    const wv = row.querySelector('.wtype-value');
+    const fee = row.querySelector('.wtype-fee');
+    const pen = row.querySelector('.wtype-penalty');
     if(vi) fields.push(vi);
+    if(ch) fields.push(ch);
+    if(en) fields.push(en);
     if(ws) fields.push(ws);
-    if(wv) fields.push(wv);
-    // Only add visible sub-fields
-    ['.wtype-spec','.wtype-dltype','.wtype-tfrom','.wtype-tto'].forEach(sel=>{
-      const el = row.querySelector(sel);
-      if(el && el.style.display !== 'none') fields.push(el);
+    if(fee) fields.push(fee);
+    if(pen) fields.push(pen);
+    // visible extra sub-fields
+    row.querySelectorAll('.wtype-extras input, .wtype-extras select').forEach(el => {
+      if(el.offsetParent !== null && el.type !== 'hidden') fields.push(el);
     });
   });
 
@@ -5580,6 +6041,7 @@ function printDateWise() {
 let rejectingWorkKey = null;
 
 function renderVerification() {
+  renderWorkloadSummary();
   const list = allWorks.filter(w=>w.status==='pending_verification');
   const el = document.getElementById('verificationList');
   const badge = document.getElementById('verificationBadgeCount');
@@ -6063,14 +6525,20 @@ function renderExpiry(){
     const days=Math.ceil(diffMs/86400000);
     const isExpired = days<0;
     const urgentClass = isExpired?'expiry-alert':days<=7?'expiry-alert':'expiry-alert warn';
-    return `<div class="${urgentClass}" onclick="viewWork('${w._key}')">
-      <div>
-        <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicle)}</span></div>
-        <div style="font-size:.78rem;margin-top:2px;">${wtLabel(w.workType)} · Phone: ${esc(w.phone)}</div>
+    const chassisInfo = w.chassisLast5 ? `<span style="font-size:.72rem;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px;font-family:monospace;">C:${esc(w.chassisLast5)}</span>` : '';
+    const engineInfo  = w.engineLast5  ? `<span style="font-size:.72rem;color:#1e40af;background:#dbeafe;padding:1px 6px;border-radius:6px;font-family:monospace;">E:${esc(w.engineLast5)}</span>`  : '';
+    return `<div class="${urgentClass}" style="cursor:pointer;">
+      <div onclick="viewWork('${w._key}')" style="flex:1;">
+        <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</span></div>
+        <div style="font-size:.78rem;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+          ${wtLabel(w.workType)} · ${esc(w.phone)}
+          ${chassisInfo}${engineInfo}
+        </div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-weight:800;font-size:.95rem;">Expires: ${fmtDate(w.expiryDate)}</div>
-        <span class="badge ${isExpired?'br':days<=7?'br':'by'}" style="margin-top:4px;">${isExpired?`Expired ${Math.abs(days)}d ago`:`${days} day${days===1?'':'s'} left`}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div style="font-weight:800;font-size:.9rem;">Expires: ${fmtDate(w.expiryDate)}</div>
+        <span class="badge ${isExpired?'br':days<=7?'br':'by'}">${isExpired?`Expired ${Math.abs(days)}d ago`:`${days}d left`}</span>
+        ${w.phone?`<button onclick="event.stopPropagation();waExpiryReminder('${w._key}')" style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;">📱 WA</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -6096,12 +6564,45 @@ function exportExpiryExcel() {
 }
 
 // ============================================================
-// CLIENT HISTORY
+// EXPIRY REMINDER WHATSAPP
 // ============================================================
+function waExpiryReminder(key) {
+  const w = allWorks.find(x=>x._key===key);
+  if(!w||!w.phone) return;
+  const d = new Date(w.expiryDate);
+  const days = Math.ceil((d-new Date())/86400000);
+  const msg = days<0
+    ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n⚠️ Your *${wtLabel(w.workType)}* for vehicle *${w.vehicles||w.vehicle}* has *EXPIRED* on ${fmtDate(w.expiryDate)}.\n\nPlease visit Nandan Legal Services urgently for renewal!\n\n📋 Client ID: ${w.clientId||'—'}\n📞 94505 56304`
+    : `Hello ${w.ownerName||w.clientName}! 🙏\n\n⏰ Your *${wtLabel(w.workType)}* for vehicle *${w.vehicles||w.vehicle}* is expiring on *${fmtDate(w.expiryDate)}* (${days} day${days===1?'':'s'} left).\n\nPlease visit Nandan Legal Services for timely renewal!\n\n📋 Client ID: ${w.clientId||'—'}\n📞 94505 56304`;
+  window.open('https://wa.me/91'+w.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function bulkWAExpiryReminder() {
+  const today=new Date(); today.setHours(0,0,0,0);
+  const in7=new Date(today.getTime()+7*86400000);
+  const urgent = allWorks.filter(w=>w.expiryDate&&w.phone&&new Date(w.expiryDate)>=today&&new Date(w.expiryDate)<=in7);
+  if(!urgent.length){toast('No works expiring this week with phone numbers','warn');return;}
+  if(!confirm(`Send WhatsApp reminder to ${urgent.length} client(s) expiring this week?`)) return;
+  urgent.forEach((w,i)=>{
+    setTimeout(()=>waExpiryReminder(w._key), i*800); // stagger to avoid popup blockers
+  });
+  toast(`📱 Opening ${urgent.length} WhatsApp chats…`,'success');
+}
 function searchClientHistory(){
   const q=document.getElementById('chSearch').value.trim().toLowerCase();
-  if(!q){toast('Enter phone or vehicle number','error');return;}
-  const list=allWorks.filter(w=>w.phone?.includes(q)||w.vehicle?.toLowerCase().includes(q)||(w.vehicles||'').toLowerCase().includes(q)||w.clientName?.toLowerCase().includes(q)||w.ownerName?.toLowerCase().includes(q)||String(w.workNum)===q||w.clientId?.toLowerCase()===q);
+  if(!q){toast('Enter phone, vehicle, chassis or engine number','error');return;}
+  const list=allWorks.filter(w=>
+    (w.phone||'').includes(q)||
+    (w.vehicle||'').toLowerCase().includes(q)||
+    (w.vehicles||'').toLowerCase().includes(q)||
+    (w.clientName||'').toLowerCase().includes(q)||
+    (w.ownerName||'').toLowerCase().includes(q)||
+    String(w.workNum)===q||
+    (w.clientId||'').toLowerCase()===q||
+    (w.chassisLast5||'').toLowerCase().includes(q)||
+    (w.engineLast5||'').toLowerCase().includes(q)||
+    (()=>{try{return JSON.parse(w.vehicleWorkItems||'[]').some(r=>(r.chassisLast5||'').toLowerCase().includes(q)||(r.engineLast5||'').toLowerCase().includes(q));}catch(e){return false;}})()
+  );
   const el=document.getElementById('chResult');
   if(!list.length){el.innerHTML='<div class="nd">No works found for this search</div>';return;}
   const totalAmt=list.reduce((s,w)=>s+(w.amount||0),0);
@@ -6193,7 +6694,7 @@ function viewWork(key){
       rows.push(row('District',ex.district),row('State',ex.state),row('NOC RTO Code',ex.nocRto));
       return rows.filter(Boolean).join('');
     })()}
-    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}</div></div>
+    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}${(w.totalFee||w.totalPenalty)?`<br/><span style="font-size:.72rem;color:#166534;">Fee: ${inr(w.totalFee||0)}</span> <span style="font-size:.72rem;color:#dc2626;">Penalty: ${inr(w.totalPenalty||0)}</span>`:''}</div></div>
     <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
     ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
     ${payInfo}
@@ -6203,9 +6704,52 @@ function viewWork(key){
     <div class="di"><div class="dl">Work Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
     ${w.timestamp?`<div class="di"><div class="dl" style="color:#7c3aed;">Entry Date</div><div class="dv" style="color:#7c3aed;font-weight:700;">Added on ${new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} at ${new Date(w.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`:''}
 
-    <div class="di"><div class="dl">Added By</div><div class="dv">${esc(w.takenBy)}</div></div>
-    ${w.verifiedBy?`<div class="di"><div class="dl">Verified By</div><div class="dv" style="color:#16a34a;font-weight:700;">✅ ${esc(w.verifiedBy)}${w.verifiedAt?' · '+new Date(w.verifiedAt).toLocaleString('en-IN'):''}</div></div>`:''}
-    ${w.status!=='open'?`<div class="di"><div class="dl">Completed By</div><div class="dv">${esc(w.completedBy)}</div></div><div class="di"><div class="dl">Completed Date</div><div class="dv">${esc(w.completedDate)}</div></div>`:''}
+    <div class="di" style="grid-column:1/-1;">
+      <div class="dl">Work Timeline</div>
+      <div class="dv">
+        <div style="display:flex;flex-direction:column;gap:0;margin-top:4px;">
+          <!-- Step 1: Added -->
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div style="width:24px;height:24px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">1</div>
+              <div style="width:2px;flex:1;background:${w.verifiedBy?'#4f46e5':'#e2e8f0'};min-height:20px;"></div>
+            </div>
+            <div style="padding-bottom:14px;">
+              <div style="font-weight:700;font-size:.82rem;">📝 Added by ${esc(w.takenBy)}</div>
+              <div style="font-size:.72rem;color:var(--gray);">${w.timestamp?new Date(w.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):esc(w.date)+' '+esc(w.time||'')}</div>
+            </div>
+          </div>
+          <!-- Step 2: Verified -->
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div style="width:24px;height:24px;border-radius:50%;background:${w.verifiedBy?'#059669':'#e2e8f0'};color:${w.verifiedBy?'#fff':'#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">2</div>
+              <div style="width:2px;flex:1;background:${w.status==='done'?'#059669':'#e2e8f0'};min-height:20px;"></div>
+            </div>
+            <div style="padding-bottom:14px;">
+              ${w.verifiedBy
+                ? `<div style="font-weight:700;font-size:.82rem;color:#059669;">✅ Verified by ${esc(w.verifiedBy)}</div><div style="font-size:.72rem;color:var(--gray);">${w.verifiedAt?new Date(w.verifiedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`
+                : `<div style="font-weight:600;font-size:.82rem;color:#94a3b8;">⏳ Pending verification</div>`
+              }
+              ${w.assignedTo?`<div style="font-size:.72rem;color:var(--p);font-weight:600;margin-top:2px;">👤 Assigned to ${esc(w.assignedTo)}</div>`:''}
+            </div>
+          </div>
+          <!-- Step 3: Completed -->
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div style="width:24px;height:24px;border-radius:50%;background:${w.status==='done'?'#16a34a':w.status==='partial'?'#f59e0b':'#e2e8f0'};color:${w.status!=='open'?'#fff':'#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">3</div>
+            </div>
+            <div>
+              ${w.status==='done'
+                ? `<div style="font-weight:700;font-size:.82rem;color:#16a34a;">✅ Completed by ${esc(w.completedBy)}</div><div style="font-size:.72rem;color:var(--gray);">${esc(w.completedDate)}</div>`
+                : w.status==='partial'
+                ? `<div style="font-weight:700;font-size:.82rem;color:#d97706;">⏳ Partially completed by ${esc(w.completedBy)}</div>`
+                : `<div style="font-weight:600;font-size:.82rem;color:#94a3b8;">🔵 Not yet completed</div>`
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">${inr(w.receiptAmount)} from ${esc(w.closingBank)}</div></div>`:''}
     ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
     ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
@@ -6237,29 +6781,41 @@ const EW_WORK_TYPES = [
   {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'}
 ];
 
-function ewMakeRow(vehicle='', workType='', rowVal=0) {
+function ewMakeRow(vehicle='', workType='', rowVal=0, fee=0, penalty=0) {
   const opts = EW_WORK_TYPES.map(t=>`<option value="${t.val}"${workType===t.val?' selected':''}>${t.label}</option>`).join('');
   const row = document.createElement('div');
   row.className = 'ew-vw-row';
-  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 110px auto;gap:6px;margin-bottom:8px;align-items:center;background:#f8fafc;border-radius:8px;padding:8px;';
+  row.style.cssText = 'background:#f8fafc;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid #e2e8f0;';
   row.innerHTML = `
-    <input type="text" class="ew-vehicle" value="${vehicle}" placeholder="UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;" oninput="this.value=this.value.toUpperCase()"/>
-    <select class="ew-wtype" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;">
-      <option value="">— Type —</option>${opts}
-    </select>
-    <input type="number" class="ew-rowval" value="${rowVal||''}" placeholder="₹ 0" min="0" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;" oninput="ewCalcTotal()"/>
-    <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.ew-vw-row').remove();ewCalcTotal()">✕</button>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;">
+      <input type="text" class="ew-vehicle" value="${vehicle}" placeholder="UP32AB1234" style="text-transform:uppercase;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;" oninput="this.value=this.value.toUpperCase()"/>
+      <select class="ew-wtype" style="padding:8px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.86rem;width:100%;background:#fff;">
+        <option value="">— Type —</option>${opts}
+      </select>
+      <button class="btn btn-sm btn-outline" style="color:var(--r);padding:8px 10px;" onclick="this.closest('.ew-vw-row').remove();ewCalcTotal()">✕</button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <input type="number" class="ew-fee" value="${fee||''}" placeholder="Fee ₹" min="0" style="flex:1;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:8px;font-size:.82rem;background:#f0fdf4;font-weight:700;text-align:right;" oninput="ewCalcTotal()" title="Government Fee"/>
+      <input type="number" class="ew-penalty" value="${penalty||''}" placeholder="Penalty ₹" min="0" style="flex:1;padding:7px 9px;border:1.5px solid #fecaca;border-radius:8px;font-size:.82rem;background:#fff5f5;font-weight:700;text-align:right;" oninput="ewCalcTotal()" title="Penalty Amount"/>
+      <input type="hidden" class="ew-rowval" value="${rowVal||fee+penalty||0}"/>
+    </div>`;
   return row;
 }
 
-function ewAddVWRow(vehicle='', workType='', rowVal=0) {
+function ewAddVWRow(vehicle='', workType='', rowVal=0, fee=0, penalty=0) {
   const list = document.getElementById('ew_vwList');
-  if(list) list.appendChild(ewMakeRow(vehicle, workType, rowVal));
+  if(list) list.appendChild(ewMakeRow(vehicle, workType, rowVal, fee, penalty));
   ewCalcTotal();
 }
 
 function ewCalcTotal() {
-  const total = [...document.querySelectorAll('.ew-rowval')].reduce((s,el)=>s+(parseFloat(el.value)||0),0);
+  let total = 0;
+  document.querySelectorAll('.ew-vw-row').forEach(row=>{
+    const f=parseFloat(row.querySelector('.ew-fee')?.value)||0;
+    const p=parseFloat(row.querySelector('.ew-penalty')?.value)||0;
+    const h=row.querySelector('.ew-rowval'); if(h) h.value=f+p;
+    total+=f+p;
+  });
   const disp = document.getElementById('ew_totalDisplay');
   const amt = document.getElementById('ew_totalAmt');
   if(disp) disp.style.display = total>0?'flex':'none';
@@ -6270,7 +6826,9 @@ function ewGetRows() {
   return [...document.querySelectorAll('.ew-vw-row')].map(row=>({
     vehicle: row.querySelector('.ew-vehicle').value.trim().toUpperCase(),
     workType: row.querySelector('.ew-wtype').value,
-    rowWorkValue: parseFloat(row.querySelector('.ew-rowval').value)||0
+    fee: parseFloat(row.querySelector('.ew-fee')?.value)||0,
+    penalty: parseFloat(row.querySelector('.ew-penalty')?.value)||0,
+    rowWorkValue: parseFloat(row.querySelector('.ew-rowval')?.value)||0
   })).filter(r=>r.vehicle||r.workType);
 }
 
@@ -6298,9 +6856,9 @@ function _doOpenEditWork(w){
   list.innerHTML = '';
   try {
     const items = JSON.parse(w.vehicleWorkItems||'[]');
-    if(items.length>0) { items.forEach(r=>ewAddVWRow(r.vehicle||'', r.workType||'', r.rowWorkValue||0)); }
-    else { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0); }
-  } catch(e) { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0); }
+    if(items.length>0) { items.forEach(r=>ewAddVWRow(r.vehicle||'', r.workType||'', r.rowWorkValue||0, r.fee||0, r.penalty||0)); }
+    else { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0, w.totalFee||0, w.totalPenalty||0); }
+  } catch(e) { ewAddVWRow(w.vehicles||w.vehicle||'', w.workType||'', w.workValue||0, w.totalFee||0, w.totalPenalty||0); }
   ewCalcTotal();
   closeModal('workDetailModal');
   openModal('editWorkModal');
@@ -6348,6 +6906,8 @@ async function saveEditWork(){
       workType: primaryRow.workType,
       vehicleWorkItems: JSON.stringify(rows),
       workValue, totalPaid:amount, amount, remainingBalance:remaining, notes,
+      totalFee: rows.reduce((s,r)=>s+(r.fee||0),0),
+      totalPenalty: rows.reduce((s,r)=>s+(r.penalty||0),0),
       clientId: newClientId
     })).eq('id', editingWorkKey);
     toast('Work updated ✅','success');
@@ -6702,6 +7262,8 @@ async function completeWork() {
     renderDashboard();
     updateSidebarBadges();
     toast(isFullyDone ? '✅ Work marked complete!' : '⏳ Partial completion saved!', 'success');
+    // Auto-create expiry follow-up if expiry was set during completion
+    if(expiry && isFullyDone) autoCreateExpiryFollowup(closeWorkKey, w.workNum, w.ownerName||w.clientName, w.phone, w.workType, expiry);
     closeModal('closeWorkModal');
 
     // WhatsApp prompt
@@ -7554,19 +8116,6 @@ function printReceipt(key) {
     .unpaid{background:#fee2e2;color:#be123c;}
     .footer{text-align:center;margin-top:16px;font-size:10px;color:#999;}
     @media print{button{display:none!important;}.no-print{display:none!important;}}
-  
-/* ═══════════ CLIENT PORTAL FULL PAGE ═══════════ */
-#clientPortalPage {
-  display: none !important;
-  min-height: 100vh;
-  background: #f1f5f9;
-  flex-direction: column;
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-  overflow-y: auto;
-}
-#clientPortalPage.show { display: flex !important; }
 
 .cp-header {
   background: linear-gradient(135deg, #0a0f1e 0%, #1e1b4b 50%, #2d2b7a 100%);
@@ -8670,6 +9219,8 @@ function renderSummary(){
   const ledgerEntries=allLedger.filter(l=>l.date===selDate||l.date===selDateAlt);
   const totalSpent=ledgerEntries.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const totalMisc=works.reduce((s,w)=>s+(w.miscExpense||0),0)+ledgerEntries.filter(l=>l.ospEntry).reduce((s,l)=>s+(l.amount||0),0);
+  const totalFeeDay = works.reduce((s,w)=>s+(w.totalFee||0),0);
+  const totalPenaltyDay = works.reduce((s,w)=>s+(w.totalPenalty||0),0);
   document.getElementById('summaryBody').innerHTML=`
     <div class="print-only" style="text-align:center;margin-bottom:20px;"><h2>Daily Report — ${selDate}</h2><p>Generated on ${new Date().toLocaleDateString('en-IN')}</p></div>
     <div class="stats-row">
@@ -8679,12 +9230,13 @@ function renderSummary(){
       <div class="sc yellow"><div class="sl">Collected (₹)</div><div class="sv">${inr(totalCollected)}</div></div>
       <div class="sc red"><div class="sl">Spent (₹)</div><div class="sv">${inr(totalSpent)}</div></div>
       <div class="sc green"><div class="sl">Net (₹)</div><div class="sv">${inr(totalCollected-totalSpent-totalMisc)}</div></div>
-      <div class="sc red"><div class="sl">Misc Exp</div><div class="sv">${inr(totalMisc)}</div></div>
+      ${totalFeeDay>0?`<div class="sc" style="background:#f0fdf4;border-color:#bbf7d0;"><div class="sl">Total Fee</div><div class="sv" style="color:#16a34a;">${inr(totalFeeDay)}</div></div>`:''}
+      ${totalPenaltyDay>0?`<div class="sc" style="background:#fff5f5;border-color:#fecaca;"><div class="sl">Total Penalty</div><div class="sv" style="color:#dc2626;">${inr(totalPenaltyDay)}</div></div>`:''}
     </div>
     ${works.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Works on ${selDate}</div>
-      <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Payment</th><th>Status</th><th>By</th></tr></thead>
-      <tbody>${works.map(w=>`<tr><td><span class="wnum">#${w.workNum}</span></td><td>${esc(w.clientName)}</td><td>${esc(w.vehicle)}</td><td>${wtBadge(w)}</td><td>${payBadge(w)}</td><td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span></td><td>${esc(w.takenBy)}</td></tr>`).join('')}</tbody>
+      <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Fee</th><th>Penalty</th><th>Payment</th><th>Status</th><th>Assigned</th></tr></thead>
+      <tbody>${works.map(w=>`<tr><td><span class="wnum">#${w.workNum}</span></td><td>${esc(w.clientName||w.ownerName)}</td><td style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</td><td>${wtBadge(w)}</td><td style="color:#16a34a;font-size:.8rem;">${w.totalFee?inr(w.totalFee):'—'}</td><td style="color:#dc2626;font-size:.8rem;">${w.totalPenalty?inr(w.totalPenalty):'—'}</td><td>${payBadge(w)}</td><td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span></td><td style="font-size:.78rem;">${esc(w.assignedTo||w.takenBy||'—')}</td></tr>`).join('')}</tbody>
       </table></div></div>`:''}
     ${ledgerEntries.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Bank Ledger Entries on ${selDate}</div>
@@ -8751,25 +9303,63 @@ function populateSalarySelects() {
   });
 }
 
+// ── Calculate absent-based salary deduction for a staff member for given month ──
+function calcAbsentDeduction(staffKey, baseSalary, year, month) {
+  // month is 0-indexed (JS Date)
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const dailyRate = baseSalary / daysInMonth;
+  // Count days they checked in this month
+  const attended = new Set(
+    allAttendance.filter(a => {
+      if(a.staffKey !== staffKey) return false;
+      const d = new Date(a.timestamp||0);
+      return d.getMonth()===month && d.getFullYear()===year && a.checkInTime;
+    }).map(a => a.date)
+  );
+  const absentDays = Math.max(0, daysInMonth - attended.size);
+  const deduction = Math.round(dailyRate * absentDays);
+  return { daysInMonth, attendedDays: attended.size, absentDays, dailyRate: Math.round(dailyRate), deduction };
+}
+
 function salModeChange(){document.getElementById('salBankField').style.display=document.getElementById('s_mode').value==='UPI'?'block':'none';}
 
-// ── salary staff change: show base/advance/net ──
+// ── salary staff change: show base/advance/absent deduction/net ──
 function salaryStaffChange() {
   const sel = document.getElementById('s_name');
   const staffName = sel.value;
   const staff = allStaff.find(s=>s.name===staffName);
   const base = staff?.baseSalary || 0;
-  // Calculate outstanding advance for this staff
+
+  // Absent deduction for current month
+  const now = new Date();
+  const absent = base && staff?._key
+    ? calcAbsentDeduction(staff._key, base, now.getFullYear(), now.getMonth())
+    : { absentDays:0, deduction:0, attendedDays:0, daysInMonth:30, dailyRate:0 };
+
+  // Advance deduction
   const pendingAdv = (window._allAdvances||[])
     .filter(a=>a.staffName===staffName && a.status!=='cleared')
     .reduce((s,a)=>s+(a.remainingAmount||0),0);
-  const monthly = (window._allAdvances||[])
+  const advDeduct = (window._allAdvances||[])
     .filter(a=>a.staffName===staffName && a.status!=='cleared')
     .reduce((s,a)=>s+(a.monthlyDeduction||0),0);
-  const deduct = monthly || 0;
-  const net = Math.max(0, base - deduct);
-  document.getElementById('s_base_display').textContent = base ? inr(base) : '—';
-  document.getElementById('s_advance_display').textContent = deduct ? `−${inr(deduct)} (advance: ${inr(pendingAdv)} pending)` : '₹0';
+
+  const net = Math.max(0, base - absent.deduction - advDeduct);
+
+  document.getElementById('s_base_display').textContent = base
+    ? `${inr(base)} (÷${absent.daysInMonth} days = ${inr(absent.dailyRate)}/day)` : '—';
+  document.getElementById('s_advance_display').textContent = advDeduct
+    ? `−${inr(advDeduct)} (advance balance: ${inr(pendingAdv)})` : '₹0';
+
+  // Show absent deduction field
+  const absentEl = document.getElementById('s_absent_display');
+  if(absentEl) {
+    absentEl.textContent = absent.absentDays > 0
+      ? `−${inr(absent.deduction)} (${absent.absentDays} absent day${absent.absentDays>1?'s':''} of ${absent.daysInMonth})`
+      : `₹0 (attended ${absent.attendedDays}/${absent.daysInMonth} days ✅)`;
+    absentEl.style.color = absent.absentDays > 0 ? 'var(--r)' : '#16a34a';
+  }
+
   document.getElementById('s_net_display').textContent = base ? inr(net) : '—';
   if(base && !document.getElementById('s_amount').value) document.getElementById('s_amount').value = net;
 }
@@ -8782,6 +9372,7 @@ function showAddSalary(){
   document.getElementById('s_note').value='';
   document.getElementById('s_base_display').textContent='—';
   document.getElementById('s_advance_display').textContent='₹0';
+  const abEl=document.getElementById('s_absent_display');if(abEl){abEl.textContent='₹0';abEl.style.color='';}
   document.getElementById('s_net_display').textContent='—';
   salModeChange();
   openModal('addSalaryModal');
@@ -8797,10 +9388,14 @@ async function saveSalary(){
   if(!name||!amount||isNaN(amount)){toast('Fill all required fields','error');return;}
   const staff = allStaff.find(s=>s.name===name);
   const base = staff?.baseSalary||0;
-  // find monthly deduction
+  // Absent-based deduction for current month
+  const now = new Date();
+  const absentInfo = base && staff?._key
+    ? calcAbsentDeduction(staff._key, base, now.getFullYear(), now.getMonth())
+    : { absentDays:0, deduction:0 };
+  // Advance deduction
   const pendingAdvances = (window._allAdvances||[]).filter(a=>a.staffName===name&&a.status!=='cleared');
   const deduction = pendingAdvances.reduce((s,a)=>s+(a.monthlyDeduction||0),0);
-  const now = new Date();
   try{
     await _sb.from('ledger').insert(toSnake({
       staffName:name, amount, mode, bank,
@@ -8810,6 +9405,8 @@ async function saveSalary(){
       timestamp:now.getTime(),
       baseSalary: base,
       advanceDeduction: deduction,
+      absentDeduction: absentInfo.deduction,
+      absentDays: absentInfo.absentDays,
       salaryNote: note
     }));
     await _sb.from('ledger').insert({bank,type:'debit',amount,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),work_ref:'',description:`Salary paid to ${name}${note?' — '+note:''}`,by:currentUser.name,auto_entry:true});
@@ -8851,17 +9448,21 @@ function renderStaffSalaryCards(){
   if(!el) return;
   const cards = allStaff.filter(s=>s.role!=='owner').map(s=>{
     const base = s.baseSalary||0;
+    const now = new Date();
+    const absent = base && s._key ? calcAbsentDeduction(s._key, base, now.getFullYear(), now.getMonth()) : {absentDays:0,deduction:0,attendedDays:0,daysInMonth:30,dailyRate:0};
     const advances = (window._allAdvances||[]).filter(a=>a.staffName===s.name&&a.status!=='cleared');
     const pendingAdv = advances.reduce((t,a)=>t+(a.remainingAmount||0),0);
-    const monthlyDeduct = advances.reduce((t,a)=>t+(a.monthlyDeduction||0),0);
-    const net = Math.max(0, base - monthlyDeduct);
+    const advDeduct = advances.reduce((t,a)=>t+(a.monthlyDeduction||0),0);
+    const net = Math.max(0, base - absent.deduction - advDeduct);
     return `<div style="background:#fff;border-radius:12px;border:1.5px solid var(--grayb);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:var(--shadow-sm);">
       <div><div style="font-weight:800;font-size:.95rem;">${esc(s.name)}</div><div style="font-size:.75rem;color:var(--gray);text-transform:uppercase;">${s.role}</div></div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;">
         <div><div style="color:var(--gray);font-size:.7rem;">Base</div><div style="font-weight:800;color:var(--p);">${base?inr(base):'Not set'}</div></div>
+        ${base?`<div><div style="color:var(--gray);font-size:.7rem;">Daily Rate</div><div style="font-weight:700;color:#0369a1;">${inr(absent.dailyRate)}</div></div>`:''}
+        ${absent.absentDays>0?`<div><div style="color:var(--gray);font-size:.7rem;">Absent</div><div style="font-weight:700;color:var(--r);">${absent.absentDays}d −${inr(absent.deduction)}</div></div>`:'<div><div style="color:var(--gray);font-size:.7rem;">Attendance</div><div style="font-weight:700;color:#16a34a;">✅ ${absent.attendedDays}/${absent.daysInMonth}</div></div>'}
         ${pendingAdv>0?`<div><div style="color:var(--gray);font-size:.7rem;">Advance Due</div><div style="font-weight:800;color:var(--r);">${inr(pendingAdv)}</div></div>`:''}
-        ${monthlyDeduct>0?`<div><div style="color:var(--gray);font-size:.7rem;">Monthly −</div><div style="font-weight:700;color:#d97706;">${inr(monthlyDeduct)}</div></div>`:''}
-        ${base?`<div><div style="color:var(--gray);font-size:.7rem;">Net This Month</div><div style="font-weight:800;color:var(--g);">${inr(net)}</div></div>`:''}
+        ${advDeduct>0?`<div><div style="color:var(--gray);font-size:.7rem;">Adv −/mo</div><div style="font-weight:700;color:#d97706;">−${inr(advDeduct)}</div></div>`:''}
+        ${base?`<div><div style="color:var(--gray);font-size:.7rem;">Net Payable</div><div style="font-weight:800;color:var(--g);">${inr(net)}</div></div>`:''}
       </div>
       <button class="btn btn-sm btn-outline" onclick="showSetBaseSalary('${esc(s._key)}','${esc(s.name)}',${base})">✏️ Set Base</button>
     </div>`;
@@ -9035,14 +9636,15 @@ async function renderComplaints(){
     <td style="font-size:.82rem;">${esc(c.filed_by||'—')}</td>
     <td style="font-size:.82rem;">${esc(c.against||'—')}</td>
     <td style="font-weight:600;">${esc(c.subject||'—')}</td>
-    <td><span class="badge ${c.status==='resolved'?'bg':'bo'}">${c.status==='resolved'?'✅ Resolved':'🔴 Open'}</span></td>
+    <td><span class="badge ${c.status==='resolved'?'bg':'bo'}">${c.status==='resolved'?'✅ Resolved':'🔴 Open'}</span>${c.resolution_note?`<div style="font-size:.7rem;color:var(--gray);margin-top:2px;">📝 ${esc(c.resolution_note)}</div>`:''}</td>
     <td style="font-size:.78rem;color:var(--gray);">${esc(c.date||'—')}</td>
     <td>${c.status!=='resolved'?`<button class="btn btn-sm btn-outline" onclick="resolveComplaint('${c.id}')">✅ Resolve</button>`:'—'}</td>
   </tr>`).join('');
 }
 async function resolveComplaint(id){
-  if(!confirm('Mark this complaint as resolved?')) return;
-  await _sb.from('complaints').update({status:'resolved'}).eq('id',id);
+  const note = prompt('Resolution note (optional — describe how this was resolved):');
+  if(note===null) return; // cancelled
+  await _sb.from('complaints').update({status:'resolved', resolution_note: note||''}).eq('id',id);
   toast('✅ Marked resolved','success');
   renderComplaints();
 }
@@ -9235,7 +9837,7 @@ async function forgotPassword(){
 // CLIENT TRACKER
 // ============================================================
 function clientPortalBack() {
-  document.getElementById('clientPortalPage').classList.remove('show');
+  const _cpp=document.getElementById('clientPortalPage'); _cpp.classList.remove('show'); _cpp.style.display='none';
   document.getElementById('clientResult').innerHTML = '';
   document.getElementById('clientUID').value = '';
   window._pendingTrackId = null;
@@ -9380,7 +9982,7 @@ async function clientTrack(){
   // Hide login page, show portal
   document.getElementById('loginPage').classList.remove('show');
   const cpPage = document.getElementById('clientPortalPage');
-  cpPage.classList.add('show');
+  cpPage.style.display=''; cpPage.classList.add('show');
   cpPage.scrollTop = 0;
 }
 // ============================================================
@@ -10399,7 +11001,7 @@ function previewImg(src){document.getElementById('imgPreviewSrc').src=src;openMo
 function toast(msg,type=''){const el=document.createElement('div');el.className='tm'+(type?' '+type:'');el.textContent=msg;document.getElementById('toast').appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400);},3500);}
 </script>
 
-<div id="clientPortalPage">
+<div id="clientPortalPage" style="display:none;">
   <!-- Header -->
   <div style="background:linear-gradient(135deg,#0a0f1e,#1e1b4b,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
     <div style="max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
