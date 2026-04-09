@@ -1056,7 +1056,179 @@ input[type="number"]:focus {
 
 /* Staff cannot print/export/import/backup */
 .staff-restricted { display:none !important; }
-</style>
+
+/* ═══════════ UI UPLIFT ═══════════ */
+/* Refined sidebar */
+#sidebar {
+  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+}
+#sidebar nav a.active {
+  background: linear-gradient(90deg, rgba(99,102,241,.28) 0%, rgba(99,102,241,.08) 100%);
+  border-left: 3px solid #818cf8;
+  color: #e0e7ff;
+}
+#sidebar nav a:hover {
+  background: rgba(255,255,255,.06);
+  color: #c7d2fe;
+}
+
+/* Content area */
+#content {
+  background: #f1f5f9;
+}
+
+/* Cards — cleaner, more depth */
+.card {
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 20px rgba(0,0,0,.06);
+  border: 1px solid rgba(226,232,240,.8);
+}
+
+/* vw-row styling uplift */
+.vw-row {
+  transition: box-shadow .15s;
+}
+.vw-row:hover {
+  box-shadow: 0 2px 12px rgba(79,70,229,.1);
+}
+
+/* Extra fields styling — consistent */
+.wtype-extras input,
+.wtype-extras select,
+.wtype-extras textarea {
+  font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.wtype-extras input:focus,
+.wtype-extras select:focus {
+  outline: none;
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+}
+
+/* xLabel */
+.wtype-extras .xlbl {
+  font-size: .68rem;
+  font-weight: 800;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 6px 0 3px;
+  display: block;
+}
+
+/* Topbar refinement */
+#topbar {
+  background: transparent;
+  border-bottom: 1px solid #e2e8f0;
+}
+#topbar h2 {
+  background: linear-gradient(135deg, #1e1b4b, #4f46e5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Form fields in cards */
+.field label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 5px;
+  display: block;
+}
+.field input, .field select, .field textarea {
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  padding: 9px 12px;
+  font-size: .88rem;
+  width: 100%;
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+
+/* Step numbers in new work */
+.step-num {
+  min-width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: .8rem; flex-shrink: 0;
+}
+
+/* Badges uplift */
+.badge {
+  border-radius: 6px;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* Table uplift */
+.wt { border-collapse: separate; border-spacing: 0; }
+.wt thead tr th {
+  background: #f8fafc;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #64748b;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky; top: 0;
+}
+.wt tbody tr:hover { background: #f8fafc; }
+.wt tbody tr td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: .83rem;
+}
+
+/* Modal uplift */
+.md {
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.08);
+}
+.md-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Button polish */
+.btn { border-radius: 10px; font-weight: 600; }
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  box-shadow: 0 2px 8px rgba(99,102,241,.3);
+}
+.btn-success {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 2px 8px rgba(16,185,129,.25);
+}
+
+/* Dashboard stat cards */
+.sc {
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  transition: transform .15s, box-shadow .15s;
+}
+.sc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+}
+
+/* wtype-dropdown z-index ensure */
+.wtype-dropdown { z-index: 500 !important; }</style>
 </head>
 <body>
 
@@ -1314,27 +1486,32 @@ input[type="number"]:focus {
         </div>
 
         <!-- Column Labels -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:6px;padding:0 4px;">
-          <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">🚗 Vehicle No.</div>
-          <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">🔧 Work Type</div>
-          <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">💰 Value (₹)</div>
-          <div></div>
+        <div style="display:flex;gap:0;margin-bottom:6px;padding:0 4px;">
+          <div style="flex:1;font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;">🚗 Vehicle No. &amp; Chassis/Engine</div>
+          <div style="width:100px;font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;text-align:right;padding-right:40px;">💰 Value (₹)</div>
         </div>
 
         <div id="vehicleWorkList">
           <!-- Initial row -->
-          <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
-            <div>
-              <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="4" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
-              <div style="display:flex;gap:4px;margin-top:5px;">
-                <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
-                <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+          <div class="vw-row" style="background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;margin-bottom:8px;">
+            <!-- Row 1: Vehicle + Value + Remove -->
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+              <div style="flex:1;">
+                <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="4" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+                <div style="display:flex;gap:4px;margin-top:5px;">
+                  <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
+                  <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
+                </div>
               </div>
+              <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+              <div style="width:32px;height:32px;flex-shrink:0;"></div>
             </div>
+            <!-- Row 2: Work Type (full width) -->
             <div style="position:relative;">
-              <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="5" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+              <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">🔧 Work Type</div>
+              <input type="text" class="wtype-search" placeholder="🔍 Type to search work type…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="5" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
               <input type="hidden" class="wtype-sel" value=""/>
-              <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
+              <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:400;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:220px;overflow-y:auto;margin-top:3px;">
                 <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
                 <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
                 <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
@@ -1361,11 +1538,7 @@ input[type="number"]:focus {
                 <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
               </div>
               <!-- Work-type specific extra fields injected here by vwTypeChange() -->
-              <div class="wtype-extras" style="margin-top:6px;"></div>
-            </div>
-            <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
-            <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-              <div style="width:32px;height:32px;"></div>
+              <div class="wtype-extras" style="margin-top:8px;"></div>
             </div>
           </div>
         </div>
@@ -2400,9 +2573,12 @@ input[type="number"]:focus {
       </div>
     </div>
 
-    <!-- STEP 2: Payment check result + docs -->
+    <!-- STEP 2: Payment check result + docs + completion details -->
     <div id="cwStep2" style="display:none;">
       <div id="cwPaymentStatus" style="margin-bottom:16px;"></div>
+
+      <!-- TYPE-SPECIFIC COMPLETION FIELDS (injected by cwBuildCompletionFields) -->
+      <div id="cwCompletionFields" style="margin-bottom:14px;"></div>
 
       <!-- Document upload -->
       <div class="field">
@@ -2420,14 +2596,9 @@ input[type="number"]:focus {
         </div>
       </div>
 
-      <!-- Expiry date (shown only if relevant) -->
+      <!-- Legacy expiry field (hidden, kept for compat) -->
       <div class="field" id="expiryField" style="display:none;">
-        <label>Paper Expiry Date *</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="date" id="expiryDate" style="flex:1;"/>
-          <span style="font-size:.8rem;color:var(--p);font-weight:700;">⬅ Click to pick date</span>
-        </div>
-        <div class="hint">Required for: Fitness, PUC, Permit, Insurance, Road Tax (Quarterly)</div>
+        <input type="date" id="expiryDate"/>
       </div>
 
       <div class="md-foot">
@@ -4399,41 +4570,38 @@ function vwTypeChange(el, forcedVal) {
   const val = forcedVal !== undefined ? forcedVal : el.value;
   const extras = row.querySelector('.wtype-extras');
   const vehicleInput = row.querySelector('.vehicle-input');
-  const vehicleWrap = vehicleInput?.closest('div');
 
-  // Show/hide vehicle field
   if(vehicleInput) {
     vehicleInput.style.display = val==='DrivingLicense' ? 'none' : '';
     vehicleInput.placeholder = val==='Others' ? 'Vehicle No. (optional)' : 'UP32AB1234';
     if(val==='DrivingLicense') vehicleInput.value='DL';
     else if(vehicleInput.value==='DL') vehicleInput.value='';
   }
-
   if(!extras) return;
 
-  // Build sub-fields per work type
+  // NOTE: expiry dates, policy no, company name → asked at COMPLETE WORK time, not here
   let html = '';
   switch(val) {
 
     case 'Transfer':
       html = _xLabel('Seller (Current Owner)') +
-        _xInp('x-seller-name','Seller Name') +
-        _xInp('x-seller-mob','Seller Mobile','text','maxlength="10"') +
+        _xInp('x-seller-name','Seller Full Name') +
+        _xInp('x-seller-mob','Seller Mobile','text','maxlength="10" inputmode="numeric"') +
         _xLabel('Purchaser (New Owner)') +
-        _xInp('x-buyer-name','Purchaser Name') +
-        _xInp('x-buyer-mob','Purchaser Mobile','text','maxlength="10"') +
-        _xLabel('Address Change?') +
+        _xInp('x-buyer-name','Purchaser Full Name') +
+        _xInp('x-buyer-mob','Purchaser Mobile','text','maxlength="10" inputmode="numeric"') +
+        _xLabel('Address Change with Transfer?') +
         _xSel('x-addr-change',[['no','No — same address'],['yes','Yes — new address']],'');
       break;
 
     case 'ChangeOfAddress':
-      html = _xLabel('New Address Details') +
+      html = _xLabel('New Address') +
         _xInp('x-district','District Name') +
         _xInp('x-state','State Name');
       break;
 
     case 'RCNOC':
-      html = _xLabel('Vehicle Moving To') +
+      html = _xLabel('Vehicle Relocating To') +
         _xInp('x-noc-district','District') +
         _xInp('x-noc-state','State') +
         _xInp('x-noc-rto','RTO Code (e.g. UP32)');
@@ -4445,80 +4613,66 @@ function vwTypeChange(el, forcedVal) {
       break;
 
     case 'Hypothecation':
-      html = _xLabel('Hypothecation Sub-type') +
+      html = _xLabel('Sub-type') +
         _xSel('x-hyp-type',[['Addition','Addition'],['Continuation','Continuation'],['Termination','Termination']],'Select');
       break;
 
     case 'Alteration':
-      html = _xLabel('Alteration Type(s)') +
-        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-chassis"> Chassis</label>
-          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-engine"> Engine</label>
-          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-body"> Body</label>
+      html = _xLabel('What is being altered?') +
+        `<div style="display:flex;gap:12px;flex-wrap:wrap;padding:6px 0;">
+          <label style="font-size:.82rem;display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" class="x-alt-chassis" style="width:15px;height:15px;"> Chassis</label>
+          <label style="font-size:.82rem;display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" class="x-alt-engine" style="width:15px;height:15px;"> Engine</label>
+          <label style="font-size:.82rem;display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" class="x-alt-body" style="width:15px;height:15px;"> Body</label>
         </div>`;
       break;
 
     case 'Fitness':
       html = _xLabel('Fitness Type') +
-        _xSel('x-fitness-type',[['Fitness','Fitness (Normal)'],['Fitness38A','Fitness 38-A']],'') +
-        _xLabel('Validity (Expiry Date)') +
-        _xDate('x-expiry','Fitness Expiry');
+        _xSel('x-fitness-type',[['Fitness','Fitness (Normal)'],['Fitness38A','Fitness 38-A (Goods)']]);
+      // Expiry asked at complete-work time
       break;
 
     case 'Permit':
       html = _xLabel('Permit Type') +
         _xSel('x-permit-type',[
           ['State','State Permit'],['National','National Permit'],
-          ['StateAuth','State Permit Auth.'],['Zone','Zone Permit'],['Temp','Temporary Permit']
-        ],'Select', ) +
-        `<div class="x-permit-national" style="display:none;">` +
-          _xLabel('State Permit Expiry') + _xDate('x-expiry-state','State Expiry') +
-          _xLabel('All-India Permit Expiry') + _xDate('x-expiry-national','All-India Expiry') +
-        `</div>` +
-        `<div class="x-permit-other">` +
-          _xLabel('Permit Expiry') + _xDate('x-expiry','Permit Expiry') +
-        `</div>`;
-      // Attach listener after injection
+          ['StateAuth','State Permit Auth.'],['Zone','Zone Permit'],
+          ['Temp','Temporary Permit'],['DC','Permit D/C'],['Cancel','Permit Cancel']
+        ],'Select');
+      // Expiry dates asked at complete-work time (dual dates for National)
       setTimeout(()=>{
         const sel = row.querySelector('.x-permit-type');
-        const natDiv = row.querySelector('.x-permit-national');
-        const othDiv = row.querySelector('.x-permit-other');
-        if(sel && natDiv && othDiv) {
-          const toggle = ()=>{
-            const isNat = sel.value==='National';
-            natDiv.style.display = isNat ? '' : 'none';
-            othDiv.style.display = isNat ? 'none' : '';
-          };
-          sel.addEventListener('change', toggle);
-          toggle();
-        }
-      }, 30);
+        if(sel) sel.addEventListener('change', ()=>{});
+      }, 20);
       break;
 
     case 'TradeCertificate':
       html = _xLabel('Certificate Type') +
-        _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']],'');
+        _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']]);
       break;
 
     case 'Challan':
+      // Full per PDF: Challan No, Date, Type (Traffic/RTO/Mining), Position, Amount, District
       html = _xLabel('Challan Details') +
         _xInp('x-challan-no','Challan No.') +
         _xDate('x-challan-date','Challan Date') +
         _xLabel('Challan Type') +
-        _xSel('x-challan-type',[['Traffic','Traffic'],['RTO','RTO'],['Mining','Mining']],'Type');
+        _xSel('x-challan-type',[['Traffic','Traffic'],['RTO','RTO'],['Mining','Mining']],'Type') +
+        _xLabel('Offence Details') +
+        _xInp('x-challan-position','Position / Offence Description') +
+        _xInp('x-challan-amount','Challan Amount (₹)','number','min="0" inputmode="numeric"') +
+        _xInp('x-challan-district','District');
       break;
 
     case 'Insurance':
-      html = _xLabel('Insurance Details') +
-        _xInp('x-ins-policy','Policy No.') +
-        _xInp('x-ins-company','Company Name (e.g. New India, HDFC Ergo)') +
-        _xLabel('Insurance Type') +
+      // Only capture what's needed at booking — policy details asked at complete-work time
+      html = _xLabel('Insurance Type') +
         _xSel('x-ins-type',[['ThirdParty','Third Party'],['Package','Package'],['ZeroDep','Zero Dep']],'Type') +
-        _xLabel('Transfer To (if transfer)') +
-        _xInp('x-ins-transfer-to','Transfer To (optional)') +
-        _xLabel('Validity') +
-        _xSel('x-ins-validity',[['Annual','Annual'],['Quarterly','Quarterly'],['OneTime','One Time']],'') +
-        _xDate('x-expiry','Insurance Expiry');
+        _xLabel('Validity Period') +
+        _xSel('x-ins-validity',[['Annual','Annual'],['Quarterly','Quarterly'],['OneTime','One Time']]) +
+        _xLabel('Transfer To (only if transfer)') +
+        _xInp('x-ins-transfer-to','Name to transfer insurance to (optional)');
+      // Policy No + Company + Expiry → complete-work modal
       break;
 
     case 'RoadTax':
@@ -4526,29 +4680,33 @@ function vwTypeChange(el, forcedVal) {
         _xSel('x-roadtax-type',[['OTT','One Time Tax (OTT)'],['Quarterly','Quarterly'],['Annual','Annual']],'Type');
       break;
 
-    case 'PUC':
-      html = _xLabel('PUC Expiry') +
-        _xDate('x-expiry','PUC Expiry Date');
-      break;
-
     case 'DrivingLicense':
       html = _xLabel('License Category') +
         _xSel('x-dl-category',[
-          ['MCLMV','MC / LMV'],['TV','Transport Vehicle (TV)'],['Crane','Crane'],['Hazardous','Hazardous Endorsement']
+          ['MCLMV','MC / LMV'],['TV','Transport Vehicle (TV)'],
+          ['Crane','Crane'],['Hazardous','Hazardous Endorsement']
         ],'Category') +
-        _xLabel('License Sub-type') +
+        _xLabel('Sub-type') +
         _xSel('x-dl-subtype',[
           ['Learner','Learner License'],['Permanent','Permanent (New)'],
           ['Renewal','License Renewal'],['Duplicate','Duplicate License']
         ],'Sub-type') +
-        _xLabel('License / Learner No.') +
-        _xInp('x-dl-licno','License No. or Learner No.') +
-        _xLabel('Validity / Expiry') +
-        _xDate('x-expiry','DL Expiry');
+        _xLabel('Existing License / Learner No.') +
+        _xInp('x-dl-licno','License No. or Learner No. (if renewal/duplicate)');
+      // Validity/expiry → complete-work modal
+      break;
+
+    case 'PUC':
+      // PUC expiry → complete-work modal
+      html = '';
+      break;
+
+    case 'HSRP':
+      html = '';
       break;
 
     case 'Others':
-      html = _xInp('x-others-spec','Specify work type…');
+      html = _xInp('x-others-spec','Specify work type in detail…');
       break;
 
     default:
@@ -4582,6 +4740,9 @@ function getRowExtras(row) {
   ex.challanNo     = g('x-challan-no');
   ex.challanDate   = g('x-challan-date');
   ex.challanType   = g('x-challan-type');
+  ex.challanPosition = g('x-challan-position');
+  ex.challanAmount = g('x-challan-amount');
+  ex.challanDistrict = g('x-challan-district');
   ex.insPolicy     = g('x-ins-policy');
   ex.insCompany    = g('x-ins-company');
   ex.insType       = g('x-ins-type');
@@ -4603,19 +4764,26 @@ function addVWRow() {
   const list = document.getElementById('vehicleWorkList');
   const row = document.createElement('div');
   row.className = 'vw-row';
-  row.style = 'display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;';
+  row.style = 'background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;margin-bottom:8px;';
   row.innerHTML = `
-    <div>
-      <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
-      <div style="display:flex;gap:4px;margin-top:5px;">
-        <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
-        <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+    <!-- Row 1: Vehicle + Value + Remove -->
+    <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+      <div style="flex:1;">
+        <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+        <div style="display:flex;gap:4px;margin-top:5px;">
+          <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis No. (optional)"/>
+          <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine No. (optional)"/>
+        </div>
       </div>
+      <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+      <button onclick="this.closest('.vw-row').remove();calcTotalWorkValue()" title="Remove row" style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#be123c;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;margin-top:2px;">✕</button>
     </div>
+    <!-- Row 2: Work Type full width -->
     <div style="position:relative;">
-      <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+      <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">🔧 Work Type</div>
+      <input type="text" class="wtype-search" placeholder="🔍 Type to search work type…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
       <input type="hidden" class="wtype-sel" value=""/>
-      <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
+      <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:400;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:220px;overflow-y:auto;margin-top:3px;">
         <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
         <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
         <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
@@ -4641,11 +4809,7 @@ function addVWRow() {
         <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
         <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
       </div>
-      <div class="wtype-extras" style="margin-top:6px;"></div>
-    </div>
-    <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
-    <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-      <button onclick="this.closest('.vw-row').remove();calcTotalWorkValue()" title="Remove row" style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#be123c;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">✕</button>
+      <div class="wtype-extras" style="margin-top:8px;"></div>
     </div>`;
   list.appendChild(row);
 }
@@ -4707,14 +4871,21 @@ function autoFillVehicleNums(vehicleInput) {
 
 function resetVWRows() {
   document.getElementById('vehicleWorkList').innerHTML = `
-    <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
-      <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
-      <div style="display:flex;gap:4px;margin-top:5px;">
-        <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
-        <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+    <div class="vw-row" style="background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+        <div style="flex:1;">
+          <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+          <div style="display:flex;gap:4px;margin-top:5px;">
+            <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;"/>
+            <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;"/>
+          </div>
+        </div>
+        <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="width:100px;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;font-weight:700;text-align:right;flex-shrink:0;"/>
+        <div style="width:32px;height:32px;flex-shrink:0;"></div>
       </div>
       <div style="position:relative;">
-        <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+        <div style="font-size:.65rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">🔧 Work Type</div>
+        <input type="text" class="wtype-search" placeholder="🔍 Type to search work type…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
         <input type="hidden" class="wtype-sel" value=""/>
         <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
           <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
@@ -4742,11 +4913,7 @@ function resetVWRows() {
           <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
           <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
         </div>
-        <div class="wtype-extras" style="margin-top:6px;"></div>
-      </div>
-      <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
-      <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-        <div style="width:32px;height:32px;"></div>
+        <div class="wtype-extras" style="margin-top:8px;"></div>
       </div>
     </div>`;
   const disp = document.getElementById('totalWorkValueDisplay');
@@ -6255,18 +6422,115 @@ function openCloseWork(key){
   }
 
   // Show expiry field based on selected types
-  cwUpdateExpiryVisibility();
-  document.querySelectorAll('.cw-row-cb').forEach(cb => cb.addEventListener('change', cwUpdateExpiryVisibility));
+  // completion fields built when step 2 is shown
+  document.querySelectorAll('.cw-row-cb').forEach(cb => cb.addEventListener('change', ()=>{}));
 
   closeModal('workDetailModal');
   openModal('closeWorkModal');
 }
 
-function cwUpdateExpiryVisibility() {
-  const selected = [...document.querySelectorAll('.cw-row-cb:checked')].map(cb=>cb.dataset.type);
-  const needsExpiry = selected.some(t=>['Insurance','Fitness','Permit-AllIndia','Permit-State','PUC','RoadTax-Quarterly'].includes(t));
-  const ef = document.getElementById('expiryField');
-  if(ef) ef.style.display = needsExpiry ? 'block' : 'none';
+function cwBuildCompletionFields() {
+  const w = allWorks.find(x=>x._key===closingWorkId);
+  if(!w) return;
+  const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
+  const types = checked.map(cb=>cb.dataset.type);
+  const cf = document.getElementById('cwCompletionFields');
+  if(!cf) return;
+
+  let html = '';
+  const inp = (id,ph,type='text',extra='') =>
+    `<input id="${id}" type="${type}" placeholder="${ph}" ${extra} style="width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.87rem;background:#fff;margin-bottom:8px;"/>`;
+  const sel = (id, opts, ph='') =>
+    `<select id="${id}" style="width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.87rem;background:#fff;margin-bottom:8px;">
+      ${ph?`<option value="">— ${ph} —</option>`:''}
+      ${opts.map(o=>Array.isArray(o)?`<option value="${o[0]}">${o[1]}</option>`:`<option value="${o}">${o}</option>`).join('')}
+    </select>`;
+  const lbl = t => `<div style="font-size:.7rem;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">${t}</div>`;
+  const dateInp = (id,ph) =>
+    `<input id="${id}" type="date" style="width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.87rem;background:#fff;margin-bottom:8px;" placeholder="${ph}"/>`;
+
+  // Collect which special fields we need
+  const needsInsurance = types.includes('Insurance');
+  const needsFitness   = types.includes('Fitness');
+  const needsPermit    = types.includes('Permit');
+  const needsDL        = types.includes('DrivingLicense');
+  const needsPUC       = types.includes('PUC');
+  const needsRoadTax   = types.includes('RoadTax');
+
+  // Read permit type from saved workExtras
+  let permitType = '';
+  try { permitType = JSON.parse(w.workExtras||'{}').permitType || ''; } catch(e){}
+
+  if(needsInsurance) {
+    html += `<div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#1e40af;margin-bottom:10px;">🛡️ Insurance Details (for completion)</div>
+      ${lbl('Policy No.')}${inp('cw-ins-policy','Policy Number')}
+      ${lbl('Insurance Company')}${inp('cw-ins-company','e.g. New India Assurance, HDFC Ergo')}
+      ${lbl('Expiry Date')}${dateInp('cw-ins-expiry','Insurance Expiry Date')}
+    </div>`;
+  }
+
+  if(needsFitness) {
+    html += `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#166534;margin-bottom:10px;">✅ Fitness Certificate</div>
+      ${lbl('Fitness Expiry Date')}${dateInp('cw-fitness-expiry','Fitness Expiry Date')}
+    </div>`;
+  }
+
+  if(needsPermit) {
+    const isNational = permitType==='National';
+    html += `<div style="background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#854d0e;margin-bottom:10px;">🗺️ Permit Details</div>
+      ${isNational
+        ? lbl('State Permit Expiry') + dateInp('cw-permit-expiry-state','State Permit Expiry') +
+          lbl('All-India Permit Expiry') + dateInp('cw-permit-expiry-national','All-India Permit Expiry')
+        : lbl('Permit Expiry Date') + dateInp('cw-permit-expiry','Permit Expiry Date')
+      }
+    </div>`;
+  }
+
+  if(needsDL) {
+    html += `<div style="background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#5b21b6;margin-bottom:10px;">🪪 Driving License Details</div>
+      ${lbl('License No. Issued')}${inp('cw-dl-licno','DL Number issued')}
+      ${lbl('Valid Up To')}${dateInp('cw-dl-expiry','DL Expiry Date')}
+    </div>`;
+  }
+
+  if(needsPUC) {
+    html += `<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#166534;margin-bottom:10px;">🌿 PUC Certificate</div>
+      ${lbl('PUC Valid Up To')}${dateInp('cw-puc-expiry','PUC Expiry Date')}
+    </div>`;
+  }
+
+  if(needsRoadTax) {
+    html += `<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.88rem;color:#c2410c;margin-bottom:10px;">🛣️ Road Tax</div>
+      ${lbl('Tax Valid Up To (if applicable)')}${dateInp('cw-roadtax-expiry','Road Tax Expiry (optional)')}
+    </div>`;
+  }
+
+  cf.innerHTML = html || '';
+
+  // Update legacy expiryDate from first expiry found (for backwards compat)
+  document.getElementById('expiryField').style.display = 'none';
+}
+
+function cwGetCompletionExtras() {
+  const g = id => { const el=document.getElementById(id); return el ? el.value||'' : ''; };
+  return {
+    insPolicy:     g('cw-ins-policy'),
+    insCompany:    g('cw-ins-company'),
+    insExpiry:     g('cw-ins-expiry'),
+    fitnessExpiry: g('cw-fitness-expiry'),
+    permitExpiry:  g('cw-permit-expiry') || g('cw-permit-expiry-state'),
+    permitExpiryNational: g('cw-permit-expiry-national'),
+    dlLicNo:       g('cw-dl-licno'),
+    dlExpiry:      g('cw-dl-expiry'),
+    pucExpiry:     g('cw-puc-expiry'),
+    roadTaxExpiry: g('cw-roadtax-expiry'),
+  };
 }
 
 async function cwCheckPayments() {
@@ -6354,7 +6618,7 @@ async function cwCheckPayments() {
     statusEl.innerHTML = html;
     document.getElementById('cwStep1').style.display = 'none';
     document.getElementById('cwStep2').style.display = 'block';
-    cwUpdateExpiryVisibility();
+    cwBuildCompletionFields();
 
   } catch(e) {
     toast('Error checking payments: '+e.message,'error');
@@ -6389,7 +6653,10 @@ async function completeWork() {
   try {
     const checked = [...document.querySelectorAll('.cw-row-cb:checked')];
     const notes = document.getElementById('closeNotes')?.value.trim()||'';
-    const expiry = document.getElementById('expiryDate')?.value||'';
+    const compExtras = cwGetCompletionExtras();
+    // Pick the most relevant expiry for the legacy expiryDate field
+    const expiry = compExtras.insExpiry || compExtras.fitnessExpiry || compExtras.permitExpiry ||
+                   compExtras.dlExpiry || compExtras.pucExpiry || compExtras.roadTaxExpiry || '';
 
     // Get all items and which are newly completed
     let items = [];
@@ -6423,6 +6690,8 @@ async function completeWork() {
       closeNotes: notes,
       receiptPhoto: photoData,
       expiryDate: expiry||'',
+      expiryNational: compExtras.permitExpiryNational||'',
+      completionExtras: JSON.stringify(compExtras),
       miscExpense: 0, miscReason: '',
       partialDesc: allDoneNow.join(', ')
     };
