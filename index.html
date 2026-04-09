@@ -1360,25 +1360,12 @@ input[type="number"]:focus {
                 <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
                 <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
               </div>
-              <input type="text" class="wtype-spec" placeholder="Specify work type…" tabindex="-1" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-              <select class="wtype-dltype" tabindex="-1" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
-                <option value="">— License Type —</option>
-                <option value="Renewal">Renewal</option>
-                <option value="Permanent (New)">Permanent (New)</option>
-                <option value="Learner (New)">Learner (New)</option>
-              </select>
-              <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:6px;">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <input type="date" class="wtype-dlexpiry" tabindex="-1" style="flex:1;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-                  <span style="font-size:.7rem;color:var(--p);font-weight:700;white-space:nowrap;">⬅ DL Expiry</span>
-                </div>
-              </div>
-              <input type="text" class="wtype-tfrom" tabindex="-1" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-              <input type="text" class="wtype-tto" tabindex="-1" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+              <!-- Work-type specific extra fields injected here by vwTypeChange() -->
+              <div class="wtype-extras" style="margin-top:6px;"></div>
             </div>
-            <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
+            <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" tabindex="6" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
             <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-              <button onclick="addVWRow()" tabindex="-1" title="Add row" style="width:32px;height:32px;border-radius:8px;background:#dcfce7;color:#16a34a;border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">＋</button>
+              <div style="width:32px;height:32px;"></div>
             </div>
           </div>
         </div>
@@ -4391,40 +4378,225 @@ function wtSelectOption(opt) {
   vwTypeChange(hidden || opt, val);
 }
 
+// Helper: styled mini input/select for extra fields
+function _xInp(cls, ph, type='text', extra='') {
+  return `<input type="${type}" class="${cls}" placeholder="${ph}" ${extra} style="width:100%;padding:7px 9px;border:1.5px solid #e0e7ff;border-radius:8px;font-size:.82rem;background:#f8faff;margin-bottom:4px;"/>`;
+}
+function _xSel(cls, opts, label='') {
+  const optHtml = opts.map(o=>Array.isArray(o)?`<option value="${o[0]}">${o[1]}</option>`:`<option value="${o}">${o}</option>`).join('');
+  return `<select class="${cls}" style="width:100%;padding:7px 9px;border:1.5px solid #e0e7ff;border-radius:8px;font-size:.82rem;background:#f8faff;margin-bottom:4px;">${label?`<option value="">— ${label} —</option>`:''}${optHtml}</select>`;
+}
+function _xLabel(txt) {
+  return `<div style="font-size:.68rem;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.5px;margin:5px 0 2px;">${txt}</div>`;
+}
+function _xDate(cls, ph) {
+  return `<input type="date" class="${cls}" placeholder="${ph}" style="width:100%;padding:7px 9px;border:1.5px solid #e0e7ff;border-radius:8px;font-size:.82rem;background:#f8faff;margin-bottom:4px;"/>`;
+}
+
 function vwTypeChange(el, forcedVal) {
   const row = el.closest('.vw-row');
   if(!row) return;
   const val = forcedVal !== undefined ? forcedVal : el.value;
-  const spec = row.querySelector('.wtype-spec');
-  const tfrom = row.querySelector('.wtype-tfrom');
-  const tto = row.querySelector('.wtype-tto');
-  const dltype = row.querySelector('.wtype-dltype');
-  const dlExpiryWrap = row.querySelector('.wtype-dlexpiry-wrap');
+  const extras = row.querySelector('.wtype-extras');
   const vehicleInput = row.querySelector('.vehicle-input');
-  spec.style.display = val==='Others' ? 'block' : 'none';
-  tfrom.style.display = val==='Transfer' ? 'block' : 'none';
-  tto.style.display = val==='Transfer' ? 'block' : 'none';
-  if(dltype) dltype.style.display = val==='DrivingLicense' ? 'block' : 'none';
-  if(dlExpiryWrap) dlExpiryWrap.style.display = val==='DrivingLicense' ? 'block' : 'none';
+  const vehicleWrap = vehicleInput?.closest('div');
+
+  // Show/hide vehicle field
   if(vehicleInput) {
-    if(val==='DrivingLicense') {
-      vehicleInput.style.display='none';
-      vehicleInput.placeholder='N/A';
-      vehicleInput.value='DL';
-    } else if(val==='Others') {
-      vehicleInput.style.display='';
-      vehicleInput.placeholder='Vehicle No. (optional)';
-      vehicleInput.style.borderColor='#d1d5db';
-      vehicleInput.style.background='#fafafa';
-      if(vehicleInput.value==='DL') vehicleInput.value='';
-    } else {
-      vehicleInput.style.display='';
-      vehicleInput.placeholder='e.g. UP32AB1234';
-      vehicleInput.style.borderColor='';
-      vehicleInput.style.background='#fff';
-      if(vehicleInput.value==='DL') vehicleInput.value='';
-    }
+    vehicleInput.style.display = val==='DrivingLicense' ? 'none' : '';
+    vehicleInput.placeholder = val==='Others' ? 'Vehicle No. (optional)' : 'UP32AB1234';
+    if(val==='DrivingLicense') vehicleInput.value='DL';
+    else if(vehicleInput.value==='DL') vehicleInput.value='';
   }
+
+  if(!extras) return;
+
+  // Build sub-fields per work type
+  let html = '';
+  switch(val) {
+
+    case 'Transfer':
+      html = _xLabel('Seller (Current Owner)') +
+        _xInp('x-seller-name','Seller Name') +
+        _xInp('x-seller-mob','Seller Mobile','text','maxlength="10"') +
+        _xLabel('Purchaser (New Owner)') +
+        _xInp('x-buyer-name','Purchaser Name') +
+        _xInp('x-buyer-mob','Purchaser Mobile','text','maxlength="10"') +
+        _xLabel('Address Change?') +
+        _xSel('x-addr-change',[['no','No — same address'],['yes','Yes — new address']],'');
+      break;
+
+    case 'ChangeOfAddress':
+      html = _xLabel('New Address Details') +
+        _xInp('x-district','District Name') +
+        _xInp('x-state','State Name');
+      break;
+
+    case 'RCNOC':
+      html = _xLabel('Vehicle Moving To') +
+        _xInp('x-noc-district','District') +
+        _xInp('x-noc-state','State') +
+        _xInp('x-noc-rto','RTO Code (e.g. UP32)');
+      break;
+
+    case 'Conversion':
+      html = _xLabel('Conversion Type') +
+        _xSel('x-conversion-type',[['PrivateToTaxi','Private → Taxi'],['TaxiToPrivate','Taxi → Private']],'Select');
+      break;
+
+    case 'Hypothecation':
+      html = _xLabel('Hypothecation Sub-type') +
+        _xSel('x-hyp-type',[['Addition','Addition'],['Continuation','Continuation'],['Termination','Termination']],'Select');
+      break;
+
+    case 'Alteration':
+      html = _xLabel('Alteration Type(s)') +
+        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-chassis"> Chassis</label>
+          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-engine"> Engine</label>
+          <label style="font-size:.79rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" class="x-alt-body"> Body</label>
+        </div>`;
+      break;
+
+    case 'Fitness':
+      html = _xLabel('Fitness Type') +
+        _xSel('x-fitness-type',[['Fitness','Fitness (Normal)'],['Fitness38A','Fitness 38-A']],'') +
+        _xLabel('Validity (Expiry Date)') +
+        _xDate('x-expiry','Fitness Expiry');
+      break;
+
+    case 'Permit':
+      html = _xLabel('Permit Type') +
+        _xSel('x-permit-type',[
+          ['State','State Permit'],['National','National Permit'],
+          ['StateAuth','State Permit Auth.'],['Zone','Zone Permit'],['Temp','Temporary Permit']
+        ],'Select', ) +
+        `<div class="x-permit-national" style="display:none;">` +
+          _xLabel('State Permit Expiry') + _xDate('x-expiry-state','State Expiry') +
+          _xLabel('All-India Permit Expiry') + _xDate('x-expiry-national','All-India Expiry') +
+        `</div>` +
+        `<div class="x-permit-other">` +
+          _xLabel('Permit Expiry') + _xDate('x-expiry','Permit Expiry') +
+        `</div>`;
+      // Attach listener after injection
+      setTimeout(()=>{
+        const sel = row.querySelector('.x-permit-type');
+        const natDiv = row.querySelector('.x-permit-national');
+        const othDiv = row.querySelector('.x-permit-other');
+        if(sel && natDiv && othDiv) {
+          const toggle = ()=>{
+            const isNat = sel.value==='National';
+            natDiv.style.display = isNat ? '' : 'none';
+            othDiv.style.display = isNat ? 'none' : '';
+          };
+          sel.addEventListener('change', toggle);
+          toggle();
+        }
+      }, 30);
+      break;
+
+    case 'TradeCertificate':
+      html = _xLabel('Certificate Type') +
+        _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']],'');
+      break;
+
+    case 'Challan':
+      html = _xLabel('Challan Details') +
+        _xInp('x-challan-no','Challan No.') +
+        _xDate('x-challan-date','Challan Date') +
+        _xLabel('Challan Type') +
+        _xSel('x-challan-type',[['Traffic','Traffic'],['RTO','RTO'],['Mining','Mining']],'Type');
+      break;
+
+    case 'Insurance':
+      html = _xLabel('Insurance Details') +
+        _xInp('x-ins-policy','Policy No.') +
+        _xInp('x-ins-company','Company Name (e.g. New India, HDFC Ergo)') +
+        _xLabel('Insurance Type') +
+        _xSel('x-ins-type',[['ThirdParty','Third Party'],['Package','Package'],['ZeroDep','Zero Dep']],'Type') +
+        _xLabel('Transfer To (if transfer)') +
+        _xInp('x-ins-transfer-to','Transfer To (optional)') +
+        _xLabel('Validity') +
+        _xSel('x-ins-validity',[['Annual','Annual'],['Quarterly','Quarterly'],['OneTime','One Time']],'') +
+        _xDate('x-expiry','Insurance Expiry');
+      break;
+
+    case 'RoadTax':
+      html = _xLabel('Road Tax Type') +
+        _xSel('x-roadtax-type',[['OTT','One Time Tax (OTT)'],['Quarterly','Quarterly'],['Annual','Annual']],'Type');
+      break;
+
+    case 'PUC':
+      html = _xLabel('PUC Expiry') +
+        _xDate('x-expiry','PUC Expiry Date');
+      break;
+
+    case 'DrivingLicense':
+      html = _xLabel('License Category') +
+        _xSel('x-dl-category',[
+          ['MCLMV','MC / LMV'],['TV','Transport Vehicle (TV)'],['Crane','Crane'],['Hazardous','Hazardous Endorsement']
+        ],'Category') +
+        _xLabel('License Sub-type') +
+        _xSel('x-dl-subtype',[
+          ['Learner','Learner License'],['Permanent','Permanent (New)'],
+          ['Renewal','License Renewal'],['Duplicate','Duplicate License']
+        ],'Sub-type') +
+        _xLabel('License / Learner No.') +
+        _xInp('x-dl-licno','License No. or Learner No.') +
+        _xLabel('Validity / Expiry') +
+        _xDate('x-expiry','DL Expiry');
+      break;
+
+    case 'Others':
+      html = _xInp('x-others-spec','Specify work type…');
+      break;
+
+    default:
+      html = '';
+  }
+
+  extras.innerHTML = html;
+}
+
+// Read all extras from a row into a flat object
+function getRowExtras(row) {
+  const ex = {};
+  const g = (cls, attr='value') => { const el=row.querySelector('.'+cls); return el ? el[attr]||'' : ''; };
+  const gc = cls => { const el=row.querySelector('.'+cls); return el ? el.checked : false; };
+  ex.sellerName    = g('x-seller-name');
+  ex.sellerMob     = g('x-seller-mob');
+  ex.buyerName     = g('x-buyer-name');
+  ex.buyerMob      = g('x-buyer-mob');
+  ex.addrChange    = g('x-addr-change');
+  ex.district      = g('x-district') || g('x-noc-district');
+  ex.state         = g('x-state') || g('x-noc-state');
+  ex.nocRto        = g('x-noc-rto');
+  ex.conversionType= g('x-conversion-type');
+  ex.hypType       = g('x-hyp-type');
+  ex.altChassis    = gc('x-alt-chassis');
+  ex.altEngine     = gc('x-alt-engine');
+  ex.altBody       = gc('x-alt-body');
+  ex.fitnessType   = g('x-fitness-type');
+  ex.permitType    = g('x-permit-type');
+  ex.tradeType     = g('x-trade-type');
+  ex.challanNo     = g('x-challan-no');
+  ex.challanDate   = g('x-challan-date');
+  ex.challanType   = g('x-challan-type');
+  ex.insPolicy     = g('x-ins-policy');
+  ex.insCompany    = g('x-ins-company');
+  ex.insType       = g('x-ins-type');
+  ex.insTransferTo = g('x-ins-transfer-to');
+  ex.insValidity   = g('x-ins-validity');
+  ex.roadTaxType   = g('x-roadtax-type');
+  ex.dlCategory    = g('x-dl-category');
+  ex.dlSubtype     = g('x-dl-subtype');
+  ex.dlLicNo       = g('x-dl-licno');
+  ex.othersSpec    = g('x-others-spec');
+  // Expiry dates
+  ex.expiryDate    = g('x-expiry');
+  ex.expiryState   = g('x-expiry-state');
+  ex.expiryNational= g('x-expiry-national');
+  return ex;
 }
 
 function addVWRow() {
@@ -4469,16 +4641,9 @@ function addVWRow() {
         <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
         <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
       </div>
-      <input type="text" class="wtype-spec" placeholder="Specify work type…" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-      <select class="wtype-dltype" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
-        <option value="">— License Type —</option><option value="Renewal">Renewal</option>
-        <option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option>
-      </select>
-      <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:6px;"><div style="display:flex;align-items:center;gap:6px;"><input type="date" class="wtype-dlexpiry" style="flex:1;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/><span style="font-size:.7rem;color:var(--p);font-weight:700;white-space:nowrap;">⬅ DL Expiry</span></div></div>
-      <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-      <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+      <div class="wtype-extras" style="margin-top:6px;"></div>
     </div>
-    <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
+    <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
     <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
       <button onclick="this.closest('.vw-row').remove();calcTotalWorkValue()" title="Remove row" style="width:32px;height:32px;border-radius:8px;background:#fee2e2;color:#be123c;border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">✕</button>
     </div>`;
@@ -4486,18 +4651,24 @@ function addVWRow() {
 }
 
 function getVWRows() {
-  return [...document.querySelectorAll('.vw-row')].map(row => ({
-    vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
-    chassisLast5: (row.querySelector('.chassis-input')?.value||'').trim().toUpperCase(),
-    engineLast5: (row.querySelector('.engine-input')?.value||'').trim().toUpperCase(),
-    workType: row.querySelector('.wtype-sel').value,
-    othersSpecify: row.querySelector('.wtype-spec').value.trim(),
-    dlLicenseType: row.querySelector('.wtype-dltype')?.value.trim()||'',
-    dlExpiryDate: row.querySelector('.wtype-dlexpiry')?.value||'',
-    transferFrom: row.querySelector('.wtype-tfrom')?.value.trim()||'',
-    transferTo: row.querySelector('.wtype-tto')?.value.trim()||'',
-    rowWorkValue: parseFloat(row.querySelector('.wtype-value')?.value)||0,
-  })).filter(r => r.vehicle || r.workType);
+  return [...document.querySelectorAll('.vw-row')].map(row => {
+    const extras = getRowExtras(row);
+    return {
+      vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
+      chassisLast5: (row.querySelector('.chassis-input')?.value||'').trim().toUpperCase(),
+      engineLast5: (row.querySelector('.engine-input')?.value||'').trim().toUpperCase(),
+      workType: row.querySelector('.wtype-sel').value,
+      rowWorkValue: parseFloat(row.querySelector('.wtype-value')?.value)||0,
+      // Legacy compat
+      othersSpecify: extras.othersSpec,
+      dlLicenseType: extras.dlSubtype,
+      dlExpiryDate: extras.expiryDate,
+      transferFrom: extras.sellerName,
+      transferTo: extras.buyerName,
+      // All extras
+      ...extras
+    };
+  }).filter(r => r.vehicle || r.workType);
 }
 
 function calcTotalWorkValue() {
@@ -4571,18 +4742,11 @@ function resetVWRows() {
           <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
           <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
         </div>
-        <input type="text" class="wtype-spec" placeholder="Specify work type…" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-        <select class="wtype-dltype" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
-          <option value="">— License Type —</option><option value="Renewal">Renewal</option>
-          <option value="Permanent (New)">Permanent (New)</option><option value="Learner (New)">Learner (New)</option>
-        </select>
-        <div class="wtype-dlexpiry-wrap" style="display:none;margin-top:6px;"><div style="display:flex;align-items:center;gap:6px;"><input type="date" class="wtype-dlexpiry" style="flex:1;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/><span style="font-size:.7rem;color:var(--p);font-weight:700;white-space:nowrap;">⬅ DL Expiry</span></div></div>
-        <input type="text" class="wtype-tfrom" placeholder="Transfer From (current owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
-        <input type="text" class="wtype-tto" placeholder="Transfer To (new owner)" style="display:none;margin-top:6px;width:100%;padding:8px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"/>
+        <div class="wtype-extras" style="margin-top:6px;"></div>
       </div>
-      <input type="number" class="wtype-value" placeholder="0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
+      <input type="number" class="wtype-value" placeholder="₹ 0" min="0" oninput="calcTotalWorkValue()" style="padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:700;text-align:right;"/>
       <div style="display:flex;align-items:center;justify-content:center;padding-top:2px;">
-        <button onclick="addVWRow()" title="Add row" style="width:32px;height:32px;border-radius:8px;background:#dcfce7;color:#16a34a;border:none;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;">＋</button>
+        <div style="width:32px;height:32px;"></div>
       </div>
     </div>`;
   const disp = document.getElementById('totalWorkValueDisplay');
@@ -4664,10 +4828,13 @@ async function _doSubmitWork() {
     engineLast5: primaryRow.engineLast5||'',
     phone,
     workType: primaryRow.workType,
-    othersSpecify: primaryRow.workType==='Others'?primaryRow.othersSpecify:'',
-    dlLicenseType: primaryRow.workType==='DrivingLicense'?(primaryRow.dlLicenseType||''):'',
-    transferFrom: primaryRow.workType==='Transfer'?primaryRow.transferFrom:'',
-    transferTo: primaryRow.workType==='Transfer'?primaryRow.transferTo:'',
+    // Rich extras stored as JSON for full detail
+    workExtras: JSON.stringify(primaryRow),
+    // Legacy compat fields — derived from extras
+    othersSpecify: primaryRow.othersSpec||'',
+    dlLicenseType: primaryRow.dlSubtype||primaryRow.dlLicenseType||'',
+    transferFrom: primaryRow.sellerName||primaryRow.transferFrom||'',
+    transferTo: primaryRow.buyerName||primaryRow.transferTo||'',
     workValue, totalPaid, remainingBalance: remaining,
     payModes: JSON.stringify(payRows),
     payMode: payRows[0]?.mode||'', bank: payRows[0]?.bank||'',
@@ -4675,7 +4842,10 @@ async function _doSubmitWork() {
     status:'pending_verification', takenBy:currentUser.name, takenByKey:currentUser.key,
     date: dateStr, time: now.toLocaleTimeString('en-IN'), timestamp: now.getTime(),
     completedBy:'', completedDate:'', closingBank:'', receiptAmount:0, closeNotes:'',
-    receiptPhoto:'', expiryDate: primaryRow.workType==='DrivingLicense'?(primaryRow.dlExpiryDate||''):'', miscExpense:0, miscReason:'', partialDesc:''
+    receiptPhoto:'',
+    expiryDate: primaryRow.expiryDate || primaryRow.expiryState || primaryRow.dlExpiryDate || '',
+    expiryNational: primaryRow.expiryNational||'',
+    miscExpense:0, miscReason:'', partialDesc:''
   };
 
   try {
@@ -5830,6 +6000,32 @@ function viewWork(key){
     </div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
     <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}${w.dlLicenseType?' — '+esc(w.dlLicenseType):''}</div></div>
+    ${(()=>{
+      // Show rich work extras if available
+      let ex={};try{ex=JSON.parse(w.workExtras||'{}');}catch(e){}
+      const rows=[];
+      const row=(l,v)=>v?`<div class="di"><div class="dl">${l}</div><div class="dv">${esc(String(v))}</div></div>`:'';
+      rows.push(row('Seller Name',ex.sellerName),row('Seller Mobile',ex.sellerMob));
+      rows.push(row('Purchaser Name',ex.buyerName),row('Purchaser Mobile',ex.buyerMob));
+      rows.push(row('Challan No.',ex.challanNo),row('Challan Date',ex.challanDate),row('Challan Type',ex.challanType));
+      rows.push(row('Insurance Policy',ex.insPolicy),row('Insurance Company',ex.insCompany),row('Insurance Type',ex.insType),row('Insurance Validity',ex.insValidity));
+      if(ex.insTransferTo) rows.push(row('Insurance Transfer To',ex.insTransferTo));
+      rows.push(row('Road Tax Type',ex.roadTaxType));
+      rows.push(row('Permit Type',ex.permitType));
+      if(ex.expiryState)    rows.push(row('State Permit Expiry',ex.expiryState));
+      if(ex.expiryNational||w.expiryNational) rows.push(row('All-India Permit Expiry',ex.expiryNational||w.expiryNational));
+      rows.push(row('DL Category',ex.dlCategory),row('DL Sub-type',ex.dlSubtype),row('License No.',ex.dlLicNo));
+      rows.push(row('Hypothecation Type',ex.hypType));
+      rows.push(row('Conversion Type',ex.conversionType));
+      rows.push(row('Fitness Type',ex.fitnessType));
+      rows.push(row('Trade Certificate',ex.tradeType));
+      if(ex.altChassis||ex.altEngine||ex.altBody){
+        const parts=[ex.altChassis&&'Chassis',ex.altEngine&&'Engine',ex.altBody&&'Body'].filter(Boolean);
+        rows.push(row('Alteration',parts.join(', ')));
+      }
+      rows.push(row('District',ex.district),row('State',ex.state),row('NOC RTO Code',ex.nocRto));
+      return rows.filter(Boolean).join('');
+    })()}
     <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}</div></div>
     <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
     ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
