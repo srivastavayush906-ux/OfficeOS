@@ -1187,6 +1187,7 @@ input[type="number"]:focus {
         <div class="ns">Owner Only</div>
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">❌</span> Rejected Works</a>
         <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙️</span> Manage Staff</a>
+        <a onclick="showPage('complaints')" id="nav-complaints"><span class="ico">📣</span> Complaints</a>
         <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">🖥️</span> Trusted Devices</a>
         <a onclick="showFirebaseRulesGuide()" style="cursor:pointer;"><span class="ico">🔒</span> DB Security Setup</a>
       </div>
@@ -1323,22 +1324,39 @@ input[type="number"]:focus {
         <div id="vehicleWorkList">
           <!-- Initial row -->
           <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
-            <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="4" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
+            <div>
+              <input type="text" class="vehicle-input" placeholder="UP32AB1234" tabindex="4" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+              <div style="display:flex;gap:4px;margin-top:5px;">
+                <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
+                <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+              </div>
+            </div>
             <div style="position:relative;">
               <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" tabindex="5" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
               <input type="hidden" class="wtype-sel" value=""/>
               <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
-                <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-                <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
-                <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
+                <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
+                <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
+                <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
+                <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+                <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
+                <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
+                <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
+                <div class="wtopt" data-val="RCParticular" onclick="wtSelectOption(this)">📝 RC Particular</div>
+                <div class="wtopt" data-val="RCSurrender" onclick="wtSelectOption(this)">🏳️ RC Surrender</div>
+                <div class="wtopt" data-val="RCCancel" onclick="wtSelectOption(this)">❌ RC Cancel</div>
+                <div class="wtopt" data-val="Hypothecation" onclick="wtSelectOption(this)">🔗 Hypothecation</div>
                 <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
-                <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
-                <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
-                <div class="wtopt" data-val="Registration" onclick="wtSelectOption(this)">📝 Registration</div>
-                <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 Transfer</div>
+                <div class="wtopt" data-val="Alteration" onclick="wtSelectOption(this)">🔧 Alteration</div>
+                <div class="wtopt" data-val="Conversion" onclick="wtSelectOption(this)">🔀 Conversion</div>
+                <div class="wtopt" data-val="RCNOC" onclick="wtSelectOption(this)">📤 RC NOC</div>
+                <div class="wtopt" data-val="Permit" onclick="wtSelectOption(this)">🗺️ Permit</div>
+                <div class="wtopt" data-val="TradeCertificate" onclick="wtSelectOption(this)">🏷️ Trade Certificate</div>
+                <div class="wtopt" data-val="Challan" onclick="wtSelectOption(this)">⚖️ Challan</div>
+                <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
+                <div class="wtopt" data-val="RoadTax" onclick="wtSelectOption(this)">🛣️ Road Tax</div>
                 <div class="wtopt" data-val="PUC" onclick="wtSelectOption(this)">🌿 PUC</div>
-                <div class="wtopt" data-val="RoadTax-OTT" onclick="wtSelectOption(this)">🛣️ Road Tax — OTT</div>
-                <div class="wtopt" data-val="RoadTax-Quarterly" onclick="wtSelectOption(this)">🔁 Road Tax — Quarterly</div>
+                <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
                 <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
                 <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
               </div>
@@ -1397,14 +1415,11 @@ input[type="number"]:focus {
                 <option value="">— Mode —</option>
                 <option value="Cash">💵 Cash</option>
                 <option value="UPI">📱 UPI / Online</option>
-                <option value="Employee">👤 Employee</option>
                 <option value="Unpaid">⏳ Unpaid / Due</option>
               </select>
               <select class="pay-bank-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
                 <option value="">— Bank —</option>
                 <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-                <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option>
-                <option value="Canara">Canara</option>
               </select>
               <select class="pay-emp-sel" tabindex="-1" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select>
               <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" tabindex="9" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
@@ -1618,8 +1633,6 @@ input[type="number"]:focus {
           <button class="tb active" onclick="filterLedger('HDFC',this)">HDFC</button>
           <button class="tb" onclick="filterLedger('SBI',this)">SBI</button>
           <button class="tb" onclick="filterLedger('Kotak',this)">Kotak</button>
-          <button class="tb" onclick="filterLedger('ICICI',this)">ICICI</button>
-          <button class="tb" onclick="filterLedger('Canara',this)">Canara</button>
           <button class="tb" onclick="filterLedger('Cash',this)">Cash</button>
           <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
         </div>
@@ -1785,8 +1798,6 @@ input[type="number"]:focus {
               <option value="HDFC">🏦 HDFC Bank</option>
               <option value="SBI">🏦 SBI Bank</option>
               <option value="Kotak">🏦 Kotak Bank</option>
-              <option value="ICICI">🏦 ICICI Bank</option>
-              <option value="Canara">🏦 Canara Bank</option>
             </select>
           </div>
           <div class="field">
@@ -1822,8 +1833,6 @@ input[type="number"]:focus {
               <option value="HDFC">HDFC</option>
               <option value="SBI">SBI</option>
               <option value="Kotak">Kotak</option>
-              <option value="ICICI">ICICI</option>
-              <option value="Canara">Canara</option>
             </select>
             <button class="btn btn-sm btn-outline" onclick="exportOffExpExcel()" data-restrict="print-export">📥 Excel</button>
           </div>
@@ -1850,8 +1859,6 @@ input[type="number"]:focus {
           <button class="tb active" onclick="recoSelectBank('HDFC',this)">HDFC</button>
           <button class="tb" onclick="recoSelectBank('SBI',this)">SBI</button>
           <button class="tb" onclick="recoSelectBank('Kotak',this)">Kotak</button>
-          <button class="tb" onclick="recoSelectBank('ICICI',this)">ICICI</button>
-          <button class="tb" onclick="recoSelectBank('Canara',this)">Canara</button>
         </div>
 
         <!-- Upload area -->
@@ -1913,12 +1920,34 @@ input[type="number"]:focus {
 
     <!-- STAFF & SALARY -->
     <div class="page" id="page-staff">
+      <!-- Salary Summary Cards per employee -->
+      <div id="staffSalaryCards" style="margin-bottom:18px;"></div>
+      <!-- Tabs -->
       <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">👥 Staff & Salary Records</div>
-          <button class="btn btn-primary btn-sm" onclick="showAddSalary()">+ Record Salary</button>
+        <div class="sh" style="flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="tb active" id="sal-tab-salary" onclick="salTab('salary')">💰 Salary Records</button>
+            <button class="tb" id="sal-tab-advance" onclick="salTab('advance')">🏦 Advances</button>
+            <button class="tb" id="sal-tab-incentive" onclick="salTab('incentive')">🎯 Incentives</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="showAddSalary()">+ Pay Salary</button>
+            <button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:1.5px solid #fde68a;" onclick="showGiveAdvance()">+ Give Advance</button>
+            <button class="btn btn-sm" style="background:#f0fdf4;color:#166534;border:1.5px solid #86efac;" onclick="showGiveIncentive()">+ Add Incentive</button>
+          </div>
         </div>
-        <div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Amount (₹)</th><th>Mode</th><th>Bank</th><th>Paid By</th><th>Date & Time</th></tr></thead><tbody id="salaryBody"></tbody></table></div>
+        <!-- Salary table -->
+        <div id="salTabSalary">
+          <div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Base Salary</th><th>Advance Deducted</th><th>Net Paid (₹)</th><th>Mode</th><th>Bank</th><th>Paid By</th><th>Date & Time</th></tr></thead><tbody id="salaryBody"></tbody></table></div>
+        </div>
+        <!-- Advance table -->
+        <div id="salTabAdvance" style="display:none;">
+          <div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Advance (₹)</th><th>Repayment</th><th>Remaining (₹)</th><th>Status</th><th>Given By</th><th>Date</th></tr></thead><tbody id="advanceBody"></tbody></table></div>
+        </div>
+        <!-- Incentive table -->
+        <div id="salTabIncentive" style="display:none;">
+          <div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Incentive (₹)</th><th>Reason</th><th>Given By</th><th>Date</th></tr></thead><tbody id="incentiveBody"></tbody></table></div>
+        </div>
       </div>
     </div>
 
@@ -1952,6 +1981,22 @@ input[type="number"]:focus {
           <button class="btn btn-primary btn-sm" onclick="showAddStaff()">+ Add Staff</button>
         </div>
         <div id="staffListContainer"></div>
+      </div>
+    </div>
+
+    <!-- COMPLAINTS PAGE -->
+    <div class="page" id="page-complaints">
+      <div class="card">
+        <div class="sh" style="flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;gap:6px;">
+            <button class="tb active" id="cmp-tab-client" onclick="cmpTab('client')">👤 Client Complaints</button>
+            <button class="tb" id="cmp-tab-staff" onclick="cmpTab('staff')">👥 Staff Complaints</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showAddComplaint()">+ File Complaint</button>
+        </div>
+        <div id="complaintsTableWrap">
+          <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Type</th><th>Filed By</th><th>Against</th><th>Subject</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="complaintsBody"></tbody></table></div>
+        </div>
       </div>
     </div>
 
@@ -2134,8 +2179,6 @@ input[type="number"]:focus {
             <option value="HDFC">🏦 HDFC</option>
             <option value="SBI">🏦 SBI</option>
             <option value="Kotak">🏦 Kotak</option>
-            <option value="ICICI">🏦 ICICI</option>
-            <option value="Canara">🏦 Canara</option>
           </select>
         </div>
       </div>
@@ -2460,9 +2503,6 @@ input[type="number"]:focus {
               <option value="HDFC">HDFC Bank</option>
               <option value="SBI">SBI</option>
               <option value="Kotak">Kotak Mahindra Bank</option>
-              <option value="ICICI">ICICI Bank</option>
-              <option value="Canara">Canara Bank</option>
-              <option value="Employee">👤 Employee</option>
             </select>
           </div>
         </div>
@@ -2494,7 +2534,6 @@ input[type="number"]:focus {
     <div class="md-title">🏦 Manual Ledger Entry</div>
     <div class="g2">
       <div class="field"><label>Bank / Account *</label>
-        <select id="l_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option><option value="Cash">Cash</option></select>
       </div>
       <div class="field"><label>Entry Type *</label>
         <select id="l_type"><option value="credit">↑ Credit (Money In)</option><option value="debit">↓ Debit (Money Out)</option><option value="opening">Opening Balance</option></select>
@@ -2511,24 +2550,140 @@ input[type="number"]:focus {
   </div>
 </div>
 
-<!-- ADD SALARY -->
+<!-- ADD SALARY (enhanced with base salary, advance deduction display) -->
 <div class="mo" id="addSalaryModal">
   <div class="md">
     <button class="md-close" onclick="closeModal('addSalaryModal')">×</button>
-    <div class="md-title">💰 Record Salary Payment</div>
+    <div class="md-title">💰 Pay Salary</div>
     <div class="g2">
-      <div class="field"><label>Staff Name *</label><input type="text" id="s_name"/></div>
-      <div class="field"><label>Amount (₹) *</label><input type="number" id="s_amount" min="0"/></div>
-      <div class="field"><label>Payment Mode *</label>
-        <select id="s_mode" onchange="salModeChange()"><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Transfer</option></select>
+      <div class="field"><label>Staff Member *</label>
+        <select id="s_name" onchange="salaryStaffChange()">
+          <option value="">— Select Staff —</option>
+        </select>
       </div>
-      <div class="field" id="salBankField"><label>Bank Account *</label>
-        <select id="s_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select>
+      <div class="field"><label>Base Salary (₹)</label>
+        <div id="s_base_display" style="padding:9px 12px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;font-weight:800;color:#166534;font-size:.92rem;">—</div>
+      </div>
+      <div class="field"><label>Advance Deduction (₹)</label>
+        <div id="s_advance_display" style="padding:9px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:9px;font-weight:700;color:#c2410c;font-size:.92rem;">₹0</div>
+      </div>
+      <div class="field"><label>Net Payable (₹)</label>
+        <div id="s_net_display" style="padding:9px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;font-weight:800;color:#1d4ed8;font-size:1rem;">—</div>
+      </div>
+      <div class="field"><label>Amount Actually Paying (₹) *</label>
+        <input type="number" id="s_amount" min="0" placeholder="Enter amount to pay now" oninput="salNetHint()"/>
+      </div>
+      <div class="field"><label>Payment Mode *</label>
+        <select id="s_mode" onchange="salModeChange()">
+          <option value="Cash">💵 Cash</option>
+          <option value="UPI">📱 UPI / Transfer</option>
+        </select>
+      </div>
+      <div class="field" id="salBankField" style="display:none;"><label>Bank *</label>
+        <select id="s_bank"><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option></select>
+      </div>
+      <div class="field"><label>Note (optional)</label>
+        <input type="text" id="s_note" placeholder="e.g. January salary"/>
       </div>
     </div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('addSalaryModal')">Cancel</button>
-      <button class="btn btn-success" onclick="saveSalary()">Save Payment</button>
+      <button class="btn btn-success" onclick="saveSalary()">✅ Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- GIVE ADVANCE -->
+<div class="mo" id="giveAdvanceModal">
+  <div class="md">
+    <button class="md-close" onclick="closeModal('giveAdvanceModal')">×</button>
+    <div class="md-title">🏦 Give Advance</div>
+    <div class="g2">
+      <div class="field"><label>Staff Member *</label>
+        <select id="adv_name" onchange="advStaffChange()">
+          <option value="">— Select Staff —</option>
+        </select>
+      </div>
+      <div class="field"><label>Base Salary (₹)</label>
+        <div id="adv_base_display" style="padding:9px 12px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;font-weight:800;color:#166534;">—</div>
+      </div>
+      <div class="field"><label>Advance Amount (₹) *</label>
+        <input type="number" id="adv_amount" min="0" placeholder="Cannot exceed base salary" oninput="advAmtCheck()"/>
+        <div id="adv_amt_hint" style="font-size:.75rem;margin-top:4px;color:var(--r);display:none;">⚠️ Cannot exceed base salary</div>
+      </div>
+      <div class="field"><label>Repayment Plan *</label>
+        <select id="adv_repay_type" onchange="advRepayChange()">
+          <option value="monthly">Fixed monthly deduction</option>
+          <option value="lumpsum">Lump sum (next salary)</option>
+          <option value="custom">Custom (specify below)</option>
+        </select>
+      </div>
+      <div class="field" id="adv_monthly_field"><label>Monthly Deduction (₹) *</label>
+        <input type="number" id="adv_monthly" min="0" placeholder="e.g. 2000 per month"/>
+      </div>
+      <div class="field" id="adv_custom_field" style="display:none;"><label>Custom Repayment Plan</label>
+        <textarea id="adv_custom_note" placeholder="Describe the repayment arrangement…" rows="2" style="width:100%;padding:9px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('giveAdvanceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAdvance()">💾 Save Advance</button>
+    </div>
+  </div>
+</div>
+
+<!-- GIVE INCENTIVE -->
+<div class="mo" id="giveIncentiveModal">
+  <div class="md" style="max-width:440px;">
+    <button class="md-close" onclick="closeModal('giveIncentiveModal')">×</button>
+    <div class="md-title">🎯 Add Incentive</div>
+    <div class="field"><label>Staff Member *</label>
+      <select id="inc_name"><option value="">— Select Staff —</option></select>
+    </div>
+    <div class="field"><label>Incentive Amount (₹) *</label>
+      <input type="number" id="inc_amount" min="0" placeholder="₹ 0"/>
+    </div>
+    <div class="field"><label>Reason *</label>
+      <input type="text" id="inc_reason" placeholder="e.g. Best performer this month, extra work…"/>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('giveIncentiveModal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveIncentive()">✅ Save Incentive</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COMPLAINT -->
+<div class="mo" id="addComplaintModal">
+  <div class="md">
+    <button class="md-close" onclick="closeModal('addComplaintModal')">×</button>
+    <div class="md-title">📣 File Complaint</div>
+    <div class="g2">
+      <div class="field"><label>Complaint Type *</label>
+        <select id="cmp_type" onchange="cmpTypeChange()">
+          <option value="client">👤 Client Complaint (against us)</option>
+          <option value="staff">👥 Staff Complaint (employee vs employee)</option>
+        </select>
+      </div>
+      <div class="field" id="cmp_client_field"><label>Client Name / ID</label>
+        <input type="text" id="cmp_client" placeholder="Client name or ID"/>
+      </div>
+      <div class="field" id="cmp_filer_field" style="display:none;"><label>Filed By (Employee) *</label>
+        <select id="cmp_filer"><option value="">— Select —</option></select>
+      </div>
+      <div class="field"><label>Against (Person / Team) *</label>
+        <input type="text" id="cmp_against" placeholder="Name of person this is about"/>
+      </div>
+      <div class="field"><label>Subject *</label>
+        <input type="text" id="cmp_subject" placeholder="Short title of the complaint"/>
+      </div>
+      <div class="field" style="grid-column:1/-1;"><label>Description *</label>
+        <textarea id="cmp_desc" rows="3" placeholder="Describe the complaint in detail…" style="width:100%;padding:9px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="md-foot">
+      <button class="btn btn-gray" onclick="closeModal('addComplaintModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="saveComplaint()">📣 Submit Complaint</button>
     </div>
   </div>
 </div>
@@ -2557,6 +2712,7 @@ input[type="number"]:focus {
     <div class="field"><label>Email *</label><input type="email" id="ns_user" placeholder="staff@gmail.com"/></div>
     <div class="field"><label>Password *</label><div class="pw-wrap"><input type="password" id="ns_pass" placeholder="Min 4 characters"/><button class="pw-eye" onclick="togglePw('ns_pass',this)" tabindex="-1">👁️</button></div></div>
     <div class="field"><label>Role *</label><select id="ns_role"><option value="staff">Staff</option><option value="manager">Manager</option><option value="owner">Owner</option></select></div>
+    <div class="field"><label>Base Salary (₹)</label><input type="number" id="ns_base_salary" min="0" placeholder="Monthly base salary (optional)"/></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('addStaffModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveStaff()">Add Staff</button>
@@ -2711,8 +2867,6 @@ input[type="number"]:focus {
         <option value="HDFC">HDFC Bank</option>
         <option value="SBI">SBI</option>
         <option value="Kotak">Kotak Mahindra Bank</option>
-        <option value="ICICI">ICICI Bank</option>
-        <option value="Canara">Canara Bank</option>
       </select>
     </div>
     <div class="field">
@@ -3290,7 +3444,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries',payments:'💰 Payments'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries',payments:'💰 Payments',complaints:'📣 Complaints'};
 
 // Track current page for filter reset
 let currentActivePage = 'dashboard';
@@ -3316,7 +3470,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page !== 'newWork') resetNewWorkForm();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry,payments:renderPayments};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry,payments:renderPayments,complaints:renderComplaints};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -3911,7 +4065,7 @@ function renderDashboard() {
   const todayCollected=todayWorks.reduce((s,w)=>s+(w.totalPaid||w.amount||0),0);
   const todayCount=todayWorks.length;
   const getBankBal=(bank)=>{const e=allLedger.filter(l=>l.bank===bank);const o=e.filter(x=>x.type==='opening').reduce((s,x)=>s+(x.amount||0),0);const c=e.filter(x=>x.type==='credit').reduce((s,x)=>s+(x.amount||0),0);const d=e.filter(x=>x.type==='debit').reduce((s,x)=>s+(x.amount||0),0);return o+c-d;};
-  const bankList=['HDFC','SBI','Kotak','ICICI','Canara'];
+  const bankList=['HDFC','SBI','Kotak'];
   const empMap2={};allLedger.filter(l=>l.employeeName).forEach(e=>{if(!empMap2[e.employeeName])empMap2[e.employeeName]=0;empMap2[e.employeeName]+=(e.amount||0);});
   const empTotal2=Object.values(empMap2).reduce((s,v)=>s+v,0);
   const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
@@ -4019,7 +4173,6 @@ function resetNewWorkForm() {
     resetVWRows();
     // Reset pay modes to a single blank row
     const pml=document.getElementById('payModeList');
-    if(pml) pml.innerHTML=`<div class="pay-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:1;"><option value="">— Select Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid</option></select><select class="pay-bank-sel" style="display:none;flex:1;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:1;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:1;" oninput="showAmtHint(this);calcRemaining()"/><button class="btn btn-sm btn-outline" onclick="addPayRow()">＋</button></div>`;
     initNewWorkDate();
   } catch(e) {}
 }
@@ -4060,13 +4213,11 @@ function addPayRow() {
       <option value="">— Mode —</option>
       <option value="Cash">💵 Cash</option>
       <option value="UPI">📱 UPI / Online</option>
-      <option value="Employee">👤 Employee</option>
       <option value="Unpaid">⏳ Unpaid</option>
     </select>
     <select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">
       <option value="">— Bank —</option>
       <option value="HDFC">HDFC</option><option value="SBI">SBI</option>
-      <option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option>
     </select>
     <select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;">${empOpts}</select>
     <input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/>
@@ -4282,22 +4433,39 @@ function addVWRow() {
   row.className = 'vw-row';
   row.style = 'display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;';
   row.innerHTML = `
-    <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
+    <div>
+      <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+      <div style="display:flex;gap:4px;margin-top:5px;">
+        <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
+        <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+      </div>
+    </div>
     <div style="position:relative;">
       <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
       <input type="hidden" class="wtype-sel" value=""/>
       <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
-        <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-        <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
-        <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
+        <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
+        <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
+        <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
+        <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+        <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
+        <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
+        <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
+        <div class="wtopt" data-val="RCParticular" onclick="wtSelectOption(this)">📝 RC Particular</div>
+        <div class="wtopt" data-val="RCSurrender" onclick="wtSelectOption(this)">🏳️ RC Surrender</div>
+        <div class="wtopt" data-val="RCCancel" onclick="wtSelectOption(this)">❌ RC Cancel</div>
+        <div class="wtopt" data-val="Hypothecation" onclick="wtSelectOption(this)">🔗 Hypothecation</div>
         <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
-        <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
-        <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
-        <div class="wtopt" data-val="Registration" onclick="wtSelectOption(this)">📝 Registration</div>
-        <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 Transfer</div>
+        <div class="wtopt" data-val="Alteration" onclick="wtSelectOption(this)">🔧 Alteration</div>
+        <div class="wtopt" data-val="Conversion" onclick="wtSelectOption(this)">🔀 Conversion</div>
+        <div class="wtopt" data-val="RCNOC" onclick="wtSelectOption(this)">📤 RC NOC</div>
+        <div class="wtopt" data-val="Permit" onclick="wtSelectOption(this)">🗺️ Permit</div>
+        <div class="wtopt" data-val="TradeCertificate" onclick="wtSelectOption(this)">🏷️ Trade Certificate</div>
+        <div class="wtopt" data-val="Challan" onclick="wtSelectOption(this)">⚖️ Challan</div>
+        <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
+        <div class="wtopt" data-val="RoadTax" onclick="wtSelectOption(this)">🛣️ Road Tax</div>
         <div class="wtopt" data-val="PUC" onclick="wtSelectOption(this)">🌿 PUC</div>
-        <div class="wtopt" data-val="RoadTax-OTT" onclick="wtSelectOption(this)">🛣️ Road Tax — OTT</div>
-        <div class="wtopt" data-val="RoadTax-Quarterly" onclick="wtSelectOption(this)">🔁 Road Tax — Quarterly</div>
+        <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
         <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
         <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
       </div>
@@ -4320,6 +4488,8 @@ function addVWRow() {
 function getVWRows() {
   return [...document.querySelectorAll('.vw-row')].map(row => ({
     vehicle: row.querySelector('.vehicle-input').value.trim().toUpperCase(),
+    chassisLast5: (row.querySelector('.chassis-input')?.value||'').trim().toUpperCase(),
+    engineLast5: (row.querySelector('.engine-input')?.value||'').trim().toUpperCase(),
     workType: row.querySelector('.wtype-sel').value,
     othersSpecify: row.querySelector('.wtype-spec').value.trim(),
     dlLicenseType: row.querySelector('.wtype-dltype')?.value.trim()||'',
@@ -4341,25 +4511,63 @@ function calcTotalWorkValue() {
   calcRemaining();
 }
 
+// Auto-fill chassis/engine from past works when vehicle number is entered
+function autoFillVehicleNums(vehicleInput) {
+  const vNum = vehicleInput.value.trim().toUpperCase();
+  if(!vNum || vNum.length < 4) return;
+  const row = vehicleInput.closest('.vw-row');
+  if(!row) return;
+  const chassisInp = row.querySelector('.chassis-input');
+  const engineInp = row.querySelector('.engine-input');
+  if(!chassisInp || !engineInp) return;
+  // Only auto-fill if both fields are empty (don't overwrite manual entry)
+  if(chassisInp.value || engineInp.value) return;
+  // Search allWorks for this vehicle, pick most recent with chassis/engine data
+  const past = allWorks
+    .filter(w => (w.vehicle||'').toUpperCase()===vNum && (w.chassisLast5||w.engineLast5))
+    .sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  if(past.length > 0) {
+    const found = past[0];
+    if(found.chassisLast5) { chassisInp.value = found.chassisLast5; chassisInp.style.borderColor='#6ee7b7'; chassisInp.title='Auto-filled from past work'; }
+    if(found.engineLast5)  { engineInp.value  = found.engineLast5;  engineInp.style.borderColor='#93c5fd';  engineInp.title='Auto-filled from past work'; }
+    toast('✅ Chassis/Engine auto-filled from past record','success');
+  }
+}
+
 function resetVWRows() {
   document.getElementById('vehicleWorkList').innerHTML = `
     <div class="vw-row" style="display:grid;grid-template-columns:1fr 1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:start;background:linear-gradient(135deg,#f0fdf4,#f8fafc);border:1.5px solid #d1fae5;border-radius:12px;padding:12px;">
-      <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;"/>
+      <input type="text" class="vehicle-input" placeholder="UP32AB1234" style="text-transform:uppercase;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;width:100%;background:#fff;font-weight:600;letter-spacing:.5px;" onblur="autoFillVehicleNums(this)"/>
+      <div style="display:flex;gap:4px;margin-top:5px;">
+        <input type="text" class="chassis-input" placeholder="Chassis (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #fde68a;border-radius:7px;font-size:.75rem;background:#fffbeb;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Chassis Number (optional)"/>
+        <input type="text" class="engine-input" placeholder="Engine (last 5)" maxlength="5" style="width:50%;padding:6px 8px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.75rem;background:#eff6ff;font-family:monospace;text-transform:uppercase;" title="Last 5 digits of Engine Number (optional)"/>
+      </div>
       <div style="position:relative;">
         <input type="text" class="wtype-search" placeholder="🔍 Type to search…" oninput="wtSearchInput(this)" onfocus="wtShowDropdown(this)" onblur="wtHideDropdown(this)" onkeydown="wtKeyNav(this,event)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
         <input type="hidden" class="wtype-sel" value=""/>
         <div class="wtype-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:300;background:#fff;border:1.5px solid var(--p);border-radius:10px;box-shadow:0 8px 28px rgba(79,70,229,.18);max-height:240px;overflow-y:auto;margin-top:3px;">
-          <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
-          <div class="wtopt" data-val="Challan-Online" onclick="wtSelectOption(this)">📄 Challan — Online</div>
-          <div class="wtopt" data-val="Challan-Court" onclick="wtSelectOption(this)">⚖️ Challan — Court</div>
+          <div class="wtopt" data-val="NewRegistration" onclick="wtSelectOption(this)">🆕 New Registration</div>
+          <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
+          <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
+          <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+          <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
+          <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
+          <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
+          <div class="wtopt" data-val="RCParticular" onclick="wtSelectOption(this)">📝 RC Particular</div>
+          <div class="wtopt" data-val="RCSurrender" onclick="wtSelectOption(this)">🏳️ RC Surrender</div>
+          <div class="wtopt" data-val="RCCancel" onclick="wtSelectOption(this)">❌ RC Cancel</div>
+          <div class="wtopt" data-val="Hypothecation" onclick="wtSelectOption(this)">🔗 Hypothecation</div>
           <div class="wtopt" data-val="Fitness" onclick="wtSelectOption(this)">✅ Fitness</div>
-          <div class="wtopt" data-val="Permit-AllIndia" onclick="wtSelectOption(this)">🗺️ Permit — All India</div>
-          <div class="wtopt" data-val="Permit-State" onclick="wtSelectOption(this)">📍 Permit — State</div>
-          <div class="wtopt" data-val="Registration" onclick="wtSelectOption(this)">📝 Registration</div>
-          <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 Transfer</div>
+          <div class="wtopt" data-val="Alteration" onclick="wtSelectOption(this)">🔧 Alteration</div>
+          <div class="wtopt" data-val="Conversion" onclick="wtSelectOption(this)">🔀 Conversion</div>
+          <div class="wtopt" data-val="RCNOC" onclick="wtSelectOption(this)">📤 RC NOC</div>
+          <div class="wtopt" data-val="Permit" onclick="wtSelectOption(this)">🗺️ Permit</div>
+          <div class="wtopt" data-val="TradeCertificate" onclick="wtSelectOption(this)">🏷️ Trade Certificate</div>
+          <div class="wtopt" data-val="Challan" onclick="wtSelectOption(this)">⚖️ Challan</div>
+          <div class="wtopt" data-val="Insurance" onclick="wtSelectOption(this)">🛡️ Insurance</div>
+          <div class="wtopt" data-val="RoadTax" onclick="wtSelectOption(this)">🛣️ Road Tax</div>
           <div class="wtopt" data-val="PUC" onclick="wtSelectOption(this)">🌿 PUC</div>
-          <div class="wtopt" data-val="RoadTax-OTT" onclick="wtSelectOption(this)">🛣️ Road Tax — OTT</div>
-          <div class="wtopt" data-val="RoadTax-Quarterly" onclick="wtSelectOption(this)">🔁 Road Tax — Quarterly</div>
+          <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
           <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
           <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
         </div>
@@ -4452,6 +4660,8 @@ async function _doSubmitWork() {
     vehicle: primaryRow.vehicle,
     vehicles: allVehicles,
     vehicleWorkItems: JSON.stringify(vwRows), // full per-vehicle work type data
+    chassisLast5: primaryRow.chassisLast5||'',
+    engineLast5: primaryRow.engineLast5||'',
     phone,
     workType: primaryRow.workType,
     othersSpecify: primaryRow.workType==='Others'?primaryRow.othersSpecify:'',
@@ -4497,7 +4707,6 @@ async function _doSubmitWork() {
     document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     document.getElementById('remainingBal').style.display='none';
     resetVWRows();
-    document.getElementById('payModeList').innerHTML=`<div class="pay-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px;"><select class="pay-mode-sel" onchange="payRowChange(this)" style="flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Mode —</option><option value="Cash">💵 Cash</option><option value="UPI">📱 UPI / Online</option><option value="Employee">👤 Employee</option><option value="Unpaid">⏳ Unpaid / Due</option></select><select class="pay-bank-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"><option value="">— Bank —</option><option value="HDFC">HDFC</option><option value="SBI">SBI</option><option value="Kotak">Kotak</option><option value="ICICI">ICICI</option><option value="Canara">Canara</option></select><select class="pay-emp-sel" style="display:none;flex:2;min-width:100px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;"></select><input type="number" class="pay-amt-inp" placeholder="₹ Amount" min="0" style="flex:2;min-width:90px;padding:8px 10px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.85rem;background:#fff;" oninput="showAmtHint(this);calcRemaining()" onchange="calcRemaining()"/><input type="date" class="pay-date-inp" value="${new Date().toISOString().split('T')[0]}" style="flex:2;min-width:110px;padding:8px 10px;border:1.5px solid #86efac;border-radius:9px;font-size:.85rem;background:#f0fdf4;font-weight:600;" title="Payment date"/><button onclick="addPayRow()" style="width:28px;height:28px;border-radius:7px;background:#dcfce7;color:#16a34a;border:1.5px solid #86efac;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">＋</button></div>`;
     await loadAllData();
     renderDashboard(); startClock(); applyStaffRestrictions();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
@@ -4626,7 +4835,7 @@ function renderWorkTable(){
     <td>${wtBadge(w)}</td>
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>⚠️ Due: ${inr(w.remainingBalance)}</span>`:''}${(()=>{const excess=(w.amount||0)-(w.workValue||0);return excess>0?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:800;background:#dcfce7;padding:1px 6px;border-radius:10px;'>+${inr(excess)} Excess</span>`:'';})()} </td>
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
-    <td style="font-size:.78rem;">${esc(w.takenBy)}${w.verifiedBy?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:700;'>✅ ${esc(w.verifiedBy)}</span>`:''}</td>
+    <td style="font-size:.78rem;">${esc(w.takenBy)}${w.verifiedBy?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:700;'>✅ ${esc(w.verifiedBy)}</span>`:''}${w.assignedTo?`<br/><span style='font-size:.7rem;color:var(--p);font-weight:700;'>👤 ${esc(w.assignedTo)}</span>`:''}</td>
     <td style="font-size:.77rem;">
       <div style="font-weight:700;color:#1e1b4b;">${fmtDate(w.date)}</div>
       <div style="font-size:.68rem;color:var(--gray);margin-top:1px;">Work date</div>
@@ -5063,8 +5272,15 @@ function renderVerification() {
       ${w.notes?`<div style="font-size:.8rem;color:var(--gray);margin-bottom:10px;">📝 ${esc(w.notes)}</div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${canVerify
-          ? `<button class="btn btn-success" onclick="verifyWork('${w._key}')">✅ Verify & Move to All Works</button>
-             <button class="btn btn-danger" onclick="openRejectWork('${w._key}')">❌ Reject</button>`
+          ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px;">
+               <span style="font-size:.8rem;font-weight:700;color:#166534;">👤 Assign to:</span>
+               <select id="assignSel_${w._key}" style="flex:1;min-width:140px;padding:7px 10px;border:1.5px solid #86efac;border-radius:8px;font-size:.85rem;background:#fff;">
+                 <option value="">— Select Employee —</option>
+                 ${allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} (${s.role})</option>`).join('')}
+               </select>
+               <button class="btn btn-success" onclick="verifyWork('${w._key}')">✅ Verify & Assign</button>
+               <button class="btn btn-danger" onclick="openRejectWork('${w._key}')">❌ Reject</button>
+             </div>`
           : `<div style="font-size:.82rem;color:var(--gray);padding:8px 0;">⚠️ You cannot verify your own work</div>`
         }
         <button class="btn btn-outline btn-sm" onclick="viewWork('${w._key}')">View Details</button>
@@ -5076,15 +5292,27 @@ function renderVerification() {
 }
 
 async function verifyWork(key) {
-  if(!confirm('Verify this work and move it to All Works?')) return;
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
   if(currentUser.role==='manager' && w.takenByKey===currentUser.key){
     toast('You cannot verify your own work','error'); return;
   }
+  const assignSel = document.getElementById('assignSel_'+key);
+  const assignedTo = assignSel ? assignSel.value.trim() : '';
+  if(!assignedTo) {
+    toast('⚠️ Please assign this work to an employee before verifying','error');
+    if(assignSel) { assignSel.style.borderColor='#f43f5e'; setTimeout(()=>assignSel.style.borderColor='#86efac',2000); }
+    return;
+  }
+  if(!confirm(`Verify and assign to ${assignedTo}?`)) return;
   try {
-    await _sb.from('works').update({status:'open', verified_by:currentUser.name, verified_at:Date.now()}).eq('id',key);
-    toast('✅ Work verified and moved to All Works!','success');
+    await _sb.from('works').update({
+      status:'open',
+      verified_by: currentUser.name,
+      verified_at: Date.now(),
+      assigned_to: assignedTo
+    }).eq('id',key);
+    toast(`✅ Verified & assigned to ${assignedTo}!`,'success');
     await loadAllData();
     renderVerification();
     updateSidebarBadges();
@@ -5183,9 +5411,6 @@ function buildExpPayRow() {
           <option value="HDFC">HDFC Bank</option>
           <option value="SBI">SBI</option>
           <option value="Kotak">Kotak Mahindra Bank</option>
-          <option value="ICICI">ICICI Bank</option>
-          <option value="Canara">Canara Bank</option>
-          <option value="Employee">👤 Employee</option>
         </select>
       </div>
     </div>
@@ -5635,12 +5860,17 @@ function viewWork(key){
 
 // ── Edit Work VW row helpers ──
 const EW_WORK_TYPES = [
-  {val:'Insurance',label:'🛡️ Insurance'},{val:'Challan-Online',label:'📄 Challan — Online'},
-  {val:'Challan-Court',label:'⚖️ Challan — Court'},{val:'Fitness',label:'✅ Fitness'},
-  {val:'Permit-AllIndia',label:'🗺️ Permit — All India'},{val:'Permit-State',label:'📍 Permit — State'},
-  {val:'Registration',label:'📝 Registration'},{val:'Transfer',label:'🔄 Transfer'},
-  {val:'PUC',label:'🌿 PUC'},{val:'RoadTax-OTT',label:'🛣️ Road Tax — OTT'},
-  {val:'RoadTax-Quarterly',label:'🔁 Road Tax — Quarterly'},
+  {val:'NewRegistration',label:'🆕 New Registration'},{val:'TempRegistration',label:'📋 Temp Registration'},
+  {val:'Transfer',label:'🔄 RC Transfer'},{val:'ChangeOfAddress',label:'📍 Change of Address'},
+  {val:'ReRegistration',label:'♻️ Re-Registration'},{val:'FRC',label:'📄 FRC'},
+  {val:'RCDC',label:'📑 RC/DC'},{val:'RCParticular',label:'📝 RC Particular'},
+  {val:'RCSurrender',label:'🏳️ RC Surrender'},{val:'RCCancel',label:'❌ RC Cancel'},
+  {val:'Hypothecation',label:'🔗 Hypothecation'},{val:'Fitness',label:'✅ Fitness'},
+  {val:'Alteration',label:'🔧 Alteration'},{val:'Conversion',label:'🔀 Conversion'},
+  {val:'RCNOC',label:'📤 RC NOC'},{val:'Permit',label:'🗺️ Permit'},
+  {val:'TradeCertificate',label:'🏷️ Trade Certificate'},{val:'Challan',label:'⚖️ Challan'},
+  {val:'Insurance',label:'🛡️ Insurance'},{val:'RoadTax',label:'🛣️ Road Tax'},
+  {val:'PUC',label:'🌿 PUC'},{val:'HSRP',label:'🔖 HSRP'},
   {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'}
 ];
 
@@ -7231,7 +7461,7 @@ function printReceipt(key) {
 // COMBINED BALANCE
 // ============================================================
 function renderCombinedBalance() {
-  const banks = ['Cash','HDFC','SBI','Kotak','ICICI','Canara'];
+  const banks = ['Cash','HDFC','SBI','Kotak'];
   let html = '<div class="stats-row" style="margin-bottom:20px;">';
   let grandTotal = 0;
   banks.forEach(bank=>{
@@ -8029,23 +8259,104 @@ function renderPerformance(){
 }
 
 // ============================================================
-// SALARY
+// SALARY / ADVANCE / INCENTIVE / COMPLAINTS
 // ============================================================
+
+// ── salary tab switcher ──
+function salTab(tab) {
+  ['salary','advance','incentive'].forEach(t => {
+    document.getElementById('salTabSalary'.replace('salary',t==='salary'?'Salary':t==='advance'?'Advance':'Incentive'))?.style && (document.getElementById('salTab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab?'':'none');
+    document.getElementById('sal-tab-'+t)?.classList.toggle('active', t===tab);
+  });
+  // simplified:
+  document.getElementById('salTabSalary').style.display    = tab==='salary'?'':'none';
+  document.getElementById('salTabAdvance').style.display   = tab==='advance'?'':'none';
+  document.getElementById('salTabIncentive').style.display = tab==='incentive'?'':'none';
+  document.getElementById('sal-tab-salary').classList.toggle('active',tab==='salary');
+  document.getElementById('sal-tab-advance').classList.toggle('active',tab==='advance');
+  document.getElementById('sal-tab-incentive').classList.toggle('active',tab==='incentive');
+}
+
+// ── helpers: populate staff selects in salary modals ──
+function populateSalarySelects() {
+  const opts = '<option value="">— Select Staff —</option>' +
+    allStaff.map(s=>`<option value="${esc(s.name)}" data-base="${s.baseSalary||0}">${esc(s.name)} (${s.role})</option>`).join('');
+  ['s_name','adv_name','inc_name','cmp_filer'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.innerHTML = opts;
+  });
+}
+
 function salModeChange(){document.getElementById('salBankField').style.display=document.getElementById('s_mode').value==='UPI'?'block':'none';}
-function showAddSalary(){openModal('addSalaryModal');}
+
+// ── salary staff change: show base/advance/net ──
+function salaryStaffChange() {
+  const sel = document.getElementById('s_name');
+  const staffName = sel.value;
+  const staff = allStaff.find(s=>s.name===staffName);
+  const base = staff?.baseSalary || 0;
+  // Calculate outstanding advance for this staff
+  const pendingAdv = (window._allAdvances||[])
+    .filter(a=>a.staffName===staffName && a.status!=='cleared')
+    .reduce((s,a)=>s+(a.remainingAmount||0),0);
+  const monthly = (window._allAdvances||[])
+    .filter(a=>a.staffName===staffName && a.status!=='cleared')
+    .reduce((s,a)=>s+(a.monthlyDeduction||0),0);
+  const deduct = monthly || 0;
+  const net = Math.max(0, base - deduct);
+  document.getElementById('s_base_display').textContent = base ? inr(base) : '—';
+  document.getElementById('s_advance_display').textContent = deduct ? `−${inr(deduct)} (advance: ${inr(pendingAdv)} pending)` : '₹0';
+  document.getElementById('s_net_display').textContent = base ? inr(net) : '—';
+  if(base && !document.getElementById('s_amount').value) document.getElementById('s_amount').value = net;
+}
+function salNetHint(){}
+
+function showAddSalary(){
+  populateSalarySelects();
+  document.getElementById('s_name').value='';
+  document.getElementById('s_amount').value='';
+  document.getElementById('s_note').value='';
+  document.getElementById('s_base_display').textContent='—';
+  document.getElementById('s_advance_display').textContent='₹0';
+  document.getElementById('s_net_display').textContent='—';
+  salModeChange();
+  openModal('addSalaryModal');
+}
 
 async function saveSalary(){
-  const name=document.getElementById('s_name').value.trim(),amount=parseFloat(document.getElementById('s_amount').value);
-  const mode=document.getElementById('s_mode').value,bank=mode==='UPI'?document.getElementById('s_bank').value:'Cash';
+  const staffEl = document.getElementById('s_name');
+  const name = staffEl.value.trim();
+  const amount = parseFloat(document.getElementById('s_amount').value);
+  const mode = document.getElementById('s_mode').value;
+  const bank = mode==='UPI' ? document.getElementById('s_bank').value : 'Cash';
+  const note = document.getElementById('s_note')?.value?.trim()||'';
   if(!name||!amount||isNaN(amount)){toast('Fill all required fields','error');return;}
-  const now=new Date();
+  const staff = allStaff.find(s=>s.name===name);
+  const base = staff?.baseSalary||0;
+  // find monthly deduction
+  const pendingAdvances = (window._allAdvances||[]).filter(a=>a.staffName===name&&a.status!=='cleared');
+  const deduction = pendingAdvances.reduce((s,a)=>s+(a.monthlyDeduction||0),0);
+  const now = new Date();
   try{
-    await _sb.from('ledger').insert(toSnake({staffName:name,amount,mode,bank,paidBy:currentUser.name,date:now.toLocaleDateString('en-IN'),time:now.toLocaleTimeString('en-IN'),timestamp:now.getTime()}));
-    // Auto ledger debit for salary
-    await _sb.from('ledger').insert({bank,type:'debit',amount,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),work_ref:'',description:`Salary paid to ${name}`,by:currentUser.name,auto_entry:true});
-    toast('Salary recorded','success');
+    await _sb.from('ledger').insert(toSnake({
+      staffName:name, amount, mode, bank,
+      paidBy:currentUser.name,
+      date:now.toLocaleDateString('en-IN'),
+      time:now.toLocaleTimeString('en-IN'),
+      timestamp:now.getTime(),
+      baseSalary: base,
+      advanceDeduction: deduction,
+      salaryNote: note
+    }));
+    await _sb.from('ledger').insert({bank,type:'debit',amount,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),work_ref:'',description:`Salary paid to ${name}${note?' — '+note:''}`,by:currentUser.name,auto_entry:true});
+    // Reduce pending advance remaining amounts
+    for(const adv of pendingAdvances){
+      if((adv.monthlyDeduction||0)>0){
+        const newRemaining = Math.max(0,(adv.remainingAmount||0)-(adv.monthlyDeduction||0));
+        await _sb.from('advances').update({remaining_amount:newRemaining, status:newRemaining<=0?'cleared':'active'}).eq('id',adv._key);
+      }
+    }
+    toast('✅ Salary recorded!','success');
     closeModal('addSalaryModal');
-    ['s_name','s_amount'].forEach(id=>document.getElementById(id).value='');
     await loadAllData();
     renderSalary();
   }catch(e){toast('Error: '+e.message,'error');}
@@ -8053,15 +8364,222 @@ async function saveSalary(){
 
 function renderSalary(){
   const tbody=document.getElementById('salaryBody');
-  if(!allSalary.length){tbody.innerHTML='<tr><td colspan="6" class="nd">No salary records yet</td></tr>';return;}
-  tbody.innerHTML=allSalary.map(s=>`<tr>
-    <td><strong>${esc(s.staffName)}</strong></td>
-    <td style="font-weight:800;color:var(--g);">${inr(s.amount||0)}</td>
-    <td><span class="badge ${s.mode==='Cash'?'by':'bb'}">${s.mode==='Cash'?'💵 Cash':'📱 UPI'}</span></td>
-    <td style="font-size:.82rem;">${esc(s.bank||'—')}</td>
-    <td style="font-size:.82rem;">${esc(s.paidBy)}</td>
-    <td style="font-size:.78rem;color:var(--gray);">${esc(s.date)} · ${esc(s.time)}</td>
+  if(tbody){
+    if(!allSalary.length){tbody.innerHTML='<tr><td colspan="8" class="nd">No salary records yet</td></tr>';}
+    else{tbody.innerHTML=allSalary.map(s=>`<tr>
+      <td><strong>${esc(s.staffName)}</strong></td>
+      <td style="font-size:.8rem;color:var(--gray);">${s.baseSalary?inr(s.baseSalary):'—'}</td>
+      <td style="color:var(--r);font-size:.82rem;">${s.advanceDeduction?'−'+inr(s.advanceDeduction):'—'}</td>
+      <td style="font-weight:800;color:var(--g);">${inr(s.amount||0)}</td>
+      <td><span class="badge ${s.mode==='Cash'?'by':'bb'}">${s.mode==='Cash'?'💵 Cash':'📱 UPI'}</span></td>
+      <td style="font-size:.82rem;">${esc(s.bank||'—')}</td>
+      <td style="font-size:.82rem;">${esc(s.paidBy)}</td>
+      <td style="font-size:.78rem;color:var(--gray);">${esc(s.date)} · ${esc(s.time||'')}${s.salaryNote?'<br/><span style="color:var(--gray)">'+esc(s.salaryNote)+'</span>':''}</td>
+    </tr>`).join('');}
+  }
+  renderAdvances();
+  renderIncentives();
+}
+
+function renderStaffSalaryCards(){
+  const el = document.getElementById('staffSalaryCards');
+  if(!el) return;
+  const cards = allStaff.filter(s=>s.role!=='owner').map(s=>{
+    const base = s.baseSalary||0;
+    const advances = (window._allAdvances||[]).filter(a=>a.staffName===s.name&&a.status!=='cleared');
+    const pendingAdv = advances.reduce((t,a)=>t+(a.remainingAmount||0),0);
+    const monthlyDeduct = advances.reduce((t,a)=>t+(a.monthlyDeduction||0),0);
+    const net = Math.max(0, base - monthlyDeduct);
+    return `<div style="background:#fff;border-radius:12px;border:1.5px solid var(--grayb);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:var(--shadow-sm);">
+      <div><div style="font-weight:800;font-size:.95rem;">${esc(s.name)}</div><div style="font-size:.75rem;color:var(--gray);text-transform:uppercase;">${s.role}</div></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;">
+        <div><div style="color:var(--gray);font-size:.7rem;">Base</div><div style="font-weight:800;color:var(--p);">${base?inr(base):'Not set'}</div></div>
+        ${pendingAdv>0?`<div><div style="color:var(--gray);font-size:.7rem;">Advance Due</div><div style="font-weight:800;color:var(--r);">${inr(pendingAdv)}</div></div>`:''}
+        ${monthlyDeduct>0?`<div><div style="color:var(--gray);font-size:.7rem;">Monthly −</div><div style="font-weight:700;color:#d97706;">${inr(monthlyDeduct)}</div></div>`:''}
+        ${base?`<div><div style="color:var(--gray);font-size:.7rem;">Net This Month</div><div style="font-weight:800;color:var(--g);">${inr(net)}</div></div>`:''}
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="showSetBaseSalary('${esc(s._key)}','${esc(s.name)}',${base})">✏️ Set Base</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = cards ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;margin-bottom:16px;">${cards}</div>` : '';
+}
+
+// ── Set base salary inline ──
+function showSetBaseSalary(key, name, current){
+  const val = prompt(`Set base salary for ${name} (current: ${current?'₹'+current.toLocaleString('en-IN'):'not set'}):`, current||'');
+  if(val===null) return;
+  const num = parseFloat(val);
+  if(isNaN(num)||num<0){toast('Enter a valid amount','error');return;}
+  _sb.from('staff').update({base_salary:num}).eq('id',key).then(({error})=>{
+    if(error){toast('Error: '+error.message,'error');return;}
+    toast('✅ Base salary updated','success');
+    loadAllData().then(()=>{renderSalary();});
+  });
+}
+
+// ── Advance ──
+function advStaffChange(){
+  const name = document.getElementById('adv_name').value;
+  const staff = allStaff.find(s=>s.name===name);
+  document.getElementById('adv_base_display').textContent = staff?.baseSalary ? inr(staff.baseSalary) : '—';
+}
+function advAmtCheck(){
+  const name = document.getElementById('adv_name').value;
+  const staff = allStaff.find(s=>s.name===name);
+  const base = staff?.baseSalary||0;
+  const amt = parseFloat(document.getElementById('adv_amount').value)||0;
+  const hint = document.getElementById('adv_amt_hint');
+  hint.style.display = (base && amt > base) ? 'block' : 'none';
+}
+function advRepayChange(){
+  const t = document.getElementById('adv_repay_type').value;
+  document.getElementById('adv_monthly_field').style.display = t==='monthly'?'':'none';
+  document.getElementById('adv_custom_field').style.display  = t==='custom'?'':'none';
+}
+function showGiveAdvance(){
+  populateSalarySelects();
+  document.getElementById('adv_name').value='';
+  document.getElementById('adv_amount').value='';
+  document.getElementById('adv_monthly').value='';
+  document.getElementById('adv_custom_note').value='';
+  document.getElementById('adv_base_display').textContent='—';
+  document.getElementById('adv_amt_hint').style.display='none';
+  advRepayChange();
+  openModal('giveAdvanceModal');
+}
+async function saveAdvance(){
+  const name = document.getElementById('adv_name').value;
+  const amount = parseFloat(document.getElementById('adv_amount').value);
+  const repayType = document.getElementById('adv_repay_type').value;
+  const monthly = repayType==='monthly' ? parseFloat(document.getElementById('adv_monthly').value)||0 : (repayType==='lumpsum'?amount:0);
+  const customNote = document.getElementById('adv_custom_note')?.value?.trim()||'';
+  if(!name||!amount||isNaN(amount)){toast('Fill all required fields','error');return;}
+  const staff = allStaff.find(s=>s.name===name);
+  const base = staff?.baseSalary||0;
+  if(base && amount>base){toast('Advance cannot exceed base salary','error');return;}
+  const now = new Date();
+  try{
+    await _sb.from('advances').insert({
+      staff_name:name, amount, remaining_amount:amount,
+      repay_type:repayType, monthly_deduction:monthly,
+      custom_note:customNote, given_by:currentUser.name,
+      date:now.toLocaleDateString('en-IN'), timestamp:now.getTime(), status:'active'
+    });
+    toast('✅ Advance recorded','success');
+    closeModal('giveAdvanceModal');
+    await loadAllData();
+    renderAdvances();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+async function renderAdvances(){
+  let data=[]; try{const r=await _sb.from('advances').select('*').order('timestamp',{ascending:false});data=r.data||[];}catch(e){}
+  window._allAdvances = data.map(r=>({...r,_key:r.id,staffName:r.staff_name,remainingAmount:r.remaining_amount,monthlyDeduction:r.monthly_deduction,repayType:r.repay_type,customNote:r.custom_note,givenBy:r.given_by}));
+  const tbody = document.getElementById('advanceBody');
+  if(!tbody) return;
+  if(!window._allAdvances.length){tbody.innerHTML='<tr><td colspan="7" class="nd">No advances recorded</td></tr>';return;}
+  tbody.innerHTML = window._allAdvances.map(a=>`<tr>
+    <td><strong>${esc(a.staffName)}</strong></td>
+    <td style="font-weight:800;color:var(--o);">${inr(a.amount||0)}</td>
+    <td style="font-size:.8rem;">${a.repayType==='monthly'?`₹${(a.monthlyDeduction||0).toLocaleString('en-IN')}/month`:a.repayType==='lumpsum'?'Lump sum next salary':esc(a.customNote||'Custom')}</td>
+    <td style="font-weight:700;color:var(--r);">${inr(a.remainingAmount||0)}</td>
+    <td><span class="badge ${a.status==='cleared'?'bg':'bo'}">${a.status==='cleared'?'✅ Cleared':'⏳ Active'}</span></td>
+    <td style="font-size:.8rem;">${esc(a.givenBy||'—')}</td>
+    <td style="font-size:.78rem;color:var(--gray);">${esc(a.date||'—')}</td>
   </tr>`).join('');
+  renderStaffSalaryCards();
+}
+
+// ── Incentive ──
+function showGiveIncentive(){populateSalarySelects();document.getElementById('inc_name').value='';document.getElementById('inc_amount').value='';document.getElementById('inc_reason').value='';openModal('giveIncentiveModal');}
+async function saveIncentive(){
+  const name=document.getElementById('inc_name').value, amount=parseFloat(document.getElementById('inc_amount').value), reason=document.getElementById('inc_reason').value.trim();
+  if(!name||!amount||!reason){toast('Fill all required fields','error');return;}
+  const now=new Date();
+  try{
+    await _sb.from('incentives').insert({staff_name:name,amount,reason,given_by:currentUser.name,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime()});
+    toast('✅ Incentive recorded','success');
+    closeModal('giveIncentiveModal');
+    renderIncentives();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+async function renderIncentives(){
+  let data=[]; try{const r=await _sb.from('incentives').select('*').order('timestamp',{ascending:false});data=r.data||[];}catch(e){}
+  const tbody=document.getElementById('incentiveBody');
+  if(!tbody) return;
+  if(!data.length){tbody.innerHTML='<tr><td colspan="5" class="nd">No incentives recorded</td></tr>';return;}
+  tbody.innerHTML=data.map(i=>`<tr>
+    <td><strong>${esc(i.staff_name)}</strong></td>
+    <td style="font-weight:800;color:var(--g);">${inr(i.amount||0)}</td>
+    <td style="font-size:.82rem;">${esc(i.reason||'—')}</td>
+    <td style="font-size:.82rem;">${esc(i.given_by||'—')}</td>
+    <td style="font-size:.78rem;color:var(--gray);">${esc(i.date||'—')}</td>
+  </tr>`).join('');
+}
+
+// ── Complaints ──
+let _cmpFilter = 'client';
+function cmpTab(tab){
+  _cmpFilter=tab;
+  document.getElementById('cmp-tab-client').classList.toggle('active',tab==='client');
+  document.getElementById('cmp-tab-staff').classList.toggle('active',tab==='staff');
+  renderComplaints();
+}
+function cmpTypeChange(){
+  const t=document.getElementById('cmp_type').value;
+  document.getElementById('cmp_client_field').style.display=t==='client'?'':'none';
+  document.getElementById('cmp_filer_field').style.display=t==='staff'?'':'none';
+}
+function showAddComplaint(){
+  populateSalarySelects();
+  ['cmp_client','cmp_against','cmp_subject','cmp_desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cmp_type').value='client';
+  cmpTypeChange();
+  openModal('addComplaintModal');
+}
+async function saveComplaint(){
+  const type=document.getElementById('cmp_type').value;
+  const client=document.getElementById('cmp_client')?.value?.trim()||'';
+  const filer=document.getElementById('cmp_filer')?.value||'';
+  const against=document.getElementById('cmp_against').value.trim();
+  const subject=document.getElementById('cmp_subject').value.trim();
+  const desc=document.getElementById('cmp_desc').value.trim();
+  if(!against||!subject||!desc){toast('Fill all required fields','error');return;}
+  if(type==='staff'&&!filer){toast('Select who is filing','error');return;}
+  const now=new Date();
+  try{
+    await _sb.from('complaints').insert({
+      type, client_name:client, filed_by:type==='staff'?filer:currentUser.name,
+      against, subject, description:desc, status:'open',
+      date:now.toLocaleDateString('en-IN'), timestamp:now.getTime()
+    });
+    toast('📣 Complaint filed','success');
+    closeModal('addComplaintModal');
+    renderComplaints();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+async function renderComplaints(){
+  let data=[]; try{const r=await _sb.from('complaints').select('*').order('timestamp',{ascending:false});data=r.data||[];}catch(e){}
+  const list=data.filter(c=>c.type===_cmpFilter);
+  const tbody=document.getElementById('complaintsBody');
+  if(!tbody) return;
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="nd">No ${_cmpFilter==='client'?'client':'staff'} complaints yet</td></tr>`;return;}
+  let ctr=1;
+  tbody.innerHTML=list.map(c=>`<tr>
+    <td style="font-weight:700;">#${ctr++}</td>
+    <td><span class="badge ${c.type==='client'?'bb':'bo'}">${c.type==='client'?'👤 Client':'👥 Staff'}</span></td>
+    <td style="font-size:.82rem;">${esc(c.filed_by||'—')}</td>
+    <td style="font-size:.82rem;">${esc(c.against||'—')}</td>
+    <td style="font-weight:600;">${esc(c.subject||'—')}</td>
+    <td><span class="badge ${c.status==='resolved'?'bg':'bo'}">${c.status==='resolved'?'✅ Resolved':'🔴 Open'}</span></td>
+    <td style="font-size:.78rem;color:var(--gray);">${esc(c.date||'—')}</td>
+    <td>${c.status!=='resolved'?`<button class="btn btn-sm btn-outline" onclick="resolveComplaint('${c.id}')">✅ Resolve</button>`:'—'}</td>
+  </tr>`).join('');
+}
+async function resolveComplaint(id){
+  if(!confirm('Mark this complaint as resolved?')) return;
+  await _sb.from('complaints').update({status:'resolved'}).eq('id',id);
+  toast('✅ Marked resolved','success');
+  renderComplaints();
 }
 
 // ============================================================
@@ -8153,7 +8671,7 @@ function renderManageStaff(){
     </div>`).join('');
 }
 
-function showAddStaff(){['ns_name','ns_user','ns_pass'].forEach(id=>document.getElementById(id).value='');document.getElementById('ns_role').value='staff';openModal('addStaffModal');}
+function showAddStaff(){['ns_name','ns_user','ns_pass','ns_base_salary'].forEach(id=>document.getElementById(id).value='');document.getElementById('ns_role').value='staff';openModal('addStaffModal');}
 
 async function saveStaff(){
   const name=document.getElementById('ns_name').value.trim();
@@ -8170,7 +8688,7 @@ async function saveStaff(){
     if(signupErr && !signupErr.message.toLowerCase().includes('already registered')) throw signupErr;
     const uid = signupData?.user?.id || crypto.randomUUID();
     // Save profile in staff table
-    const {error: staffErr} = await _sb.from('staff').upsert({id: uid, name, email, role, added_by: currentUser.name, added_at: Date.now()});
+    const {error: staffErr} = await _sb.from('staff').upsert({id: uid, name, email, role, base_salary: parseFloat(document.getElementById('ns_base_salary')?.value)||0, added_by: currentUser.name, added_at: Date.now()});
     if(staffErr) throw staffErr;
     toast('Staff added! They will receive a confirmation email. ✅','success');
     closeModal('addStaffModal');
@@ -8703,11 +9221,50 @@ async function downloadClientDoc(workKey, workNum) {
 // ============================================================
 // UTILITIES
 // ============================================================
-const wtLabels={'Insurance':'🛡️ Insurance','Challan-Online':'📄 Challan (Online)','Challan-Court':'⚖️ Challan (Court)','Fitness':'✅ Fitness','Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)','Registration':'📝 Registration','Transfer':'🔄 Transfer','PUC':'🌿 PUC','RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)','Others':'📦 Others','DrivingLicense':'🪪 Driving License'};
-const wtClasses={'Insurance':'bb','Challan-Online':'bo','Challan-Court':'bo','Fitness':'bg','Permit-AllIndia':'by','Permit-State':'by','Registration':'bb','Transfer':'bgr','PUC':'bg','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb','Others':'bgr','DrivingLicense':'bp'};
+const wtLabels={
+  'NewRegistration':'🆕 New Registration','TempRegistration':'📋 Temp Registration',
+  'Transfer':'🔄 RC Transfer','ChangeOfAddress':'📍 Change of Address',
+  'ReRegistration':'♻️ Re-Registration','FRC':'📄 FRC',
+  'RCDC':'📑 RC/DC','RCParticular':'📝 RC Particular',
+  'RCSurrender':'🏳️ RC Surrender','RCCancel':'❌ RC Cancel',
+  'Hypothecation':'🔗 Hypothecation','Fitness':'✅ Fitness',
+  'Alteration':'🔧 Alteration','Conversion':'🔀 Conversion',
+  'RCNOC':'📤 RC NOC','Permit':'🗺️ Permit',
+  'TradeCertificate':'🏷️ Trade Certificate','Challan':'⚖️ Challan',
+  'Insurance':'🛡️ Insurance','RoadTax':'🛣️ Road Tax',
+  'PUC':'🌿 PUC','HSRP':'🔖 HSRP',
+  'DrivingLicense':'🪪 Driving License','Others':'📦 Others',
+  // Legacy aliases kept for backwards compat
+  'Registration':'📝 Registration','Challan-Online':'📄 Challan (Online)','Challan-Court':'⚖️ Challan (Court)',
+  'Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)',
+  'RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)'
+};
+const wtClasses={
+  'NewRegistration':'bb','TempRegistration':'by','Transfer':'bgr','ChangeOfAddress':'bb',
+  'ReRegistration':'bb','FRC':'bo','RCDC':'bo','RCParticular':'bb',
+  'RCSurrender':'bgr','RCCancel':'bgr','Hypothecation':'bp','Fitness':'bg',
+  'Alteration':'bo','Conversion':'bo','RCNOC':'by','Permit':'by',
+  'TradeCertificate':'by','Challan':'bo','Insurance':'bb','RoadTax':'bb',
+  'PUC':'bg','HSRP':'bb','DrivingLicense':'bp','Others':'bgr',
+  'Registration':'bb','Challan-Online':'bo','Challan-Court':'bo',
+  'Permit-AllIndia':'by','Permit-State':'by','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb'
+};
 function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
-const wtPlainLabels={'Insurance':'Insurance','Challan-Online':'Challan (Online)','Challan-Court':'Challan (Court)','Fitness':'Fitness','Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)','Registration':'Registration','Transfer':'Transfer','PUC':'PUC','RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)','Others':'Others','DrivingLicense':'Driving License'};
+const wtPlainLabels={
+  'NewRegistration':'New Registration','TempRegistration':'Temp Registration',
+  'Transfer':'RC Transfer','ChangeOfAddress':'Change of Address',
+  'ReRegistration':'Re-Registration','FRC':'FRC','RCDC':'RC/DC',
+  'RCParticular':'RC Particular','RCSurrender':'RC Surrender','RCCancel':'RC Cancel',
+  'Hypothecation':'Hypothecation','Fitness':'Fitness','Alteration':'Alteration',
+  'Conversion':'Conversion','RCNOC':'RC NOC','Permit':'Permit',
+  'TradeCertificate':'Trade Certificate','Challan':'Challan',
+  'Insurance':'Insurance','RoadTax':'Road Tax','PUC':'PUC','HSRP':'HSRP',
+  'DrivingLicense':'Driving License','Others':'Others',
+  'Registration':'Registration','Challan-Online':'Challan (Online)','Challan-Court':'Challan (Court)',
+  'Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)',
+  'RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)'
+};
 function wtLabelPlain(t){return wtPlainLabels[t]||t||'—';}
 function wtBadge(w){
   try {
@@ -9041,7 +9598,7 @@ function renderPnL() {
 
   // Bank-wise collection from ledger
   const bankTotals = {};
-  ['HDFC','SBI','Kotak','ICICI','Canara','Cash'].forEach(b=>{
+  ['HDFC','SBI','Kotak','Cash'].forEach(b=>{
     const credits = monthLedger.filter(l=>l.bank===b&&l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
     const debits = monthLedger.filter(l=>l.bank===b&&l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
     if(credits||debits) bankTotals[b]={credits,debits};
