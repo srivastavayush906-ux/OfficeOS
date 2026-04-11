@@ -6630,31 +6630,52 @@ function viewWork(key){
     <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
     ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client at Office</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
     <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
-    <div class="di"><div class="dl">Vehicle(s) & Work</div><div class="dv">
+    <div class="di" style="grid-column:1/-1;"><div class="dl">Vehicle(s) & Work</div><div class="dv">
       ${(()=>{
         try{
           const items=JSON.parse(w.vehicleWorkItems||'[]');
-          if(items.length>1) return items.map(r=>{const xs=fmtExtras(r,', ');return `<div style="margin-bottom:6px;padding:6px 0;border-bottom:1px solid var(--grayb);"><span style="font-family:monospace;font-weight:800;">${esc(r.vehicle)}</span> <span style="color:var(--gray);font-size:.82rem;">→ ${wtLabel(r.workType)}${r.othersSpecify?' ('+esc(r.othersSpecify)+')':''}</span>${r.rowWorkValue>0?` <span style="font-size:.78rem;font-weight:700;color:var(--g);">${inr(r.rowWorkValue)}</span>`:''}${xs?`<div style="font-size:.76rem;margin-top:3px;color:var(--text3);">${xs}</div>`:''}</div>`;}).join('');
+          if(items.length>0) return items.map(r=>{
+            const xs=fmtExtras(r,'<br>');
+            return '<div style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--grayb);">'
+              +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+              +'<span style="font-family:var(--font-num);font-weight:700;font-size:.88rem;">'+esc(r.vehicle||'—')+'</span>'
+              +'<span class="badge '+(wtClasses[r.workType]||'bgr')+'" style="font-size:.68rem;">'+wtLabel(r.workType)+'</span>'
+              +(r.rowWorkValue>0?'<span style="font-size:.78rem;font-weight:700;color:var(--g);">'+inr(r.rowWorkValue)+'</span>':'')
+              +'</div>'
+              +(xs?'<div style="font-size:.78rem;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grayb);color:var(--text2);line-height:1.7;">'+xs+'</div>':'')
+              +'</div>';
+          }).join('');
         }catch(e){}
-        const singleEx = items.length===1 ? fmtExtras(items[0],'<br>') : '';
-        return `<span style="font-family:monospace;font-weight:800;">${esc(w.vehicles||w.vehicle)}</span>${singleEx?'<div style=\"margin-top:6px;\">'+singleEx+'</div>':''}`;
+        return '<span style="font-family:var(--font-num);font-weight:700;">'+esc(w.vehicles||w.vehicle)+'</span>';
       })()}
     </div></div>
-    ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
-    <div class="di"><div class="dl">Work Type</div><div class="dv">${wtLabel(w.workType)}${w.othersSpecify?' — '+esc(w.othersSpecify):''}${w.dlLicenseType?' — '+esc(w.dlLicenseType):''}</div></div>
+    ${w.workType==='Transfer'&&!(()=>{try{return JSON.parse(w.vehicleWorkItems||'[]').length>1;}catch(e){return false;}})()
+      ?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
+    <div class="di"><div class="dl">Work Type(s)</div><div class="dv">${(()=>{
+      try{
+        const items=JSON.parse(w.vehicleWorkItems||'[]');
+        if(items.length>1){
+          const types=[...new Set(items.map(r=>r.workType).filter(Boolean))];
+          return types.map(t=>'<span class="badge '+(wtClasses[t]||'bgr')+'" style="font-size:.7rem;margin:2px 3px 2px 0;">'+wtLabel(t)+'</span>').join('');
+        }
+      }catch(e){}
+      return wtLabel(w.workType)+(w.othersSpecify?' — '+esc(w.othersSpecify):'')+(w.dlLicenseType?' — '+esc(w.dlLicenseType):'');
+    })()}</div></div>
     ${(()=>{
-      // Show rich work extras if available
+      // Show rich work extras from workExtras ONLY for single-vehicle works (multi already shown above per-row)
+      try{ const items=JSON.parse(w.vehicleWorkItems||'[]'); if(items.length>1) return ''; }catch(e){}
       let ex={};try{ex=JSON.parse(w.workExtras||'{}');}catch(e){}
       const rows=[];
       const row=(l,v)=>v?`<div class="di"><div class="dl">${l}</div><div class="dv">${esc(String(v))}</div></div>`:'';
       rows.push(row('Seller Name',ex.sellerName),row('Seller Mobile',ex.sellerMob));
       rows.push(row('Purchaser Name',ex.buyerName),row('Purchaser Mobile',ex.buyerMob));
-      rows.push(row('Challan No.',ex.challanNo),row('Challan Date',ex.challanDate),row('Challan Type',ex.challanType));
+      rows.push(row('Challan No.',ex.challanNo),row('Challan Amount',ex.challanAmount?'₹'+ex.challanAmount:''),row('Challan Date',ex.challanDate),row('Challan Type',ex.challanType));
+      rows.push(row('Challan Position',ex.challanPosition),row('Challan District',ex.challanDistrict));
       rows.push(row('Insurance Policy',ex.insPolicy),row('Insurance Company',ex.insCompany),row('Insurance Type',ex.insType),row('Insurance Validity',ex.insValidity));
       if(ex.insTransferTo) rows.push(row('Insurance Transfer To',ex.insTransferTo));
-      rows.push(row('Road Tax Type',ex.roadTaxType));
+      rows.push(row('Road Tax Type',ex.roadTaxType),row('Road Tax Position',ex.roadTaxPosition),row('Road Tax District',ex.roadTaxDistrict));
       rows.push(row('Permit Type',ex.permitType));
-      if(ex.expiryState)    rows.push(row('State Permit Expiry',ex.expiryState));
+      if(ex.expiryState) rows.push(row('State Permit Expiry',ex.expiryState));
       if(ex.expiryNational||w.expiryNational) rows.push(row('All-India Permit Expiry',ex.expiryNational||w.expiryNational));
       rows.push(row('DL Category',ex.dlCategory),row('DL Sub-type',ex.dlSubtype),row('License No.',ex.dlLicNo));
       rows.push(row('Hypothecation Type',ex.hypType));
