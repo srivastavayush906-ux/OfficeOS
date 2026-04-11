@@ -1709,6 +1709,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
                 <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
                 <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
                 <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+          <div class="wtopt" data-val="DoubleAddress" onclick="wtSelectOption(this)">📍📍 Double Address</div>
                 <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
                 <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
                 <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
@@ -1839,6 +1840,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
             <option value="TempRegistration">📋 Temp Registration</option>
             <option value="Transfer">🔄 RC Transfer</option>
             <option value="ChangeOfAddress">📍 Change of Address</option>
+            <option value="DoubleAddress">📍📍 Double Address</option>
             <option value="ReRegistration">♻️ Re-Registration</option>
             <option value="FRC">📄 FRC</option>
             <option value="RCDC">📑 RC/DC</option>
@@ -4820,6 +4822,7 @@ function vwTypeChange(el, forcedVal) {
         _xSel('x-addr-change',[['no','No — same address'],['yes','Yes — new address']],'');
       break;
 
+    case 'DoubleAddress':
     case 'ChangeOfAddress':
       html = _xLabel('New Address') +
         _xInp('x-district','District Name') +
@@ -5031,6 +5034,7 @@ function addVWRow() {
         <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
         <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
         <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+          <div class="wtopt" data-val="DoubleAddress" onclick="wtSelectOption(this)">📍📍 Double Address</div>
         <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
         <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
         <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
@@ -5150,6 +5154,7 @@ function resetVWRows() {
           <div class="wtopt" data-val="TempRegistration" onclick="wtSelectOption(this)">📋 Temp Registration</div>
           <div class="wtopt" data-val="Transfer" onclick="wtSelectOption(this)">🔄 RC Transfer</div>
           <div class="wtopt" data-val="ChangeOfAddress" onclick="wtSelectOption(this)">📍 Change of Address</div>
+          <div class="wtopt" data-val="DoubleAddress" onclick="wtSelectOption(this)">📍📍 Double Address</div>
           <div class="wtopt" data-val="ReRegistration" onclick="wtSelectOption(this)">♻️ Re-Registration</div>
           <div class="wtopt" data-val="FRC" onclick="wtSelectOption(this)">📄 FRC</div>
           <div class="wtopt" data-val="RCDC" onclick="wtSelectOption(this)">📑 RC/DC</div>
@@ -5305,9 +5310,23 @@ async function _doSubmitWork() {
     document.getElementById('w_amount').value='';
     document.getElementById('w_notes').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
-    document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     document.getElementById('remainingBal').style.display='none';
+    // Reset payment rows — remove extra rows, keep only first, clear all values
+    const payList = document.getElementById('payModeList');
+    const allPayRows = payList.querySelectorAll('.pay-row');
+    allPayRows.forEach((row, i) => { if(i > 0) row.remove(); });
+    const firstPayRow = payList.querySelector('.pay-row');
+    if(firstPayRow) {
+      const modeSel = firstPayRow.querySelector('.pay-mode-sel'); if(modeSel) modeSel.value = '';
+      const bankSel = firstPayRow.querySelector('.pay-bank-sel'); if(bankSel) { bankSel.value = ''; bankSel.style.display = 'none'; }
+      const empSel = firstPayRow.querySelector('.pay-emp-sel'); if(empSel) { empSel.value = ''; empSel.style.display = 'none'; }
+      const amtInp = firstPayRow.querySelector('.pay-amt-inp'); if(amtInp) amtInp.value = '';
+      const dateInp = firstPayRow.querySelector('.pay-date-inp'); if(dateInp) dateInp.value = new Date().toISOString().split('T')[0];
+    }
     resetVWRows();
+    // Scroll to top of form
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    document.getElementById('content').scrollTo({top: 0, behavior: 'smooth'});
     await loadAllData();
     renderDashboard(); startClock(); applyStaffRestrictions();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
@@ -6721,7 +6740,7 @@ function viewWork(key){
 // ── Edit Work VW row helpers ──
 const EW_WORK_TYPES = [
   {val:'NewRegistration',label:'🆕 New Registration'},{val:'TempRegistration',label:'📋 Temp Registration'},
-  {val:'Transfer',label:'🔄 RC Transfer'},{val:'ChangeOfAddress',label:'📍 Change of Address'},
+  {val:'Transfer',label:'🔄 RC Transfer'},{val:'ChangeOfAddress',label:'📍 Change of Address'},{val:'DoubleAddress',label:'📍📍 Double Address'},
   {val:'ReRegistration',label:'♻️ Re-Registration'},{val:'FRC',label:'📄 FRC'},
   {val:'RCDC',label:'📑 RC/DC'},{val:'RCParticular',label:'📝 RC Particular'},
   {val:'RCSurrender',label:'🏳️ RC Surrender'},{val:'RCCancel',label:'❌ RC Cancel'},
@@ -10256,7 +10275,7 @@ async function downloadClientDoc(workKey, workNum) {
 // ============================================================
 const wtLabels={
   'NewRegistration':'🆕 New Registration','TempRegistration':'📋 Temp Registration',
-  'Transfer':'🔄 RC Transfer','ChangeOfAddress':'📍 Change of Address',
+  'Transfer':'🔄 RC Transfer','ChangeOfAddress':'📍 Change of Address','DoubleAddress':'📍📍 Double Address',
   'ReRegistration':'♻️ Re-Registration','FRC':'📄 FRC',
   'RCDC':'📑 RC/DC','RCParticular':'📝 RC Particular',
   'RCSurrender':'🏳️ RC Surrender','RCCancel':'❌ RC Cancel',
@@ -10273,7 +10292,7 @@ const wtLabels={
   'RoadTax-OTT':'🛣️ Road Tax (OTT)','RoadTax-Quarterly':'🔁 Road Tax (Quarterly)'
 };
 const wtClasses={
-  'NewRegistration':'bb','TempRegistration':'by','Transfer':'bgr','ChangeOfAddress':'bb',
+  'NewRegistration':'bb','TempRegistration':'by','Transfer':'bgr','ChangeOfAddress':'bb','DoubleAddress':'bb',
   'ReRegistration':'bb','FRC':'bo','RCDC':'bo','RCParticular':'bb',
   'RCSurrender':'bgr','RCCancel':'bgr','Hypothecation':'bp','Fitness':'bg',
   'Alteration':'bo','Conversion':'bo','RCNOC':'by','Permit':'by',
@@ -10286,7 +10305,7 @@ function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
 const wtPlainLabels={
   'NewRegistration':'New Registration','TempRegistration':'Temp Registration',
-  'Transfer':'RC Transfer','ChangeOfAddress':'Change of Address',
+  'Transfer':'RC Transfer','ChangeOfAddress':'Change of Address','DoubleAddress':'Double Address',
   'ReRegistration':'Re-Registration','FRC':'FRC','RCDC':'RC/DC',
   'RCParticular':'RC Particular','RCSurrender':'RC Surrender','RCCancel':'RC Cancel',
   'Hypothecation':'Hypothecation','Fitness':'Fitness','Alteration':'Alteration',
