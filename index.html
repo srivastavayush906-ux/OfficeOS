@@ -1490,15 +1490,15 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <a onclick="showPage('payments')" id="nav-payments"><span class="ico">◈</span> Payments</a>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">▤</span> Bank Ledger</a>
       <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">◯</span> Cash in Hand</a>
-      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance"><span class="ico">▣</span> Combined Balance</a>
+      <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">▣</span> Combined Balance</a>
       <a onclick="showPage('pnl')" id="nav-pnl" class="owner-only-nav"><span class="ico">↗</span> Monthly P&amp;L</a>
 
       <!-- Expenses -->
       <div class="ns">Expenses</div>
       <a onclick="showPage('officeSpend')" id="nav-officeSpend"><span class="ico">▩</span> RTO Spend</a>
-      <a onclick="showPage('officeExpenditure')" id="nav-officeExpenditure"><span class="ico">▦</span> Office Expenses</a>
-      <a onclick="showPage('reconcile')" id="nav-reconcile"><span class="ico">⇄</span> Reconciliation</a>
-      <a onclick="showPage('dailySummary')" id="nav-dailySummary"><span class="ico">▦</span> Daily Summary</a>
+      <a onclick="showPage('officeExpenditure')" id="nav-officeExpenditure" class="owner-only-nav"><span class="ico">▦</span> Office Expenses</a>
+      <a onclick="showPage('reconcile')" id="nav-reconcile" class="owner-only-nav"><span class="ico">⇄</span> Reconciliation</a>
+      <a onclick="showPage('dailySummary')" id="nav-dailySummary" class="owner-only-nav"><span class="ico">▦</span> Daily Summary</a>
 
       <!-- People -->
       <div class="ns">People</div>
@@ -3836,7 +3836,7 @@ const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification
 let currentActivePage = 'dashboard';
 
 function showPage(page) {
-  const ownerPages=['bankLedger','reconcile','combinedBalance','pnl','cashTracker','rejectedWorks'];
+  const ownerPages=['reconcile','combinedBalance','pnl','rejectedWorks','officeExpenditure','dailySummary','staff','performance','manageStaff','accessLog','complaints'];
   const ownerManagerPages=['verification'];
   if(ownerPages.includes(page) && currentUser && currentUser.role!=='owner'){
     return; // silent — nav link is hidden anyway
@@ -5460,7 +5460,7 @@ function renderWorkTable(){
     <td style="font-weight:700;font-size:.84rem;">${(()=>{
       try{
         const items=JSON.parse(w.vehicleWorkItems||'[]');
-        if(items.length>0) return items.map(r=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;"><span style="font-family:monospace;font-size:.82rem;">${esc(r.vehicle||'—')}</span><span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(r.workType)}</span>${r.rowWorkValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(r.rowWorkValue)}</span>`:''}</div>`).join('');
+        if(items.length>0) return items.map(r=>{const xs=fmtExtrasShort(r);return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;"><span style="font-family:monospace;font-size:.82rem;">${esc(r.vehicle||'—')}</span><span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(r.workType)}</span>${r.rowWorkValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(r.rowWorkValue)}</span>`:''}${xs?`<span style="font-size:.68rem;color:var(--acc);font-weight:600;">${esc(xs)}</span>`:''}</div>`;}).join('');
       }catch(e){}
       return `<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</span><span class="badge ${wtClasses[w.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(w.workType)}</span>${w.workValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(w.workValue)}</span>`:''}</div>`;
     })()}</td>
@@ -6037,6 +6037,7 @@ function renderVerification() {
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Phone</div><div style="font-weight:700;">${esc(w.phone)}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle(s)</div><div style="font-weight:700;font-family:monospace;">${esc(w.vehicles||w.vehicle)}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Type</div><div>${wtBadge(w)}</div></div>
+        ${(()=>{try{const items=JSON.parse(w.vehicleWorkItems||'[]');if(!items.length)return '';return items.map(r=>{const xs=fmtExtrasShort(r);if(!xs)return '';return '<div style="grid-column:1/-1;"><div style="font-size:.72rem;background:#fff;border:1px solid var(--grayb);border-radius:7px;padding:6px 10px;margin-bottom:4px;"><span style="font-weight:700;font-family:monospace;font-size:.78rem;">'+esc(r.vehicle||'—')+'</span> <span style="font-size:.72rem;color:var(--acc);font-weight:600;">'+esc(xs)+'</span></div></div>';}).filter(Boolean).join('');}catch(e){return '';}})()}
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Payment</div><div>${payBadge(w)}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Value</div><div style="font-weight:800;color:var(--g);">${inr(w.workValue||0)}</div></div>
       </div>
@@ -6633,9 +6634,10 @@ function viewWork(key){
       ${(()=>{
         try{
           const items=JSON.parse(w.vehicleWorkItems||'[]');
-          if(items.length>1) return items.map(r=>`<div style="margin-bottom:4px;"><span style="font-family:monospace;font-weight:800;">${esc(r.vehicle)}</span> <span style="color:var(--gray);font-size:.82rem;">→ ${wtLabel(r.workType)}${r.othersSpecify?' ('+esc(r.othersSpecify)+')':''}</span></div>`).join('');
+          if(items.length>1) return items.map(r=>{const xs=fmtExtras(r,', ');return `<div style="margin-bottom:6px;padding:6px 0;border-bottom:1px solid var(--grayb);"><span style="font-family:monospace;font-weight:800;">${esc(r.vehicle)}</span> <span style="color:var(--gray);font-size:.82rem;">→ ${wtLabel(r.workType)}${r.othersSpecify?' ('+esc(r.othersSpecify)+')':''}</span>${r.rowWorkValue>0?` <span style="font-size:.78rem;font-weight:700;color:var(--g);">${inr(r.rowWorkValue)}</span>`:''}${xs?`<div style="font-size:.76rem;margin-top:3px;color:var(--text3);">${xs}</div>`:''}</div>`;}).join('');
         }catch(e){}
-        return `<span style="font-family:monospace;font-weight:800;">${esc(w.vehicles||w.vehicle)}</span>`;
+        const singleEx = items.length===1 ? fmtExtras(items[0],'<br>') : '';
+        return `<span style="font-family:monospace;font-weight:800;">${esc(w.vehicles||w.vehicle)}</span>${singleEx?'<div style=\"margin-top:6px;\">'+singleEx+'</div>':''}`;
       })()}
     </div></div>
     ${w.workType==='Transfer'?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
@@ -8044,9 +8046,10 @@ function printReceipt(key) {
       const perRow = items.length > 0 ? totalWV / items.length : 0;
       vehicleRows = items.map(r => {
         const rowAmt = r.rowWorkValue || perRow;
+        const xs = fmtExtrasShort(r);
         return `<tr>
           <td style="font-family:monospace;font-weight:700;">${esc(r.vehicle||'—')}</td>
-          <td>${esc(wtLabelPlain(r.workType))}${r.othersSpecify?' — '+esc(r.othersSpecify):''}</td>
+          <td>${esc(wtLabelPlain(r.workType))}${r.othersSpecify?' — '+esc(r.othersSpecify):''}${xs?'<br><span style="font-size:10px;color:#666;">'+esc(xs)+'</span>':''}</td>
           <td style="text-align:right;font-weight:700;">${rowAmt>0?inr(rowAmt):'—'}</td>
         </tr>`;
       }).join('');
@@ -10301,6 +10304,75 @@ const wtClasses={
   'Registration':'bb','Challan-Online':'bo','Challan-Court':'bo',
   'Permit-AllIndia':'by','Permit-State':'by','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb'
 };
+
+// Format extras from a vehicleWorkItems row into readable HTML snippets
+function fmtExtras(r, sep='<br>') {
+  if(!r || typeof r !== 'object') return '';
+  const parts = [];
+  const a = (label, val) => { if(val) parts.push('<span style="font-size:.76rem;color:var(--text3);">'+label+':</span> <strong style="font-size:.8rem;">'+esc(String(val))+'</strong>'); };
+  // Transfer
+  a('Seller', r.sellerName); a('Seller Ph', r.sellerMob);
+  a('Buyer', r.buyerName); a('Buyer Ph', r.buyerMob);
+  // Challan
+  a('Challan No', r.challanNo); a('Challan Amt', r.challanAmount ? '₹'+r.challanAmount : '');
+  a('Challan Type', r.challanType); a('Challan Date', r.challanDate);
+  a('Challan Position', r.challanPosition); a('Challan District', r.challanDistrict);
+  // Insurance
+  a('Policy', r.insPolicy); a('Ins Company', r.insCompany); a('Ins Type', r.insType);
+  a('Ins Validity', r.insValidity); a('Ins Transfer To', r.insTransferTo);
+  // Road Tax
+  a('Tax Type', r.roadTaxType); a('Tax Position', r.roadTaxPosition); a('Tax District', r.roadTaxDistrict);
+  // Permit
+  a('Permit Type', r.permitType);
+  // Hypothecation
+  a('Hyp Type', r.hypType);
+  // Fitness
+  a('Fitness Type', r.fitnessType);
+  // Conversion
+  a('Conversion', r.conversionType);
+  // DL
+  a('DL Sub-type', r.dlSubtype); a('DL Category', r.dlCategory); a('License No', r.dlLicNo);
+  // Alteration
+  if(r.altChassis||r.altEngine||r.altBody) {
+    const ap=[r.altChassis&&'Chassis',r.altEngine&&'Engine',r.altBody&&'Body'].filter(Boolean);
+    a('Alteration', ap.join(', '));
+  }
+  // Trade
+  a('Trade Type', r.tradeType);
+  // Others
+  a('Specify', r.othersSpec || r.othersSpecify);
+  // Address
+  a('District', r.district); a('State', r.state);
+  // NOC
+  a('NOC RTO', r.nocRto);
+  // Expiry
+  a('Expiry', r.expiryDate || r.expiryState); a('National Expiry', r.expiryNational);
+  return parts.join(sep);
+}
+// Short one-line summary (plain text)
+function fmtExtrasShort(r) {
+  if(!r || typeof r !== 'object') return '';
+  const p = [];
+  if(r.challanNo) p.push('Ch#'+r.challanNo);
+  if(r.challanAmount) p.push('₹'+r.challanAmount);
+  if(r.challanType) p.push(r.challanType);
+  if(r.hypType) p.push(r.hypType);
+  if(r.permitType) p.push(r.permitType);
+  if(r.fitnessType) p.push(r.fitnessType);
+  if(r.conversionType) p.push(r.conversionType);
+  if(r.roadTaxType) p.push(r.roadTaxType);
+  if(r.insType) p.push(r.insType);
+  if(r.dlSubtype) p.push(r.dlSubtype);
+  if(r.dlLicNo) p.push('Lic:'+r.dlLicNo);
+  if(r.sellerName) p.push('From:'+r.sellerName);
+  if(r.buyerName) p.push('To:'+r.buyerName);
+  if(r.othersSpec||r.othersSpecify) p.push(r.othersSpec||r.othersSpecify);
+  if(r.tradeType) p.push(r.tradeType);
+  if(r.district) p.push(r.district);
+  if(r.nocRto) p.push('NOC:'+r.nocRto);
+  return p.join(' · ');
+}
+
 function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
 const wtPlainLabels={
