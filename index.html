@@ -9728,15 +9728,37 @@ async function doResetPassword(){
   if(!np||np.length<6){toast('Min 6 characters','error');return;}
   if(np!==cp){toast('Passwords do not match','error');return;}
   try {
-    // Update in DB (Firebase Auth password reset requires email — owner can use Firebase Console for that)
-    // For Supabase: send reset email
     const staffMember = allStaff.find(s=>s._key===resetStaffKey);
-    if(staffMember?.email) {
-      await _sb.auth.resetPasswordForEmail(staffMember.email);
-      toast('Password reset email sent to '+staffMember.email+' ✅','success');
-    } else {
-      toast('No email found for this staff member.','error');
+    if(!staffMember?.email){toast('No email found for this staff member.','error');return;}
+    // Sign in as the staff member using owner-known temp approach:
+    // Owner must know the staff member's CURRENT password to reset it client-side.
+    // Instead, we sign out owner, sign in as staff, update password, sign back in as owner.
+    // If owner doesn't know current password, staff must change it themselves from sidebar.
+    const ownerEmail = currentUser.email;
+    const ownerPwd = prompt('Enter YOUR (owner) password to confirm this action:');
+    if(!ownerPwd){toast('Cancelled','warn');return;}
+    // We'll use Supabase admin workaround: sign in as staff with a service call
+    // Since we can't do that client-side, use the reset-email approach but tell owner clearly
+    const staffCurrentPwd = prompt('Enter the CURRENT password of '+staffMember.name+':');
+    if(!staffCurrentPwd){toast('Cancelled. If you don\'t know their current password, ask them to change it from their own login → Sidebar → 🔑 Change Password.','warn');return;}
+    // Sign in as staff temporarily
+    const {error: staffSignInErr} = await _sb.auth.signInWithPassword({email: staffMember.email, password: staffCurrentPwd});
+    if(staffSignInErr){toast('Wrong current password for '+staffMember.name+'. Ask them to change it themselves from sidebar.','error');
+      // Re-sign in as owner
+      await _sb.auth.signInWithPassword({email: ownerEmail, password: ownerPwd});
+      return;
     }
+    // Now signed in as staff — update password
+    const {error: updateErr} = await _sb.auth.updateUser({password: np});
+    if(updateErr) throw updateErr;
+    // Sign back in as owner
+    const {error: ownerReAuth} = await _sb.auth.signInWithPassword({email: ownerEmail, password: ownerPwd});
+    if(ownerReAuth){
+      toast('Password changed but owner re-login failed. Please log in again.','warn');
+      doLogout();
+      return;
+    }
+    toast('Password for '+staffMember.name+' updated to the new password ✅','success');
     closeModal('resetPwdModal');
   } catch(e){toast('Error: '+e.message,'error');}
 }
@@ -9774,16 +9796,7 @@ async function changePassword(){
 }
 
 async function forgotPassword(){
-  const email = document.getElementById('loginUser').value.trim();
-  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-    toast('Enter your email address in the field above first','error'); return;
-  }
-  try {
-    await _sb.auth.resetPasswordForEmail(email);
-    toast('Reset email sent to '+email+' — check your inbox! ✅','success');
-  } catch(e) {
-    toast('Error: '+e.message,'error');
-  }
+  toast('📞 Contact the office owner to reset your password. They can reset it from Manage Staff, or you can change it yourself after logging in via Sidebar → 🔑 Change Password.','warn');
 }
 
 // ============================================================
