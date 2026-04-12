@@ -1357,9 +1357,29 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
   }
 }
 
+
+/* ═══ OFFLINE INDICATOR ═══ */
+#offlineBanner {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 10000;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  font-size: .85rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(220,38,38,.4);
+  animation: slideDown .3s ease;
+}
+#offlineBanner.show { display: block; }
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
 </style>
 </head>
 <body>
+<div id="offlineBanner">⚠️ You are offline — changes will NOT be saved. Check your internet connection.</div>
 
 <!-- SPLASH -->
 <div id="splash">
@@ -1421,9 +1441,9 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
     <strong style="color:rgba(255,255,255,.55);">Nandan Legal Services</strong>
     &nbsp;·&nbsp; RTO Work Specialists
     <br/><br/>
-    <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>alert('Number copied!'))" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">📞 94505 56304</a>
+    <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>alert('Number copied!'))" style="color:var(--acc);text-decoration:none;font-weight:600;cursor:pointer;">📞 94505 56304</a>
     &nbsp;·&nbsp;
-    <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
+    <a href="https://nandanlegalservices.in" target="_blank" style="color:var(--acc);text-decoration:none;">nandanlegalservices.in</a>
   </div>
 </div>
 
@@ -1448,7 +1468,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <!-- Quick Actions -->
       <div class="ns">Workspace</div>
       <a onclick="showPage('dashboard')" id="nav-dashboard"><span class="ico">◻</span> Dashboard</a>
-      <a onclick="showPage('newWork')" id="nav-newWork" style="color:#818cf8;font-weight:600;"><span class="ico">＋</span> New Work</a>
+      <a onclick="showPage('newWork')" id="nav-newWork" style="color:var(--acc);font-weight:600;"><span class="ico">＋</span> New Work</a>
       <a onclick="showPage('verification')" id="nav-verification">
         <span class="ico">◈</span> Verification
         <span id="badge-verification" style="margin-left:auto;background:var(--o);color:#fff;border-radius:20px;padding:1px 7px;font-size:.65rem;display:none;font-weight:700;"></span>
@@ -1488,6 +1508,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <!-- Finance -->
       <div class="ns">Finance</div>
       <a onclick="showPage('payments')" id="nav-payments"><span class="ico">◈</span> Payments</a>
+      <a onclick="showPage('employeeLedger')" id="nav-employeeLedger"><span class="ico">👤</span> Employee Ledger</a>
       <a onclick="showPage('bankLedger')" id="nav-bankLedger"><span class="ico">▤</span> Bank Ledger</a>
       <a onclick="showPage('cashTracker')" id="nav-cashTracker"><span class="ico">◯</span> Cash in Hand</a>
       <a onclick="showPage('combinedBalance')" id="nav-combinedBalance" class="owner-only-nav"><span class="ico">▣</span> Combined Balance</a>
@@ -1609,6 +1630,30 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       </div>
 
       <!-- Balances + Pinboard -->
+      <!-- Chassis/Engine Tools -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-title" style="margin-bottom:12px;">🔗 Attach Chassis / Engine</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-bottom:10px;">Link chassis & engine numbers to a vehicle. Also updates past works.</div>
+          <input type="text" id="dashAttachVeh" placeholder="Vehicle No. (e.g. UP32AB1234)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;text-transform:uppercase;margin-bottom:8px;" oninput="this.value=this.value.toUpperCase()"/>
+          <div class="g2" style="gap:8px;margin-bottom:8px;">
+            <input type="text" id="dashAttachChassis" placeholder="Chassis (last 5)" maxlength="5" style="padding:8px 10px;border:1.5px solid #fde68a;border-radius:7px;font-size:.82rem;background:#fffbeb;font-family:var(--font-num);text-transform:uppercase;"/>
+            <input type="text" id="dashAttachEngine" placeholder="Engine (last 5)" maxlength="5" style="padding:8px 10px;border:1.5px solid #bfdbfe;border-radius:7px;font-size:.82rem;background:#eff6ff;font-family:var(--font-num);text-transform:uppercase;"/>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="dashAttachChassisEngine()">🔗 Attach & Update Past Works</button>
+          <div id="dashAttachResult" style="margin-top:8px;font-size:.82rem;"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-title" style="margin-bottom:12px;">🔍 Lookup Chassis / Engine</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-bottom:10px;">Enter vehicle number to see its chassis & engine. Click to copy.</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <input type="text" id="dashLookupVeh" placeholder="Vehicle No." style="flex:1;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')dashLookupChassisEngine()"/>
+            <button class="btn btn-primary btn-sm" onclick="dashLookupChassisEngine()">Search</button>
+          </div>
+          <div id="dashLookupResult"></div>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="card" style="margin-bottom:0;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -1621,6 +1666,12 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
           <div class="card-title" style="margin-bottom:12px;">📌 Pinboard</div>
           <div id="pinsDash"></div>
         </div>
+      </div>
+
+      <!-- Staff Daily Work Count -->
+      <div class="card" style="margin-top:16px;" id="staffDailyCard">
+        <div class="card-title" style="margin-bottom:12px;">👥 Who Did What Today</div>
+        <div id="staffDailyBody"></div>
       </div>
     </div>
 
@@ -1640,7 +1691,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
           <div style="font-size:.65rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.5px;background:var(--pl);padding:2px 8px;border-radius:4px;">Step 1</div>
           <div>
-            <div style="font-weight:800;font-size:.95rem;color:#1e1b4b;">Client Information</div>
+            <div style="font-weight:800;font-size:.95rem;color:#0f1f3a;">Client Information</div>
             <div style="font-size:.72rem;color:var(--gray);margin-top:1px;">Who brought this work?</div>
           </div>
         </div>
@@ -1657,6 +1708,10 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div class="field" style="margin-top:13px;margin-bottom:0;">
           <label>Client Name <span style="font-size:.72rem;color:var(--gray);font-weight:400;">— person who visited office, if different from owner</span></label>
           <input type="text" id="w_clientName" placeholder="Leave blank if same as owner" tabindex="3" style="font-size:.9rem;"/>
+        </div>
+        <div class="field" style="margin-top:13px;margin-bottom:0;">
+          <label>Alternate Phone <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional — second contact number)</span></label>
+          <input type="tel" id="w_altPhone" placeholder="Alternate mobile number" maxlength="10" tabindex="4" style="font-size:.9rem;"/>
         </div>
       </div>
 
@@ -1730,6 +1785,8 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
                 <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
                 <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
                 <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
+          <div class="wtopt" data-val="DCRB" onclick="wtSelectOption(this)">📃 DCRB</div>
+          <div class="wtopt" data-val="VIPNumber" onclick="wtSelectOption(this)">⭐ VIP Number</div>
               </div>
               <!-- Work-type specific extra fields injected here by vwTypeChange() -->
               <div class="wtype-extras" style="margin-top:8px;"></div>
@@ -1756,7 +1813,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
 
         <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:13px 15px;margin-bottom:13px;">
             <label style="font-size:.78rem;font-weight:800;color:#92400e;display:block;margin-bottom:7px;">Amount Received (₹)</label>
-            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="9" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#1e1b4b;"/>
+            <input type="number" id="w_amount" placeholder="0" min="0" oninput="calcRemaining();showAmtHint(this)" onchange="calcRemaining()" tabindex="9" style="width:100%;padding:10px 13px;border:1.5px solid #fcd34d;border-radius:9px;font-size:1rem;font-weight:700;background:#fff;color:#0f1f3a;"/>
           </div>
         <div id="remainingBal" style="display:none;border-radius:var(--rads);padding:10px 14px;margin-bottom:12px;font-weight:700;font-size:.88rem;"></div>
 
@@ -1797,7 +1854,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div class="g2" style="gap:14px;">
           <div class="field" style="margin-bottom:0;">
             <label>Work Date</label>
-            <input type="date" id="w_date" tabindex="12"/>
+            <input type="date" id="w_date" tabindex="12" max=""/>
             <div class="hint" style="margin-top:4px;">⬅ Click to pick — defaults to today</div>
           </div>
           <div class="field" style="margin-bottom:0;">
@@ -1861,6 +1918,8 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
             <option value="HSRP">🔖 HSRP</option>
             <option value="DrivingLicense">🪪 Driving License</option>
             <option value="Others">📦 Others</option>
+            <option value="DCRB">📃 DCRB</option>
+            <option value="VIPNumber">⭐ VIP Number</option>
           </select>
           <select id="filterStatus" onchange="syncStatusToTab();filterWorks()">
             <option value="">All Status</option>
@@ -2039,7 +2098,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
     <!-- Manual Due Entry Modal -->
     <div class="mo" id="manualDueModal">
       <div class="md" style="max-width:460px;">
-        <div class="md-title">➕ Manual Due Entry</div>
+        <div class="md-title">➕ Manual Due / Excess Entry</div>
         <button class="md-close" onclick="closeModal('manualDueModal')">✕</button>
         <p style="font-size:.82rem;color:var(--gray);margin-bottom:16px;">Enter dues from before this system was set up. These will be saved under the client's ID.</p>
         <div class="field">
@@ -2058,7 +2117,15 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
           <input type="text" id="md_clientId" placeholder="Will be auto-assigned" readonly style="background:#f9fafb;color:var(--gray);"/>
         </div>
         <div class="field">
-          <label>Amount Due (₹) *</label>
+          <label>Entry Type *</label>
+          <div style="display:flex;gap:8px;margin-bottom:4px;">
+            <button type="button" id="md_due_btn" onclick="mdSetType('due')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--r);background:var(--rl);color:var(--r);font-weight:700;cursor:pointer;font-size:.85rem;">⚠️ Due (Client owes us)</button>
+            <button type="button" id="md_excess_btn" onclick="mdSetType('excess')" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--grayb);background:#fff;color:var(--gray);font-weight:700;cursor:pointer;font-size:.85rem;">💚 Excess (Client paid extra)</button>
+          </div>
+          <input type="hidden" id="md_entryType" value="due"/>
+        </div>
+        <div class="field">
+          <label id="md_amount_label">Amount Due (₹) *</label>
           <input type="number" id="md_amount" placeholder="e.g. 2500" min="0"/>
         </div>
         <div class="field">
@@ -2343,6 +2410,40 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       </div>
     </div>
 
+    <!-- EDIT STAFF MODAL -->
+    <div class="mo" id="editStaffModal">
+      <div class="md" style="max-width:520px;">
+        <div class="md-title">✏️ Edit Staff Member</div>
+        <button class="md-close" onclick="closeModal('editStaffModal')">✕</button>
+        <div id="editStaffName" style="font-weight:800;font-size:1rem;margin-bottom:14px;"></div>
+        <div class="g2">
+          <div class="field">
+            <label>Role *</label>
+            <select id="es_role">
+              <option value="staff">👤 Staff</option>
+              <option value="manager">🔑 Manager</option>
+              <option value="owner">👑 Owner</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Base Salary (₹/month)</label>
+            <input type="number" id="es_salary" placeholder="e.g. 15000" min="0"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Upload Documents <span style="font-size:.72rem;color:var(--gray);">(Aadhar, PAN, etc. — multiple files)</span></label>
+          <input type="file" id="es_docs" accept="image/*,.pdf" multiple/>
+          <div class="hint">Images or PDFs. These are stored securely.</div>
+        </div>
+        <div id="es_existing_docs" style="margin-top:10px;"></div>
+        <input type="hidden" id="es_key" value=""/>
+        <div class="md-foot">
+          <button class="btn btn-gray" onclick="closeModal('editStaffModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEditStaff()">💾 Save Changes</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MANAGE STAFF -->
     <div class="page" id="page-manageStaff">
       <div class="card">
@@ -2566,13 +2667,26 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <input type="hidden" id="pmt_type" value="debit"/>
         <div id="pmt_type_hint" style="margin-top:6px;font-size:.78rem;color:#be123c;font-weight:600;">🔴 Debit — money going OUT (expense, payout). Does NOT affect client dues.</div>
       </div>
-      <div class="field">
-        <label>Amount (₹) *</label>
-        <input type="number" id="pmt_amount" placeholder="e.g. 5000" min="0" oninput="showAmtHint(this)"/>
+      <div class="g2">
+        <div class="field">
+          <label>Amount (₹) *</label>
+          <input type="number" id="pmt_amount" placeholder="e.g. 5000" min="0" oninput="showAmtHint(this)"/>
+        </div>
+        <div class="field">
+          <label>Bank Charges (₹) <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label>
+          <input type="number" id="pmt_bankCharges" placeholder="0" min="0"/>
+          <div class="hint">If any bank charges, total saved = Amount + Charges</div>
+        </div>
+      </div>
+      <div class="field" id="pmt_employee_field" style="display:none;">
+        <label>Employee Name <span style="font-size:.72rem;color:var(--gray);">(optional — for Others payments)</span></label>
+        <select id="pmt_employee">
+          <option value="">— Select Employee —</option>
+        </select>
       </div>
       <div class="field">
         <label>Link to Work</label>
-        <select id="pmt_work">
+        <select id="pmt_work" onchange="pmtWorkChange()">
           <option value="">— Select open work (optional) —</option>
           <option value="other">📦 Other / Not linked to a work</option>
         </select>
@@ -2603,6 +2717,37 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <table class="wt">
           <thead><tr><th>#</th><th>Date</th><th>Name</th><th>Vehicle</th><th>Work</th><th>Source</th><th>Amount</th><th>Remarks</th><th>By</th><th>Action</th></tr></thead>
           <tbody id="pmtTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE LEDGER -->
+  <div class="page" id="page-employeeLedger">
+    <div style="background:linear-gradient(135deg,#0f1f3a 0%,#7c3aed 100%);border-radius:16px;padding:20px 24px;margin-bottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">👤 Employee Ledger</div>
+        <div style="font-size:.8rem;opacity:.65;margin-top:3px;">Track per-employee credits, debits & RTO spends</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>Select Employee</label>
+        <select id="empLedger_staff" onchange="renderEmployeeLedger()" style="max-width:300px;">
+          <option value="">— Select Employee —</option>
+        </select>
+      </div>
+    </div>
+    <div class="stats-row" id="empLedgerStats" style="margin-bottom:16px;"></div>
+    <div class="card">
+      <div class="sh">
+        <div class="card-title" style="margin:0;">📋 Ledger Entries</div>
+        <input type="text" id="empLedgerSearch" placeholder="🔍 Search…" oninput="renderEmployeeLedger()" style="padding:7px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.84rem;width:180px;"/>
+      </div>
+      <div class="ox">
+        <table class="wt">
+          <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Work Ref</th><th>By</th></tr></thead>
+          <tbody id="empLedgerBody"></tbody>
         </table>
       </div>
     </div>
@@ -3388,6 +3533,29 @@ window.addEventListener('DOMContentLoaded', () => {
   // Activity listeners for app lock
   ['click','keydown','mousemove','touchstart'].forEach(evt=>document.addEventListener(evt,()=>{if(currentUser)resetLockTimer();},{passive:true}));
   // Check backup reminder on load
+
+// Offline detection
+window.addEventListener('offline', () => {
+  document.getElementById('offlineBanner')?.classList.add('show');
+  toast('⚠️ Internet disconnected! Changes won\'t save.','error');
+});
+window.addEventListener('online', () => {
+  document.getElementById('offlineBanner')?.classList.remove('show');
+  toast('✅ Back online!','success');
+});
+
+// Global keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // Skip if typing in an input/textarea/select
+  const tag = document.activeElement?.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  // Skip if modal is open
+  if(document.querySelector('.mo.show')) return;
+  if(!currentUser) return;
+
+  if(e.key === 'n' || e.key === 'N') { e.preventDefault(); showPage('newWork'); }
+  else if(e.key === 'd' || e.key === 'D') { e.preventDefault(); showPage('dashboard'); }
+});
   // Check backup reminder only after owner logs in (moved to loginSuccess)
 });
 
@@ -3780,6 +3948,9 @@ function doLogout() {
 // LOAD DATA
 // ============================================================
 async function loadAllData() {
+  // Show subtle loading indicator
+  const topbar = document.getElementById('topbar');
+  if(topbar) topbar.style.opacity = '0.6';
   const [w,s,l] = await Promise.all([
     _sb.from('works').select('*').order('timestamp', {ascending:false}),
     _sb.from('staff').select('*'),
@@ -3802,6 +3973,9 @@ async function loadAllData() {
   } catch(e) { allManualDues = []; }
   updateSidebarBadges();
   updateInquiryBadge();
+  // Remove loading indicator
+  const topbar2 = document.getElementById('topbar');
+  if(topbar2) topbar2.style.opacity = '1';
 }
 
 function updateSidebarBadges() {
@@ -3830,7 +4004,7 @@ function updateSidebarBadges() {
 // ============================================================
 // NAVIGATION
 // ============================================================
-const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries',payments:'💰 Payments',complaints:'📣 Complaints'};
+const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification:'🔍 Verification',allWork:'📋 All Works',datewise:'📅 Date / Month Filter',overdue:'⚠️ Overdue Works',udhari:'⚖️ Client Balances',expiry:'🔔 Expiry',clientHistory:'👤 Client History',bankLedger:'🏦 Bank Ledger',dailySummary:'📊 Daily Summary',staff:'👥 Staff & Salary',performance:'🏆 Staff Performance',accessLog:'📜 Access Log',manageStaff:'⚙️ Manage Staff',followup:'📌 Follow-ups',cashTracker:'💵 Cash in Hand',pnl:'📈 Monthly P&L',attendance:'🕐 Attendance',reconcile:'🔍 Bank Reconciliation',dues:'💳 Dues (by Client)',combinedBalance:'💰 Combined Balance',officeSpend:'🧾 RTO Inside Spend',officeExpenditure:'💼 Office Expenditure',rejectedWorks:'❌ Rejected Works',addInquiry:'📝 Add Inquiry',allInquiry:'📂 All Inquiries',payments:'💰 Payments',employeeLedger:'👤 Employee Ledger',complaints:'📣 Complaints'};
 
 // Track current page for filter reset
 let currentActivePage = 'dashboard';
@@ -3856,7 +4030,7 @@ function showPage(page) {
   document.getElementById('pageTitle').textContent=pageTitles[page]||page;
   if(page==='newWork') initNewWorkDate();
   if(page !== 'newWork') resetNewWorkForm();
-  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry,payments:renderPayments,complaints:renderComplaints};
+  const renders={allWork:renderWorkTable,overdue:renderOverdue,udhari:renderUdhari,expiry:renderExpiry,bankLedger:renderLedger,staff:renderSalary,performance:renderPerformance,accessLog:renderAccessLog,manageStaff:renderManageStaff,dashboard:renderDashboard,dailySummary:renderSummary,datewise:renderDateWise,followup:renderFollowups,cashTracker:renderCashTracker,pnl:renderPnL,attendance:renderAttendance,reconcile:renderReconcilePage,dues:renderDues,combinedBalance:renderCombinedBalance,officeSpend:renderOfficeSpend,officeExpenditure:renderOfficeExpenditure,verification:renderVerification,rejectedWorks:renderRejectedWorks,addInquiry:renderAddInquiry,allInquiry:renderAllInquiry,payments:renderPayments,employeeLedger:renderEmployeeLedger,complaints:renderComplaints};
   if(renders[page]) renders[page]();
   closeSidebar();
 }
@@ -4457,7 +4631,8 @@ function renderDashboard() {
   const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
   // Show audit notification if owner
   if(currentUser && currentUser.role==='owner') checkOwnerAuditNotif();
-  document.getElementById('dashStats').innerHTML=`
+  document.getElementById('dashStats').innerHTML=`<div class="sc green" onclick="showPage('dailySummary')"><div class="sl">Today's Revenue</div><div class="sv">${inr(todayCollected)}</div></div>
+    
     <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
     <div class="sc green" style="cursor:pointer;" onclick="setAllWorkTab('closed',document.getElementById('allWorkClosedBtn'));showPage('allWork')"><div class="sl">Completed</div><div class="sv">${done}</div></div>
     <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Open</div><div class="sv">${open}</div></div>
@@ -4530,6 +4705,33 @@ function renderDashboard() {
       <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)}</div></div>
       <span class="badge br">${inr(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)))}</span>
     </div>`).join('');
+
+  // Staff daily work count
+  const staffDailyEl = document.getElementById('staffDailyBody');
+  if(staffDailyEl) {
+    const staffCounts = {};
+    todayWorks.forEach(w => {
+      const name = w.takenBy || 'Unknown';
+      if(!staffCounts[name]) staffCounts[name] = {count:0, amount:0};
+      staffCounts[name].count++;
+      staffCounts[name].amount += (w.totalPaid||w.amount||0);
+    });
+    const entries = Object.entries(staffCounts).sort((a,b) => b[1].count - a[1].count);
+    if(!entries.length) {
+      staffDailyEl.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:.85rem;padding:16px;">No works added today yet</div>';
+    } else {
+      staffDailyEl.innerHTML = entries.map(([name, data]) =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--grayb);">
+          <div>
+            <span style="font-weight:700;font-size:.88rem;">${esc(name)}</span>
+            <span style="font-size:.75rem;color:var(--text3);margin-left:6px;">${data.count} work${data.count>1?'s':''}</span>
+          </div>
+          <span style="font-family:var(--font-num);font-weight:700;color:var(--g);font-size:.88rem;">${inr(data.amount)}</span>
+        </div>`
+      ).join('');
+    }
+  }
+
 }
 
 // ============================================================
@@ -4546,7 +4748,8 @@ function initNewWorkDate(){
   // Set today on ALL pay-date-inp including firstPayDate
   document.querySelectorAll('#payModeList .pay-date-inp, .pay-date-inp').forEach(d=>{
     d.value=today;
-  });
+    const dateEl=document.getElementById('w_date'); if(dateEl) dateEl.max=new Date().toISOString().split('T')[0];
+});
   const fp=document.getElementById('firstPayDate');
   if(fp) fp.value=today;
 }
@@ -4661,13 +4864,16 @@ function calcRemaining() {
 
   if(wv>0 && received>wv) {
     div.style.display='block';
-    div.style.background='#f0fdf4'; div.style.color='#166534';
-    div.textContent = `✅ Client paid ${inr(received-wv)} extra over work value`;
+    div.style.background='linear-gradient(135deg,#dcfce7,#bbf7d0)'; div.style.color='#065f46';
+    div.style.border='2px solid #86efac';
+    div.style.fontSize='1rem'; div.style.fontWeight='800';
+    div.innerHTML = `💚 <span style="font-size:1.2rem;">Client paid <strong>${inr(received-wv)}</strong> EXTRA</span> over work value`;
   } else if(wv>0 && received<wv) {
     div.style.display='block';
-    div.style.background='#fef2f2'; div.style.color='#be123c';
-    div.style.border='1.5px solid #fecaca';
-    div.textContent = `⚠️ Balance due: ${inr(wv-received)} still to collect from client`;
+    div.style.background='linear-gradient(135deg,#fee2e2,#fecaca)'; div.style.color='#991b1b';
+    div.style.border='2px solid #f87171';
+    div.style.fontSize='1rem'; div.style.fontWeight='800';
+    div.innerHTML = `⚠️ <span style="font-size:1.2rem;">BALANCE DUE: <strong>${inr(wv-received)}</strong></span> still to collect`;
   } else { div.style.display='none'; }
 }
 
@@ -5055,6 +5261,8 @@ function addVWRow() {
         <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
         <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
         <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
+          <div class="wtopt" data-val="DCRB" onclick="wtSelectOption(this)">📃 DCRB</div>
+          <div class="wtopt" data-val="VIPNumber" onclick="wtSelectOption(this)">⭐ VIP Number</div>
       </div>
       <div class="wtype-extras" style="margin-top:8px;"></div>
     </div>`;
@@ -5175,6 +5383,8 @@ function resetVWRows() {
           <div class="wtopt" data-val="HSRP" onclick="wtSelectOption(this)">🔖 HSRP</div>
           <div class="wtopt" data-val="DrivingLicense" onclick="wtSelectOption(this)">🪪 Driving License</div>
           <div class="wtopt" data-val="Others" onclick="wtSelectOption(this)">📦 Others</div>
+          <div class="wtopt" data-val="DCRB" onclick="wtSelectOption(this)">📃 DCRB</div>
+          <div class="wtopt" data-val="VIPNumber" onclick="wtSelectOption(this)">⭐ VIP Number</div>
         </div>
         <div class="wtype-extras" style="margin-top:8px;"></div>
       </div>
@@ -5240,8 +5450,41 @@ async function _doSubmitWork() {
     }
   }
   const remaining = workValue>0 ? Math.max(0,workValue-totalPaid) : 0;
-  const workNum = await getNextWorkNum();
   const clientId = await getOrCreateClientId(phone);
+
+  // Check if client has existing dues — warn before proceeding
+  const existingDues = allWorks.filter(w=>
+    w.clientId===clientId && w.status!=='pending_verification' && w.status!=='rejected' &&
+    ((w.remainingBalance||0)>0 || w.payMode==='Unpaid')
+  );
+  if(existingDues.length>0) {
+    const totalDue = existingDues.reduce((s,w)=>s+(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0))),0);
+    const oldestTs = existingDues.reduce((m,w)=>{
+      let wd=0;if(w.date){const p=w.date.split('/');if(p.length===3)wd=new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime();}
+      if(!wd)wd=w.timestamp||0;return wd&&wd<m?wd:m;
+    },Infinity);
+    const daysPending = isFinite(oldestTs)?Math.floor((Date.now()-oldestTs)/86400000):0;
+    if(!confirm('⚠️ WARNING: This client ('+clientId+') already owes '+inr(totalDue)+' from '+existingDues.length+' work(s)!'+(daysPending>0?' ('+daysPending+' days pending)':'')+'\n\nDo you still want to add this new work?')) return;
+  }
+
+  // Check if client has excess balance and auto-deduct
+  const excessWorks = allWorks.filter(w=>
+    w.clientId===clientId && (w.status==='done'||w.status==='partial') &&
+    (w.workValue||0)>0 && (w.totalPaid||w.amount||0)>(w.workValue||0)
+  );
+  const totalExcess = excessWorks.reduce((s,w)=>s+Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0)),0);
+  if(totalExcess > 0 && workValue > 0 && totalPaid < workValue) {
+    const deductable = Math.min(totalExcess, workValue - totalPaid);
+    if(deductable > 0) {
+      const useExcess = confirm('💚 This client has ₹'+inr(totalExcess)+' excess balance from previous works.\n\nDeduct ₹'+inr(deductable)+' from their excess to cover this work?');
+      if(useExcess) {
+        // We'll mark this in notes — actual balance adjustment happens via payment entries
+        toast('Excess deduction noted. Create a payment entry to formally adjust.','info');
+      }
+    }
+  }
+
+  const workNum = await getNextWorkNum();
   const now = new Date();
   const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
 
@@ -5258,6 +5501,7 @@ async function _doSubmitWork() {
     chassisLast5: primaryRow.chassisLast5||'',
     engineLast5: primaryRow.engineLast5||'',
     phone,
+    altPhone: document.getElementById('w_altPhone')?.value?.trim()||'',
     workType: primaryRow.workType,
     // Rich extras stored as JSON for full detail
     workExtras: JSON.stringify(primaryRow),
@@ -5307,6 +5551,7 @@ async function _doSubmitWork() {
     document.getElementById('w_name').value='';
     document.getElementById('w_clientName').value='';
     document.getElementById('w_phone').value='';
+    document.getElementById('w_altPhone').value='';
     document.getElementById('w_amount').value='';
     document.getElementById('w_notes').value='';
     document.getElementById('w_date').value=new Date().toISOString().split('T')[0];
@@ -5412,8 +5657,16 @@ function showWhatsAppPopup(name, phone, uid, workType, dlLicenseType='') {
   const msg = "Hello "+name+"! 🙏\n\nYour work ("+wtDisplay+") has been successfully registered with Nandan Legal Services.\n\n📋 *Client ID: "+uid+"*\n\nYou can track your work status and document expiry dates anytime by visiting our website and entering your Client ID:\n👉 "+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
-  // Auto-focus send button so Tab/Enter works immediately
-  setTimeout(()=>{ const btn=document.getElementById('wa_sendBtn'); if(btn) btn.focus(); }, 120);
+  // Auto-focus close button so Enter closes the popup by default
+  setTimeout(()=>{
+    const closeBtn=document.querySelector('#whatsappModal .md-close');
+    if(closeBtn) closeBtn.focus();
+    // Also listen for Enter to close
+    const handler = (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); closeModal('whatsappModal'); document.removeEventListener('keydown',handler); }
+    };
+    document.addEventListener('keydown', handler);
+  }, 120);
 }
 function waFromWork(key) { const w=allWorks.find(x=>x._key===key); if(w) showWhatsAppPopup(w.ownerName||w.clientName,w.phone,w.clientId||w.uid,w.workType,w.dlLicenseType||''); }
 // ============================================================
@@ -5469,7 +5722,7 @@ function renderWorkTable(){
     <td><span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span></td>
     <td style="font-size:.78rem;">${esc(w.takenBy)}${w.verifiedBy?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:700;'>✅ ${esc(w.verifiedBy)}</span>`:''}${w.assignedTo?`<br/><span style='font-size:.7rem;color:var(--p);font-weight:700;'>👤 ${esc(w.assignedTo)}</span>`:''}</td>
     <td style="font-size:.77rem;">
-      <div style="font-weight:700;color:#1e1b4b;">${fmtDate(w.date)}</div>
+      <div style="font-weight:700;color:#0f1f3a;">${fmtDate(w.date)}</div>
       <div style="font-size:.68rem;color:var(--gray);margin-top:1px;">Work date</div>
       ${w.timestamp?`<div style="font-size:.68rem;color:#7c3aed;margin-top:4px;font-weight:600;">Added: ${new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`:''}
       ${w.time?`<div style="font-size:.65rem;color:var(--gray);">${esc(w.time)}</div>`:''}
@@ -5495,6 +5748,23 @@ async function duplicateWork(key) {
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
   if(!confirm(`Duplicate work #${w.workNum} for ${esc(w.ownerName||w.clientName)}?\nA new pending verification entry will be created.`)) return;
+  // Check if client has excess balance and auto-deduct
+  const excessWorks = allWorks.filter(w=>
+    w.clientId===clientId && (w.status==='done'||w.status==='partial') &&
+    (w.workValue||0)>0 && (w.totalPaid||w.amount||0)>(w.workValue||0)
+  );
+  const totalExcess = excessWorks.reduce((s,w)=>s+Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0)),0);
+  if(totalExcess > 0 && workValue > 0 && totalPaid < workValue) {
+    const deductable = Math.min(totalExcess, workValue - totalPaid);
+    if(deductable > 0) {
+      const useExcess = confirm('💚 This client has ₹'+inr(totalExcess)+' excess balance from previous works.\n\nDeduct ₹'+inr(deductable)+' from their excess to cover this work?');
+      if(useExcess) {
+        // We'll mark this in notes — actual balance adjustment happens via payment entries
+        toast('Excess deduction noted. Create a payment entry to formally adjust.','info');
+      }
+    }
+  }
+
   const workNum = await getNextWorkNum();
   const now = new Date();
   const dupData = {
@@ -6616,146 +6886,193 @@ function searchClientHistory(){
 function viewWork(key){
   const w=allWorks.find(x=>x._key===key);
   if(!w)return;
-  let payInfo='';
-  try{const modes=JSON.parse(w.payModes||'[]');payInfo=modes.map(m=>`<div class="di"><div class="dl">${esc(m.mode)}${m.bank?' ('+esc(m.bank)+')':''}${m.employee?' — '+esc(m.employee)+' ':''}</div><div class="dv">${inr(m.amount||0)}</div></div>`).join('');
-  }catch(e){payInfo=`<div class="di"><div class="dl">${esc(w.payMode||'—')}</div><div class="dv">${inr(w.amount||0)}</div></div>`;}
-  document.getElementById('workDetailBody').innerHTML=`
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')" data-restrict="print-export">🖨️ Print Receipt</button>
-      <button class="btn btn-success btn-sm" onclick="waFromWork('${key}')">📱 WhatsApp</button>
-      ${w.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="closeModal('workDetailModal');openCloseWork('${key}')">✅ Complete Work</button>`:''}
-    </div>
-    <div class="di"><div class="dl">Work #</div><div class="dv"><strong>#${w.workNum}</strong></div></div>
-    <div class="di"><div class="dl">Client ID</div><div class="dv"><span class="uid-tag" style="cursor:pointer;" title="Click to copy" onclick="navigator.clipboard.writeText('${esc(w.clientId||'')}').then(()=>toast('Client ID copied! ✅','success'))">${esc(w.clientId||'—')}</span></div></div>
-    <div class="di"><div class="dl">Owner Name</div><div class="dv">${esc(w.ownerName||w.clientName)}</div></div>
-    ${w.clientName&&w.clientName!==w.ownerName?`<div class="di"><div class="dl">Client at Office</div><div class="dv">${esc(w.clientName)}</div></div>`:''}
-    <div class="di"><div class="dl">Phone</div><div class="dv">${esc(w.phone)}</div></div>
-    <div class="di" style="grid-column:1/-1;"><div class="dl">Vehicle(s) & Work</div><div class="dv">
-      ${(()=>{
-        try{
-          const items=JSON.parse(w.vehicleWorkItems||'[]');
-          if(items.length>0) return items.map(r=>{
-            const xs=fmtExtras(r,'<br>');
-            return '<div style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--grayb);">'
-              +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
-              +'<span style="font-family:var(--font-num);font-weight:700;font-size:.88rem;">'+esc(r.vehicle||'—')+'</span>'
-              +'<span class="badge '+(wtClasses[r.workType]||'bgr')+'" style="font-size:.68rem;">'+wtLabel(r.workType)+'</span>'
-              +(r.rowWorkValue>0?'<span style="font-size:.78rem;font-weight:700;color:var(--g);">'+inr(r.rowWorkValue)+'</span>':'')
-              +'</div>'
-              +(xs?'<div style="font-size:.78rem;margin-top:6px;padding-top:6px;border-top:1px dashed var(--grayb);color:var(--text2);line-height:1.7;">'+xs+'</div>':'')
-              +'</div>';
-          }).join('');
-        }catch(e){}
-        return '<span style="font-family:var(--font-num);font-weight:700;">'+esc(w.vehicles||w.vehicle)+'</span>';
-      })()}
-    </div></div>
-    ${w.workType==='Transfer'&&!(()=>{try{return JSON.parse(w.vehicleWorkItems||'[]').length>1;}catch(e){return false;}})()
-      ?`<div class="di"><div class="dl">Transfer From</div><div class="dv">${esc(w.transferFrom)}</div></div><div class="di"><div class="dl">Transfer To</div><div class="dv">${esc(w.transferTo)}</div></div>`:''}
-    <div class="di"><div class="dl">Work Type(s)</div><div class="dv">${(()=>{
-      try{
-        const items=JSON.parse(w.vehicleWorkItems||'[]');
-        if(items.length>1){
-          const types=[...new Set(items.map(r=>r.workType).filter(Boolean))];
-          return types.map(t=>'<span class="badge '+(wtClasses[t]||'bgr')+'" style="font-size:.7rem;margin:2px 3px 2px 0;">'+wtLabel(t)+'</span>').join('');
-        }
-      }catch(e){}
-      return wtLabel(w.workType)+(w.othersSpecify?' — '+esc(w.othersSpecify):'')+(w.dlLicenseType?' — '+esc(w.dlLicenseType):'');
-    })()}</div></div>
-    ${(()=>{
-      // Show rich work extras from workExtras ONLY for single-vehicle works (multi already shown above per-row)
-      try{ const items=JSON.parse(w.vehicleWorkItems||'[]'); if(items.length>1) return ''; }catch(e){}
-      let ex={};try{ex=JSON.parse(w.workExtras||'{}');}catch(e){}
-      const rows=[];
-      const row=(l,v)=>v?`<div class="di"><div class="dl">${l}</div><div class="dv">${esc(String(v))}</div></div>`:'';
-      rows.push(row('Seller Name',ex.sellerName),row('Seller Mobile',ex.sellerMob));
-      rows.push(row('Purchaser Name',ex.buyerName),row('Purchaser Mobile',ex.buyerMob));
-      rows.push(row('Challan No.',ex.challanNo),row('Challan Amount',ex.challanAmount?'₹'+ex.challanAmount:''),row('Challan Date',ex.challanDate),row('Challan Type',ex.challanType));
-      rows.push(row('Challan Position',ex.challanPosition),row('Challan District',ex.challanDistrict));
-      rows.push(row('Insurance Policy',ex.insPolicy),row('Insurance Company',ex.insCompany),row('Insurance Type',ex.insType),row('Insurance Validity',ex.insValidity));
-      if(ex.insTransferTo) rows.push(row('Insurance Transfer To',ex.insTransferTo));
-      rows.push(row('Road Tax Type',ex.roadTaxType),row('Road Tax Position',ex.roadTaxPosition),row('Road Tax District',ex.roadTaxDistrict));
-      rows.push(row('Permit Type',ex.permitType));
-      if(ex.expiryState) rows.push(row('State Permit Expiry',ex.expiryState));
-      if(ex.expiryNational||w.expiryNational) rows.push(row('All-India Permit Expiry',ex.expiryNational||w.expiryNational));
-      rows.push(row('DL Category',ex.dlCategory),row('DL Sub-type',ex.dlSubtype),row('License No.',ex.dlLicNo));
-      rows.push(row('Hypothecation Type',ex.hypType));
-      rows.push(row('Conversion Type',ex.conversionType));
-      rows.push(row('Fitness Type',ex.fitnessType));
-      rows.push(row('Trade Certificate',ex.tradeType));
-      if(ex.altChassis||ex.altEngine||ex.altBody){
-        const parts=[ex.altChassis&&'Chassis',ex.altEngine&&'Engine',ex.altBody&&'Body'].filter(Boolean);
-        rows.push(row('Alteration',parts.join(', ')));
-      }
-      rows.push(row('District',ex.district),row('State',ex.state),row('NOC RTO Code',ex.nocRto));
-      return rows.filter(Boolean).join('');
-    })()}
-    <div class="di"><div class="dl">Work Value</div><div class="dv">${w.workValue?inr(w.workValue):'—'}${(w.totalFee||w.totalPenalty)?`<br/><span style="font-size:.72rem;color:#166534;">Fee: ${inr(w.totalFee||0)}</span> <span style="font-size:.72rem;color:#dc2626;">Penalty: ${inr(w.totalPenalty||0)}</span>`:''}</div></div>
-    <div class="di"><div class="dl">Total Paid</div><div class="dv" style="color:var(--g);font-weight:800;">${inr(w.totalPaid||w.amount||0)}</div></div>
-    ${w.remainingBalance>0?`<div class="di"><div class="dl">Balance Due</div><div class="dv" style="color:var(--r);font-weight:800;">${inr(w.remainingBalance)}</div></div>`:''}
-    ${payInfo}
-    ${(()=>{const pmts=allLedger.filter(l=>{try{const m=JSON.parse(l.receiptUrls||'{}');return m.is_payment_entry&&m.payment_work_key===key;}catch(e){return false;}});if(!pmts.length)return '';return `<div style="background:#f0fdf4;border-radius:10px;padding:10px 14px;margin:8px 0;"><div style="font-size:.73rem;font-weight:800;color:#166534;text-transform:uppercase;margin-bottom:8px;">💰 Payments (Payments Page)</div>${pmts.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #d1fae5;font-size:.82rem;"><span>${l.type==='credit'?'↑ Credit':'↓ Debit'} · ${esc(l.bank||'—')} · ${esc(l.date||'—')}</span><span style="font-weight:800;color:${l.type==='credit'?'#16a34a':'#be123c'};">${l.type==='credit'?'+':'-'}${inr(l.amount||0)}</span></div>`).join('')}</div>`})()}
-    <div class="di"><div class="dl">Status</div><div class="dv">${w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial Completion':'🔵 Open'}</div></div>
-    ${w.partialDesc?`<div class="di"><div class="dl">Partial Done</div><div class="dv">${esc(w.partialDesc)}</div></div>`:''}
-    <div class="di"><div class="dl">Work Date</div><div class="dv">${fmtDate(w.date)} ${esc(w.time||"")}</div></div>
-    ${w.timestamp?`<div class="di"><div class="dl" style="color:#7c3aed;">Entry Date</div><div class="dv" style="color:#7c3aed;font-weight:700;">Added on ${new Date(w.timestamp).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})} at ${new Date(w.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`:''}
 
-    <div class="di" style="grid-column:1/-1;">
-      <div class="dl">Work Timeline</div>
-      <div class="dv">
-        <div style="display:flex;flex-direction:column;gap:0;margin-top:4px;">
-          <!-- Step 1: Added -->
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;align-items:center;">
-              <div style="width:24px;height:24px;border-radius:50%;background:#4f46e5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">1</div>
-              <div style="width:2px;flex:1;background:${w.verifiedBy?'#4f46e5':'#e2e8f0'};min-height:20px;"></div>
-            </div>
-            <div style="padding-bottom:14px;">
-              <div style="font-weight:700;font-size:.82rem;">📝 Added by ${esc(w.takenBy)}</div>
-              <div style="font-size:.72rem;color:var(--gray);">${w.timestamp?new Date(w.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):esc(w.date)+' '+esc(w.time||'')}</div>
-            </div>
-          </div>
-          <!-- Step 2: Verified -->
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;align-items:center;">
-              <div style="width:24px;height:24px;border-radius:50%;background:${w.verifiedBy?'#059669':'#e2e8f0'};color:${w.verifiedBy?'#fff':'#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">2</div>
-              <div style="width:2px;flex:1;background:${w.status==='done'?'#059669':'#e2e8f0'};min-height:20px;"></div>
-            </div>
-            <div style="padding-bottom:14px;">
-              ${w.verifiedBy
-                ? `<div style="font-weight:700;font-size:.82rem;color:#059669;">✅ Verified by ${esc(w.verifiedBy)}</div><div style="font-size:.72rem;color:var(--gray);">${w.verifiedAt?new Date(w.verifiedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>`
-                : `<div style="font-weight:600;font-size:.82rem;color:#94a3b8;">⏳ Pending verification</div>`
-              }
-              ${w.assignedTo?`<div style="font-size:.72rem;color:var(--p);font-weight:600;margin-top:2px;">👤 Assigned to ${esc(w.assignedTo)}</div>`:''}
-            </div>
-          </div>
-          <!-- Step 3: Completed -->
-          <div style="display:flex;gap:10px;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;align-items:center;">
-              <div style="width:24px;height:24px;border-radius:50%;background:${w.status==='done'?'#16a34a':w.status==='partial'?'#f59e0b':'#e2e8f0'};color:${w.status!=='open'?'#fff':'#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;">3</div>
-            </div>
-            <div>
-              ${w.status==='done'
-                ? `<div style="font-weight:700;font-size:.82rem;color:#16a34a;">✅ Completed by ${esc(w.completedBy)}</div><div style="font-size:.72rem;color:var(--gray);">${esc(w.completedDate)}</div>`
-                : w.status==='partial'
-                ? `<div style="font-weight:700;font-size:.82rem;color:#d97706;">⏳ Partially completed by ${esc(w.completedBy)}</div>`
-                : `<div style="font-weight:600;font-size:.82rem;color:#94a3b8;">🔵 Not yet completed</div>`
-              }
-            </div>
-          </div>
-        </div>
+  // Parse all data sources
+  let payModes=[];
+  try{payModes=JSON.parse(w.payModes||'[]');}catch(e){}
+  let vwItems=[];
+  try{vwItems=JSON.parse(w.vehicleWorkItems||'[]');}catch(e){}
+  let workEx={};
+  try{workEx=JSON.parse(w.workExtras||'{}');}catch(e){}
+
+  // If vehicleWorkItems is empty, build a single item from top-level fields
+  if(!vwItems.length) {
+    vwItems = [{
+      vehicle: w.vehicles||w.vehicle||'',
+      workType: w.workType||'',
+      rowWorkValue: w.workValue||0,
+      fee: w.totalFee||0, penalty: w.totalPenalty||0,
+      chassisLast5: w.chassisLast5||'', engineLast5: w.engineLast5||'',
+      othersSpecify: w.othersSpecify||'', ...workEx
+    }];
+  }
+
+  // Merge workExtras into first item if that item lacks extras
+  if(vwItems.length>0) {
+    const first = vwItems[0];
+    const extraKeys = ['sellerName','buyerName','challanNo','challanAmount','hypType','permitType','insPolicy','roadTaxType','dlSubtype','fitnessType','conversionType','tradeType','challanType','challanDate','challanPosition','challanDistrict','insCompany','insType','insValidity'];
+    const firstHasExtras = extraKeys.some(k=>first[k]);
+    if(!firstHasExtras && workEx) {
+      Object.keys(workEx).forEach(k => { if(workEx[k] && !first[k]) first[k] = workEx[k]; });
+    }
+  }
+
+  // Also merge top-level legacy fields into first item
+  const first = vwItems[0];
+  if(w.transferFrom && !first.sellerName) first.sellerName = w.transferFrom;
+  if(w.transferTo && !first.buyerName) first.buyerName = w.transferTo;
+  if(w.othersSpecify && !first.othersSpecify && !first.othersSpec) first.othersSpecify = w.othersSpecify;
+  if(w.dlLicenseType && !first.dlSubtype) first.dlSubtype = w.dlLicenseType;
+
+  const allTypes = [...new Set(vwItems.map(r=>r.workType).filter(Boolean))];
+
+  // Build extras display for a single vehicle row
+  function buildExtras(r) {
+    if(!r) return '';
+    const items = [];
+    const add = (label, val) => { if(val && val !== 'false' && val !== '' && val !== '0') items.push({label, val: String(val)}); };
+    add('Seller', r.sellerName); add('Seller Ph', r.sellerMob);
+    add('Buyer', r.buyerName); add('Buyer Ph', r.buyerMob);
+    add('Challan No.', r.challanNo); add('Challan ₹', r.challanAmount ? '₹'+r.challanAmount : '');
+    add('Challan Type', r.challanType); add('Challan Date', r.challanDate);
+    add('Challan Pos.', r.challanPosition); add('Challan Dist.', r.challanDistrict);
+    add('Policy', r.insPolicy); add('Ins. Company', r.insCompany);
+    add('Ins. Type', r.insType); add('Validity', r.insValidity); add('Ins. Transfer To', r.insTransferTo);
+    add('Tax Type', r.roadTaxType); add('Tax Pos.', r.roadTaxPosition); add('Tax Dist.', r.roadTaxDistrict);
+    add('Permit Type', r.permitType); add('Hyp. Type', r.hypType);
+    add('Fitness', r.fitnessType); add('Conversion', r.conversionType); add('Trade', r.tradeType);
+    add('DL Type', r.dlSubtype); add('DL Category', r.dlCategory); add('License No.', r.dlLicNo);
+    if(r.altChassis||r.altEngine||r.altBody) { const p=[r.altChassis&&'Chassis',r.altEngine&&'Engine',r.altBody&&'Body'].filter(Boolean); add('Alteration', p.join(', ')); }
+    add('Work Detail', r.othersSpec||r.othersSpecify);
+    add('District', r.district); add('State', r.state); add('NOC RTO', r.nocRto);
+    add('Expiry', r.expiryDate||r.expiryState); add('Natl. Expiry', r.expiryNational);
+    if(!items.length) return '';
+    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;margin-top:8px;padding:10px 12px;background:var(--accl);border-radius:8px;border:1px solid rgba(232,119,34,.18);">${items.map(i=>`<div style="padding:2px 0;"><div style="font-size:.64rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;">${esc(i.label)}</div><div style="font-size:.84rem;font-weight:600;color:var(--text);">${esc(i.val)}</div></div>`).join('')}</div>`;
+  }
+
+  // Vehicle cards
+  const vehicleSection = vwItems.map(r => {
+    const extras = buildExtras(r);
+    return `<div style="background:var(--surface);border:1.5px solid var(--grayb);border-radius:12px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-num);font-weight:700;font-size:.92rem;background:var(--bg2);padding:4px 10px;border-radius:6px;">${esc(r.vehicle||'—')}</span>
+        <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.72rem;">${wtLabel(r.workType)}</span>
+        ${r.rowWorkValue>0?`<span style="font-family:var(--font-num);font-weight:700;color:var(--g);font-size:.85rem;">${inr(r.rowWorkValue)}</span>`:''}
+        ${r.fee>0?`<span style="font-size:.7rem;color:var(--text3);">Fee:${inr(r.fee)}</span>`:''}
+        ${r.penalty>0?`<span style="font-size:.7rem;color:var(--r);">Pen:${inr(r.penalty)}</span>`:''}
+      </div>
+      ${r.chassisLast5||r.engineLast5?`<div style="margin-top:6px;display:flex;gap:6px;">${r.chassisLast5?`<span style="font-size:.72rem;background:#fffbeb;border:1px solid #fde68a;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">C:${esc(r.chassisLast5)}</span>`:``}${r.engineLast5?`<span style="font-size:.72rem;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">E:${esc(r.engineLast5)}</span>`:``}</div>`:''}
+      ${extras}
+    </div>`;
+  }).join('');
+
+  // Payment section
+  const paySection = payModes.length ? payModes.map(m =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:5px;border:1px solid var(--grayb);">
+      <div><span style="font-weight:700;font-size:.85rem;">${esc(m.mode)}</span>${m.bank?` <span style="color:var(--text3);font-size:.8rem;">(${esc(m.bank)})</span>`:''}${m.employee?` <span style="color:var(--acc);font-size:.78rem;">— ${esc(m.employee)}</span>`:''}${m.payDate?` <span style="color:var(--text3);font-size:.72rem;">· ${esc(m.payDate)}</span>`:''}</div>
+      <span style="font-family:var(--font-num);font-weight:700;font-size:.88rem;color:var(--g);">${inr(m.amount||0)}</span>
+    </div>`
+  ).join('') : `<div style="padding:8px 12px;background:var(--bg2);border-radius:8px;font-size:.85rem;">${esc(w.payMode||'—')}: <strong>${inr(w.amount||0)}</strong></div>`;
+
+  const paymentEntries = allLedger.filter(l=>{try{const m=JSON.parse(l.receiptUrls||'{}');return m.is_payment_entry&&m.payment_work_key===key;}catch(e){return false;}});
+  const rtoEntries = allLedger.filter(l=>(l.ospEntry===true||(l.type==='debit'&&(l.description||'').startsWith('RTO Inside Spend:')))&&(l.workRef||'').startsWith('#'+w.workNum+' '));
+
+  const statusBg = w.status==='done'?'var(--gl)':w.status==='partial'?'var(--ol)':'var(--pl)';
+  const statusColor = w.status==='done'?'var(--gd)':w.status==='partial'?'#b45309':'var(--p)';
+  const statusText = w.status==='done'?'✅ Completed':w.status==='partial'?'⏳ Partial':'🔄 In Progress';
+
+  document.getElementById('workDetailBody').innerHTML=`
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--font-num);font-size:1.3rem;font-weight:800;color:var(--p);">#${w.workNum}</span>
+        <span style="background:${statusBg};color:${statusColor};padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;">${statusText}</span>
+      </div>
+      <span class="uid-tag" style="cursor:pointer;font-size:.82rem;" onclick="navigator.clipboard.writeText('${esc(w.clientId||'')}').then(()=>toast('Copied!','success'))">${esc(w.clientId||'—')} 📋</span>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="printReceipt('${key}')" data-restrict="print-export">🖨️ Receipt</button>
+      <button class="btn btn-sm" style="background:#25d366;color:#fff;" onclick="waFromWork('${key}')">📱 WhatsApp</button>
+      ${w.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="closeModal('workDetailModal');openCloseWork('${key}')">✅ Complete</button><button class="btn btn-gray btn-sm" onclick="closeModal('workDetailModal');openEditWork('${key}')">✏️ Edit</button>`:''}
+    </div>
+
+    <!-- Client Card -->
+    <div style="background:linear-gradient(135deg,var(--pl),var(--surface));border:1.5px solid #c7d8ec;border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:.66rem;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">👤 Client</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;">
+        <div><div style="font-size:.66rem;color:var(--text3);font-weight:600;">OWNER</div><div style="font-weight:700;font-size:.92rem;">${esc(w.ownerName||w.clientName)}</div></div>
+        ${w.clientName&&w.clientName!==w.ownerName?`<div><div style="font-size:.66rem;color:var(--text3);font-weight:600;">CLIENT</div><div style="font-weight:700;">${esc(w.clientName)}</div></div>`:''}
+        <div><div style="font-size:.66rem;color:var(--text3);font-weight:600;">PHONE</div><div style="font-weight:700;">${esc(w.phone)}</div></div>
+        ${w.altPhone?`<div><div style="font-size:.66rem;color:var(--text3);font-weight:600;">ALT PHONE</div><div style="font-weight:700;">${esc(w.altPhone)}</div></div>`:''}
       </div>
     </div>
-    ${w.receiptAmount?`<div class="di"><div class="dl">Expense Paid</div><div class="dv">${inr(w.receiptAmount)} from ${esc(w.closingBank)}</div></div>`:''}
-    ${w.miscExpense>0?`<div class="di"><div class="dl" style="color:var(--r);">Misc Expense</div><div class="dv" style="color:var(--r);">${inr(w.miscExpense)} — ${esc(w.miscReason)}</div></div>`:''}
-    ${w.expiryDate?`<div class="di"><div class="dl">Expiry Date</div><div class="dv" style="color:var(--r);font-weight:800;">${esc(w.expiryDate)}</div></div>`:''}
-    ${w.closeNotes?`<div class="di"><div class="dl">Notes</div><div class="dv">${esc(w.closeNotes)}</div></div>`:''}
-    ${(()=>{
-      // RTO Inside Spend entries linked to this work
-      const rtoEntries = allLedger.filter(l=>(l.ospEntry===true||(l.type==='debit'&&(l.description||'').startsWith('RTO Inside Spend:')))&&(l.workRef||'').startsWith('#'+w.workNum+' '));
-      if(!rtoEntries.length) return '';
-      return `<div style="background:#fff7ed;border-radius:10px;padding:10px 14px;margin:8px 0;"><div style="font-size:.73rem;font-weight:800;color:#c2410c;text-transform:uppercase;margin-bottom:8px;">🏢 RTO Inside Spend</div>${rtoEntries.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fed7aa;font-size:.82rem;"><span>${esc((l.description||'').replace('RTO Inside Spend:','').trim())} · ${esc(l.date||'—')}</span><span style="font-weight:800;color:#c2410c;">-${inr(l.amount||0)}</span></div>`).join('')}</div>`;
-    })()}
-    ${w.receiptPhoto?`<div style="margin-top:10px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:240px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="openImgInTab('${w.receiptPhoto}')" title="Click to download/view document"/><div style="font-size:.75rem;color:var(--gray);margin-top:4px;">Tap image to view/download document</div></div>`:''}
+
+    <!-- Vehicles & Work Card -->
+    <div style="background:var(--surface);border:1.5px solid var(--grayb);border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:.66rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:1px;">🚗 Vehicles & Work</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">${allTypes.map(t=>`<span class="badge ${wtClasses[t]||'bgr'}" style="font-size:.66rem;">${wtLabel(t)}</span>`).join('')}</div>
+      </div>
+      ${vehicleSection}
+    </div>
+
+    <!-- Financial Card -->
+    <div style="background:var(--surface);border:1.5px solid var(--grayb);border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:.66rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">💰 Financials</div>
+      <div style="display:grid;grid-template-columns:${w.remainingBalance>0?'1fr 1fr 1fr':'1fr 1fr'};gap:10px;margin-bottom:14px;">
+        <div style="background:var(--bg2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--grayb);">
+          <div style="font-size:.66rem;color:var(--text3);font-weight:600;margin-bottom:4px;">WORK VALUE</div>
+          <div style="font-family:var(--font-num);font-size:1.15rem;font-weight:700;">${w.workValue?inr(w.workValue):'—'}</div>
+        </div>
+        <div style="background:var(--gl);border-radius:10px;padding:12px;text-align:center;border:1px solid #86efac;">
+          <div style="font-size:.66rem;color:var(--gd);font-weight:600;margin-bottom:4px;">PAID</div>
+          <div style="font-family:var(--font-num);font-size:1.15rem;font-weight:700;color:var(--g);">${inr(w.totalPaid||w.amount||0)}</div>
+        </div>
+        ${w.remainingBalance>0?`<div style="background:var(--rl);border-radius:10px;padding:12px;text-align:center;border:1px solid #fca5a5;">
+          <div style="font-size:.66rem;color:var(--rd);font-weight:600;margin-bottom:4px;">DUE</div>
+          <div style="font-family:var(--font-num);font-size:1.15rem;font-weight:700;color:var(--r);">${inr(w.remainingBalance)}</div>
+        </div>`:''}
+      </div>
+      <div style="font-size:.66rem;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px;">Payment Modes</div>
+      ${paySection}
+    </div>
+
+    ${paymentEntries.length?`<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:.66rem;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">💳 Additional Payments</div>
+      ${paymentEntries.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #bbf7d0;font-size:.82rem;"><span>${l.type==='credit'?'↑ Credit':'↓ Debit'} · ${esc(l.bank||'—')} · ${esc(l.date||'—')}</span><span style="font-family:var(--font-num);font-weight:700;color:${l.type==='credit'?'var(--g)':'var(--r)'};">${l.type==='credit'?'+':'-'}${inr(l.amount||0)}</span></div>`).join('')}
+    </div>`:''}
+
+    ${rtoEntries.length?`<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:.66rem;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🏢 RTO Spend</div>
+      ${rtoEntries.map(l=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fed7aa;font-size:.82rem;"><span>${esc((l.description||'').replace('RTO Inside Spend:','').trim())} · ${esc(l.date||'—')}</span><span style="font-family:var(--font-num);font-weight:700;color:#c2410c;">-${inr(l.amount||0)}</span></div>`).join('')}
+    </div>`:''}
+
+    <!-- Timeline Card -->
+    <div style="background:var(--surface);border:1.5px solid var(--grayb);border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:.66rem;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">📋 Timeline</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;">1</div>
+        <div><div style="font-weight:700;font-size:.85rem;">📝 Created by ${esc(w.takenBy)}</div><div style="font-size:.72rem;color:var(--text3);">${w.timestamp?new Date(w.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):esc(w.date)}</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:${w.verifiedBy?'var(--g)':'var(--grayb)'};color:${w.verifiedBy?'#fff':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;">2</div>
+        <div>${w.verifiedBy?`<div style="font-weight:700;font-size:.85rem;color:var(--g);">✅ Verified by ${esc(w.verifiedBy)}</div>${w.verifiedAt?`<div style="font-size:.72rem;color:var(--text3);">${new Date(w.verifiedAt).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}`:`<div style="font-size:.85rem;color:var(--text3);">⏳ Pending verification</div>`}${w.assignedTo?`<div style="font-size:.74rem;color:var(--p);font-weight:600;margin-top:2px;">👤 ${esc(w.assignedTo)}</div>`:''}</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:28px;height:28px;border-radius:50%;background:${w.status==='done'?'var(--g)':w.status==='partial'?'var(--acc)':'var(--grayb)'};color:${w.status!=='open'?'#fff':'var(--text3)'};display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0;">3</div>
+        <div>${w.status==='done'?`<div style="font-weight:700;font-size:.85rem;color:var(--g);">✅ Completed by ${esc(w.completedBy)}</div><div style="font-size:.72rem;color:var(--text3);">${esc(w.completedDate)}</div>`:w.status==='partial'?`<div style="font-weight:700;font-size:.85rem;color:var(--acc);">⏳ Partial by ${esc(w.completedBy)}</div>${w.partialDesc?`<div style="font-size:.78rem;color:var(--text3);margin-top:2px;">${esc(w.partialDesc)}</div>`:''}`:`<div style="font-size:.85rem;color:var(--text3);">🔵 Awaiting completion</div>`}</div>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:.75rem;color:var(--text3);">
+      <span>📅 ${fmtDate(w.date)}</span>
+      ${w.expiryDate?`<span style="color:var(--r);font-weight:700;">⏰ Expires: ${esc(w.expiryDate)}</span>`:''}
+      ${w.notes?`<span>📝 ${esc(w.notes)}</span>`:''}
+    </div>
+    ${w.receiptPhoto?`<div style="margin-top:12px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:200px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="openImgInTab('${w.receiptPhoto}')"/></div>`:''}
   `;
   openModal('workDetailModal');
 }
@@ -6773,7 +7090,7 @@ const EW_WORK_TYPES = [
   {val:'TradeCertificate',label:'🏷️ Trade Certificate'},{val:'Challan',label:'⚖️ Challan'},
   {val:'Insurance',label:'🛡️ Insurance'},{val:'RoadTax',label:'🛣️ Road Tax'},
   {val:'PUC',label:'🌿 PUC'},{val:'HSRP',label:'🔖 HSRP'},
-  {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'}
+  {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'},{val:'DCRB',label:'📃 DCRB'},{val:'VIPNumber',label:'⭐ VIP Number'}
 ];
 
 function ewMakeRow(vehicle='', workType='', rowVal=0, fee=0, penalty=0) {
@@ -7559,6 +7876,16 @@ function renderDues() {
           <div style="text-align:right;">
             <div style="font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Total Due</div>
             <div style="font-size:1.3rem;font-weight:700;color:var(--r);font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;letter-spacing:-.5px;">${inr(c.totalDue)}</div>
+            ${(()=>{
+              const oldest=c.works.reduce((m,w)=>{
+                let wd=0;if(w.date){const p=w.date.split('/');if(p.length===3)wd=new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime();}
+                if(!wd)wd=w.timestamp||0;return wd&&wd<m?wd:m;
+              },Infinity);
+              if(!isFinite(oldest))return '';
+              const days=Math.floor((Date.now()-oldest)/86400000);
+              const col=days>30?'#be123c':days>15?'#d97706':days>7?'#ca8a04':'#6b6557';
+              return '<div style="font-size:.72rem;font-weight:700;color:'+col+';margin-top:3px;">⏱ '+days+' day'+(days!==1?'s':'')+' since oldest due</div>';
+            })()}
           </div>
           <div style="display:flex;gap:6px;">
             ${c.phone?`<button class="btn btn-sm btn-success" onclick="event.stopPropagation();window.open('https://wa.me/91${c.phone.replace(/\D/g,'')}?text=${encodeURIComponent('Hello '+c.name+', your pending dues amount is ₹'+c.totalDue.toLocaleString('en-IN')+'. Please clear your dues at Nandan Legal Services. Thank you.')}','_blank')" title="WhatsApp">📱</button>`:''}
@@ -7669,6 +7996,23 @@ function openManualDueModal() {
   document.getElementById('md_clientIdField').style.display='none';
   document.getElementById('md_clientLookup').innerHTML='';
   openModal('manualDueModal');
+}
+
+
+function mdSetType(type) {
+  document.getElementById('md_entryType').value = type;
+  const dueBtn = document.getElementById('md_due_btn');
+  const exBtn = document.getElementById('md_excess_btn');
+  const label = document.getElementById('md_amount_label');
+  if(type==='due') {
+    dueBtn.style.border='2px solid var(--r)'; dueBtn.style.background='var(--rl)'; dueBtn.style.color='var(--r)';
+    exBtn.style.border='2px solid var(--grayb)'; exBtn.style.background='#fff'; exBtn.style.color='var(--gray)';
+    label.textContent = 'Amount Due (₹) *';
+  } else {
+    exBtn.style.border='2px solid var(--g)'; exBtn.style.background='var(--gl)'; exBtn.style.color='var(--g)';
+    dueBtn.style.border='2px solid var(--grayb)'; dueBtn.style.background='#fff'; dueBtn.style.color='var(--gray)';
+    label.textContent = 'Excess Amount (₹) *';
+  }
 }
 
 async function saveManualDue() {
@@ -8114,7 +8458,7 @@ function printReceipt(key) {
     @media print{button{display:none!important;}.no-print{display:none!important;}}
 
 .cp-header {
-  background: linear-gradient(135deg, #0a0f1e 0%, #1e1b4b 50%, #2d2b7a 100%);
+  background: linear-gradient(135deg, #0a0f1e 0%, #0f1f3a 50%, #2d2b7a 100%);
   padding: 0;
   position: sticky;
   top: 0;
@@ -8199,7 +8543,7 @@ function printReceipt(key) {
 .cp-greeting-name {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #0f1f3a;
   font-family: Georgia, 'Times New Roman', serif;
   letter-spacing: -.5px;
   line-height: 1.2;
@@ -8212,7 +8556,7 @@ function printReceipt(key) {
 
 /* Client info strip */
 .cp-id-strip {
-  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  background: linear-gradient(135deg, #0f1f3a, #312e81);
   border-radius: 16px;
   padding: 18px 20px;
   margin-bottom: 20px;
@@ -8412,7 +8756,7 @@ function printReceipt(key) {
   border-top: 1px solid rgba(255,255,255,.08);
 }
 .cp-footer strong { color: #fff; }
-.cp-footer a { color: #818cf8; text-decoration: none; font-weight: 600; }
+.cp-footer a { color: var(--acc); text-decoration: none; font-weight: 600; }
 .cp-footer a:hover { color: #a5b4fc; }
 </style></head><body>
   <h2>🏢 Nandan Legal Services</h2>
@@ -8546,6 +8890,13 @@ function previewOspFiles(input) {
   preview.innerHTML = [...input.files].map(f=>`<div>📄 ${esc(f.name)} (${(f.size/1024).toFixed(1)} KB)</div>`).join('');
 }
 
+function previewReceiptPhoto(input) {
+  if(!input.files.length) return;
+  const f = input.files[0];
+  const hint = input.parentElement?.querySelector('.hint');
+  if(hint) hint.textContent = '📄 ' + f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+}
+
 function searchOspWork() {
   const veh = document.getElementById('ospVehicle').value.trim().toUpperCase();
   if(!veh){toast('Enter vehicle number','error');return;}
@@ -8586,13 +8937,15 @@ function selectOspWork(w, el) {
 }
 
 async function saveOspSpend() {
+  if(window._ospSaveLock) { toast('Already saving…','warn'); return; }
+  window._ospSaveLock = true;
   const amt = parseFloat(document.getElementById('ospAmount').value)||0;
   const reason = document.getElementById('ospReason').value.trim();
   const dateVal = document.getElementById('ospDate').value;
   const whoSpent = document.getElementById('ospWhoSpent').value;
-  if(!amt){toast('Enter amount','error');return;}
-  if(!reason){toast('Enter reason','error');return;}
-  if(!whoSpent){toast('Select who spent','error');return;}
+  if(!amt){toast('Enter amount','error');window._ospSaveLock=false;return;}
+  if(!reason){toast('Enter reason','error');window._ospSaveLock=false;return;}
+  if(!whoSpent){toast('Select who spent','error');window._ospSaveLock=false;return;}
   const now = new Date();
   const dateStr = dateVal?new Date(dateVal).toLocaleDateString('en-IN'):now.toLocaleDateString('en-IN');
   const w = ospSelectedWork;
@@ -8620,7 +8973,9 @@ async function saveOspSpend() {
       work_ref: workRef,
       description:`RTO Inside Spend: ${reason}`,
       by: currentUser.name, auto_entry: true,
+      osp_entry: true,
       spent_by: whoSpent, logged_by: currentUser.name,
+      employee_name: whoSpent,
       receipt_urls: fileUrls.length ? JSON.stringify(fileUrls) : null
     });
     if(ledgerResult.error && ledgerResult.error.message&&ledgerResult.error.message.includes('schema cache')) {
@@ -8644,7 +8999,8 @@ async function saveOspSpend() {
     document.getElementById('ospVehicle').value='';
     document.getElementById('ospSearchResult').innerHTML='';
     await loadAllData(); renderOspHistory();
-  } catch(e){toast('Error: '+e.message,'error');}
+    window._ospSaveLock = false;
+  } catch(e){toast('Error: '+e.message,'error'); window._ospSaveLock = false;}
 }
 
 let allOspSpend = [];
@@ -8713,6 +9069,23 @@ function pmtSetType(type) {
   }
 }
 
+
+function pmtWorkChange() {
+  const val = document.getElementById('pmt_work').value;
+  document.getElementById('pmt_work_specify').style.display = val==='other'?'block':'none';
+  // Show employee field when "Other" is selected
+  const empField = document.getElementById('pmt_employee_field');
+  if(empField) empField.style.display = val==='other'?'block':'none';
+  // Populate employee dropdown
+  if(val==='other') {
+    const empSel = document.getElementById('pmt_employee');
+    if(empSel && empSel.options.length <= 1) {
+      empSel.innerHTML = '<option value="">— Select Employee (optional) —</option>' +
+        allStaff.map(s => '<option value="'+esc(s.name)+'">'+esc(s.name)+'</option>').join('');
+    }
+  }
+}
+
 function pmtToggleForm() {
   const form = document.getElementById('pmtForm');
   const btn = document.getElementById('pmtToggleBtn');
@@ -8723,13 +9096,14 @@ function pmtToggleForm() {
     // Init form
     const d = document.getElementById('pmt_date');
     if(d) d.value = new Date().toISOString().split('T')[0];
-    ['pmt_name','pmt_vehicle','pmt_amount','pmt_remarks'].forEach(id=>{
+    ['pmt_name','pmt_vehicle','pmt_amount','pmt_bankCharges','pmt_remarks'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
     });
     document.getElementById('pmt_source').value = '';
     pmtSetType('debit');
     document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
     document.getElementById('pmt_work_specify').style.display = 'none';
+    const empField=document.getElementById('pmt_employee_field'); if(empField) empField.style.display='none';
     document.getElementById('pmt_vehicle_hint').textContent = '';
   }
 }
@@ -8786,6 +9160,9 @@ async function savePaymentEntry() {
   const vehicle = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
   const source = document.getElementById('pmt_source').value;
   const amount = parseFloat(document.getElementById('pmt_amount').value)||0;
+  const bankCharges = parseFloat(document.getElementById('pmt_bankCharges')?.value)||0;
+  const totalWithCharges = amount + bankCharges;
+  const paymentEmployee = document.getElementById('pmt_employee')?.value||'';
   const entryType = document.getElementById('pmt_type')?.value || 'credit';
   const workKey = document.getElementById('pmt_work').value;
   const otherDesc = document.getElementById('pmt_other_desc').value.trim();
@@ -8816,7 +9193,7 @@ async function savePaymentEntry() {
       : (otherDesc || (entryType==='debit'?'Expense/Payout':'Standalone payment'));
 
     const typeLabel = entryType === 'credit' ? 'Payment Received' : 'Expense/Debit';
-    const description = `${typeLabel}: ${name}${vehicle?' / '+vehicle:''} — ${workDesc}`;
+    const description = `${typeLabel}: ${name}${vehicle?' / '+vehicle:''}${paymentEmployee?' [Emp: '+paymentEmployee+']':''} — ${workDesc}${bankCharges>0?' (incl. ₹'+bankCharges+' bank charges)':''}`;
     const workRef = linkedWork ? `#${linkedWork.workNum} — ${linkedWork.ownerName||linkedWork.clientName} / ${linkedWork.vehicle}` : '';
 
     // If editing — reverse old work balance change first, then delete old entry
@@ -8837,7 +9214,7 @@ async function savePaymentEntry() {
     const res = await _sb.from('ledger').insert({
       bank: source,
       type: entryType,   // 'credit' or 'debit'
-      amount,
+      amount: totalWithCharges,
       date: dateStr,
       timestamp: now.getTime(),
       description,
@@ -8851,6 +9228,8 @@ async function savePaymentEntry() {
         payment_work_key: workKey !== 'other' ? workKey : '',
         payment_other_desc: otherDesc,
         payment_entry_type: entryType,
+        payment_employee: paymentEmployee,
+        payment_bank_charges: bankCharges,
         is_payment_entry: true
       })
     });
@@ -8859,7 +9238,7 @@ async function savePaymentEntry() {
     // Only update work balance for CREDIT entries linked to a work
     if(linkedWork && entryType === 'credit') {
       const newRemaining = Math.max(0, (linkedWork.remainingBalance||0) - amount);
-      const newTotal = (linkedWork.totalPaid||linkedWork.amount||0) + amount;
+      const newTotal = (linkedWork.totalPaid||linkedWork.amount||0) + amount; // Use original amount for client balance, not totalWithCharges
       await _sb.from('works').update({
         remaining_balance: newRemaining,
         total_paid: newTotal,
@@ -9718,20 +10097,110 @@ async function renderAccessLog(){
 // ============================================================
 // MANAGE STAFF
 // ============================================================
+
+// ── Edit Staff ──
+function showEditStaff(key) {
+  const s = allStaff.find(x=>x._key===key);
+  if(!s) return;
+  document.getElementById('es_key').value = key;
+  document.getElementById('editStaffName').textContent = '✏️ Editing: ' + s.name;
+  document.getElementById('es_role').value = s.role || 'staff';
+  document.getElementById('es_salary').value = s.baseSalary || '';
+  document.getElementById('es_docs').value = '';
+  // Show existing docs
+  const docsEl = document.getElementById('es_existing_docs');
+  try {
+    const docs = JSON.parse(s.documents||'[]');
+    if(docs.length) {
+      docsEl.innerHTML = '<div style="font-size:.78rem;font-weight:700;margin-bottom:6px;">📎 Existing Documents:</div>' +
+        docs.map((url,i) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <a href="${url}" target="_blank" style="font-size:.8rem;color:var(--p);text-decoration:underline;">Document ${i+1}</a>
+          <button class="btn btn-sm" style="padding:2px 6px;font-size:.7rem;background:var(--rl);color:var(--r);border:1px solid var(--r);" onclick="removeStaffDoc('${key}',${i})">✕</button>
+        </div>`).join('');
+    } else {
+      docsEl.innerHTML = '<div style="font-size:.78rem;color:var(--gray);">No documents uploaded yet.</div>';
+    }
+  } catch(e) { docsEl.innerHTML = ''; }
+  openModal('editStaffModal');
+}
+
+async function saveEditStaff() {
+  const key = document.getElementById('es_key').value;
+  if(!key) return;
+  const role = document.getElementById('es_role').value;
+  const salary = parseFloat(document.getElementById('es_salary').value)||0;
+  const fileInput = document.getElementById('es_docs');
+
+  try {
+    // Upload new docs if any
+    let newUrls = [];
+    if(fileInput && fileInput.files.length) {
+      for(const file of fileInput.files) {
+        const ext = file.name.split('.').pop();
+        const fileName = `staff_${key}_${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+        const {data: uploadData, error: uploadErr} = await _sb.storage.from('receipts').upload(fileName, file);
+        if(!uploadErr && uploadData) {
+          const {data: urlData} = _sb.storage.from('receipts').getPublicUrl(fileName);
+          if(urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+        }
+      }
+    }
+
+    // Merge with existing docs
+    const s = allStaff.find(x=>x._key===key);
+    let existingDocs = [];
+    try { existingDocs = JSON.parse(s?.documents||'[]'); } catch(e) {}
+    const allDocs = [...existingDocs, ...newUrls];
+
+    await _sb.from('staff').update({
+      role,
+      base_salary: salary,
+      documents: JSON.stringify(allDocs)
+    }).eq('id', key);
+
+    toast('Staff updated! ✅','success');
+    closeModal('editStaffModal');
+    await loadAllData();
+    renderManageStaff();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
+async function removeStaffDoc(key, index) {
+  if(!confirm('Remove this document?')) return;
+  try {
+    const s = allStaff.find(x=>x._key===key);
+    let docs = JSON.parse(s?.documents||'[]');
+    docs.splice(index, 1);
+    await _sb.from('staff').update({documents: JSON.stringify(docs)}).eq('id', key);
+    toast('Document removed','success');
+    await loadAllData();
+    showEditStaff(key); // refresh modal
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
 function renderManageStaff(){
   if(currentUser.role!=='owner'){document.getElementById('staffListContainer').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
   const roleBadge=(role)=>role==='owner'?`<span class="badge bo" style="margin-left:5px;">👑 Owner</span>`:role==='manager'?`<span class="badge" style="margin-left:5px;background:#e0e7ff;color:#3730a3;">🔑 Manager</span>`:`<span class="badge bb" style="margin-left:5px;">👤 Staff</span>`;
-  document.getElementById('staffListContainer').innerHTML=allStaff.length===0?'<p class="text-muted">No staff found.</p>':allStaff.map(s=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--grayb);flex-wrap:wrap;gap:9px;">
-      <div>
-        <div style="font-weight:800;font-size:.93rem;">${esc(s.name)} ${roleBadge(s.role)}</div>
-        <div style="font-size:.78rem;color:var(--gray);margin-top:2px;">Email: <strong>${esc(s.email||s.username||'—')}</strong></div>
+  document.getElementById('staffListContainer').innerHTML=allStaff.length===0?'<p class="text-muted">No staff found.</p>':allStaff.map(s=>{
+    const salary = s.baseSalary ? inr(s.baseSalary)+'/mo' : 'Not set';
+    const docs = s.documents ? JSON.parse(s.documents||'[]') : [];
+    return `
+    <div style="background:var(--bg2);border-radius:12px;padding:16px;margin-bottom:10px;border:1px solid var(--grayb);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;">
+        <div>
+          <div style="font-weight:800;font-size:.95rem;">${esc(s.name)} ${roleBadge(s.role)}</div>
+          <div style="font-size:.78rem;color:var(--gray);margin-top:3px;">Email: <strong>${esc(s.email||s.username||'—')}</strong></div>
+          <div style="font-size:.78rem;color:var(--p);font-weight:700;margin-top:2px;">💰 Salary: ${salary}</div>
+          ${docs.length?'<div style="font-size:.75rem;color:var(--acc);margin-top:2px;">📎 '+docs.length+' document(s) uploaded</div>':''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline" onclick="showEditStaff('${s._key}')">✏️ Edit</button>
+          <button class="btn btn-sm btn-outline" onclick="showResetPwd('${s._key}','${esc(s.name)}')">🔑 Reset Pwd</button>
+          ${s._key!==currentUser.key?`<button class="btn btn-sm btn-danger" onclick="confirmDeleteStaff('${s._key}','${esc(s.name)}')">🗑️</button>`:'<span style="font-size:.72rem;color:var(--gray);padding:4px 6px;">(You)</span>'}
+        </div>
       </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <button class="btn btn-sm btn-outline" onclick="showResetPwd('${s._key}','${esc(s.name)}')">🔑 Reset Password</button>
-        ${s._key!==currentUser.key?`<button class="btn btn-sm btn-danger" onclick="confirmDeleteStaff('${s._key}','${esc(s.name)}')">🗑️ Remove</button>`:'<span style="font-size:.75rem;color:var(--gray);padding:4px 8px;">(You)</span>'}
-      </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function showAddStaff(){['ns_name','ns_user','ns_pass','ns_base_salary'].forEach(id=>document.getElementById(id).value='');document.getElementById('ns_role').value='staff';openModal('addStaffModal');}
@@ -9916,11 +10385,11 @@ async function clientTrack(){
 
   html += `<div style="margin-bottom:20px;">
     <div style="font-size:.72rem;color:#6366f1;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${greetEmoji2} ${greetingText}</div>
-    <div style="font-size:1.5rem;font-weight:800;color:#1e1b4b;font-family:sans-serif;letter-spacing:-.5px;">${esc(clientName)} 🙏</div>
+    <div style="font-size:1.5rem;font-weight:800;color:#0f1f3a;font-family:sans-serif;letter-spacing:-.5px;">${esc(clientName)} 🙏</div>
     <div style="font-size:.83rem;color:#64748b;margin-top:4px;">Here's a complete update on your work with us</div>
   </div>`;
 
-  html += `<div style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:16px;padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 24px rgba(30,27,75,.2);">
+  html += `<div style="background:linear-gradient(135deg,#0f1f3a,#312e81);border-radius:16px;padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 24px rgba(30,27,75,.2);">
     <div>
       <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">Your Client ID</div>
       <div style="font-size:1.4rem;font-weight:900;color:#a5b4fc;letter-spacing:5px;font-family:monospace;">${esc(cid)}</div>
@@ -10309,7 +10778,7 @@ const wtLabels={
   'TradeCertificate':'🏷️ Trade Certificate','Challan':'⚖️ Challan',
   'Insurance':'🛡️ Insurance','RoadTax':'🛣️ Road Tax',
   'PUC':'🌿 PUC','HSRP':'🔖 HSRP',
-  'DrivingLicense':'🪪 Driving License','Others':'📦 Others',
+  'DrivingLicense':'🪪 Driving License','Others':'📦 Others','DCRB':'📃 DCRB','VIPNumber':'⭐ VIP Number',
   // Legacy aliases kept for backwards compat
   'Registration':'📝 Registration','Challan-Online':'📄 Challan (Online)','Challan-Court':'⚖️ Challan (Court)',
   'Permit-AllIndia':'🗺️ Permit (All India)','Permit-State':'📍 Permit (State)',
@@ -10321,7 +10790,7 @@ const wtClasses={
   'RCSurrender':'bgr','RCCancel':'bgr','Hypothecation':'bp','Fitness':'bg',
   'Alteration':'bo','Conversion':'bo','RCNOC':'by','Permit':'by',
   'TradeCertificate':'by','Challan':'bo','Insurance':'bb','RoadTax':'bb',
-  'PUC':'bg','HSRP':'bb','DrivingLicense':'bp','Others':'bgr',
+  'PUC':'bg','HSRP':'bb','DrivingLicense':'bp','Others':'bgr','DCRB':'bp','VIPNumber':'bo',
   'Registration':'bb','Challan-Online':'bo','Challan-Court':'bo',
   'Permit-AllIndia':'by','Permit-State':'by','RoadTax-OTT':'bb','RoadTax-Quarterly':'bb'
 };
@@ -10394,6 +10863,196 @@ function fmtExtrasShort(r) {
   return p.join(' · ');
 }
 
+// ============================================================
+// DASHBOARD: Chassis/Engine Attach + Lookup
+// ============================================================
+async function dashAttachChassisEngine() {
+  const veh = (document.getElementById('dashAttachVeh')?.value||'').trim().toUpperCase();
+  const chassis = (document.getElementById('dashAttachChassis')?.value||'').trim().toUpperCase();
+  const engine = (document.getElementById('dashAttachEngine')?.value||'').trim().toUpperCase();
+  const resultEl = document.getElementById('dashAttachResult');
+
+  if(!veh || veh.length<4) { toast('Enter a valid vehicle number','error'); return; }
+  if(!chassis && !engine) { toast('Enter at least chassis or engine number','error'); return; }
+
+  resultEl.innerHTML = '<span style="color:var(--acc);">⏳ Updating…</span>';
+
+  try {
+    // Find all works with this vehicle number
+    const matchingWorks = allWorks.filter(w =>
+      (w.vehicle||'').toUpperCase().includes(veh) ||
+      (w.vehicles||'').toUpperCase().includes(veh)
+    );
+
+    let updated = 0;
+    for(const w of matchingWorks) {
+      const updates = {};
+      // Update primary chassis/engine if this is the primary vehicle
+      if((w.vehicle||'').toUpperCase() === veh) {
+        if(chassis && !w.chassisLast5) updates.chassis_last5 = chassis;
+        if(engine && !w.engineLast5) updates.engine_last5 = engine;
+      }
+      // Update inside vehicleWorkItems JSON
+      try {
+        const items = JSON.parse(w.vehicleWorkItems||'[]');
+        let changed = false;
+        items.forEach(r => {
+          if((r.vehicle||'').toUpperCase() === veh) {
+            if(chassis && !r.chassisLast5) { r.chassisLast5 = chassis; changed = true; }
+            if(engine && !r.engineLast5) { r.engineLast5 = engine; changed = true; }
+          }
+        });
+        if(changed) updates.vehicle_work_items = JSON.stringify(items);
+      } catch(e) {}
+
+      if(Object.keys(updates).length > 0) {
+        await _sb.from('works').update(updates).eq('id', w._key);
+        updated++;
+      }
+    }
+
+    // Also store in clients table for auto-fill on future works
+    const {data: existing} = await _sb.from('clients').select('*').limit(1);
+    // Store vehicle->chassis/engine mapping
+    // We'll use a simple approach: upsert into a vehicle_info key in the clients table or just rely on works
+
+    await loadAllData();
+    renderDashboard();
+    resultEl.innerHTML = '<span style="color:var(--g);font-weight:700;">✅ Updated '+updated+' work(s) for '+veh+'</span>';
+    toast('Chassis/Engine attached to '+veh+' — '+updated+' works updated','success');
+
+    // Clear inputs
+    document.getElementById('dashAttachVeh').value = '';
+    document.getElementById('dashAttachChassis').value = '';
+    document.getElementById('dashAttachEngine').value = '';
+  } catch(e) {
+    resultEl.innerHTML = '<span style="color:var(--r);">Error: '+esc(e.message)+'</span>';
+  }
+}
+
+function dashLookupChassisEngine() {
+  const veh = (document.getElementById('dashLookupVeh')?.value||'').trim().toUpperCase();
+  const resultEl = document.getElementById('dashLookupResult');
+
+  if(!veh || veh.length<3) { resultEl.innerHTML = ''; return; }
+
+  // Search all works for this vehicle
+  let chassis = '', engine = '';
+  for(const w of allWorks) {
+    if((w.vehicle||'').toUpperCase() === veh) {
+      if(w.chassisLast5 && !chassis) chassis = w.chassisLast5;
+      if(w.engineLast5 && !engine) engine = w.engineLast5;
+    }
+    // Also check inside vehicleWorkItems
+    try {
+      const items = JSON.parse(w.vehicleWorkItems||'[]');
+      for(const r of items) {
+        if((r.vehicle||'').toUpperCase() === veh) {
+          if(r.chassisLast5 && !chassis) chassis = r.chassisLast5;
+          if(r.engineLast5 && !engine) engine = r.engineLast5;
+        }
+      }
+    } catch(e) {}
+    if(chassis && engine) break;
+  }
+
+  if(!chassis && !engine) {
+    resultEl.innerHTML = '<div style="background:var(--rl);border-radius:8px;padding:10px;font-size:.82rem;color:var(--r);font-weight:600;">❌ No chassis/engine found for '+esc(veh)+'</div>';
+    return;
+  }
+
+  resultEl.innerHTML = `
+    <div style="background:var(--bg2);border-radius:10px;padding:12px;border:1px solid var(--grayb);">
+      <div style="font-weight:800;font-size:.88rem;margin-bottom:8px;font-family:var(--font-num);">${esc(veh)}</div>
+      ${chassis ? '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--grayb);"><span style="font-size:.78rem;color:var(--text3);font-weight:600;">Chassis (last 5)</span><span style="font-family:var(--font-num);font-weight:700;font-size:.95rem;cursor:pointer;color:var(--p);" onclick="navigator.clipboard.writeText(\''+esc(chassis)+'\').then(()=>toast(\'Chassis copied!\',\'success\'))" title="Click to copy">'+esc(chassis)+' 📋</span></div>' : '<div style="font-size:.78rem;color:var(--text3);padding:4px 0;">Chassis: Not found</div>'}
+      ${engine ? '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><span style="font-size:.78rem;color:var(--text3);font-weight:600;">Engine (last 5)</span><span style="font-family:var(--font-num);font-weight:700;font-size:.95rem;cursor:pointer;color:var(--p);" onclick="navigator.clipboard.writeText(\''+esc(engine)+'\').then(()=>toast(\'Engine copied!\',\'success\'))" title="Click to copy">'+esc(engine)+' 📋</span></div>' : '<div style="font-size:.78rem;color:var(--text3);padding:4px 0;">Engine: Not found</div>'}
+    </div>`;
+}
+
+// ============================================================
+// EMPLOYEE LEDGER
+// ============================================================
+function populateEmpLedgerStaff() {
+  const sel = document.getElementById('empLedger_staff');
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select Employee —</option>' +
+    allStaff.map(s => '<option value="'+esc(s.name)+'">'+esc(s.name)+' ('+s.role+')</option>').join('');
+  if(current) sel.value = current;
+}
+
+function renderEmployeeLedger() {
+  populateEmpLedgerStaff();
+  const empName = document.getElementById('empLedger_staff')?.value||'';
+  const search = (document.getElementById('empLedgerSearch')?.value||'').toLowerCase();
+  const statsEl = document.getElementById('empLedgerStats');
+  const tbody = document.getElementById('empLedgerBody');
+
+  if(!empName) {
+    statsEl.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="6" class="nd">Select an employee to view their ledger</td></tr>';
+    return;
+  }
+
+  // Gather all ledger entries for this employee:
+  const entries = allLedger.filter(l => {
+    const empLower = empName.toLowerCase();
+    let meta = {};
+    try { meta = JSON.parse(l.receiptUrls||'{}'); } catch(e) {}
+    // Payment entries with employee name
+    if(meta.payment_employee === empName) return true;
+    // Employee name in employee_name column
+    if((l.employeeName||'') === empName) return true;
+    // RTO spend by this employee (spentBy field from saveOspSpend)
+    if((l.spentBy||'') === empName) return true;
+    // RTO spend — check by field
+    const isRtoSpend = l.type==='debit' && (l.description||'').startsWith('RTO Inside Spend:');
+    if(isRtoSpend && (l.by||'') === empName) return true;
+    // Salary for this employee
+    if((l.description||'').toLowerCase().includes('salary') && (l.description||'').toLowerCase().includes(empLower)) return true;
+    return false;
+  });
+
+  // Apply search filter
+  let filtered = entries;
+  if(search) {
+    filtered = entries.filter(l =>
+      (l.description||'').toLowerCase().includes(search) ||
+      (l.date||'').includes(search) ||
+      (l.workRef||'').toLowerCase().includes(search)
+    );
+  }
+
+  // Sort by timestamp desc
+  filtered.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+
+  // Stats
+  const totalCredit = filtered.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
+  const totalDebit = filtered.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
+  const net = totalCredit - totalDebit;
+
+  statsEl.innerHTML = `
+    <div class="sc green"><div class="sl">Total Credit</div><div class="sv">${inr(totalCredit)}</div></div>
+    <div class="sc red"><div class="sl">Total Debit</div><div class="sv">${inr(totalDebit)}</div></div>
+    <div class="sc ${net>=0?'green':'red'}"><div class="sl">Net Balance</div><div class="sv">${inr(Math.abs(net))} ${net>=0?'(+)':'(-)'}</div></div>
+    <div class="sc"><div class="sl">Entries</div><div class="sv">${filtered.length}</div></div>
+  `;
+
+  if(!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="nd">No ledger entries for '+esc(empName)+'</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(l => `<tr>
+    <td style="font-size:.8rem;white-space:nowrap;">${esc(l.date||'—')}</td>
+    <td><span class="badge ${l.type==='credit'?'bg':'br'}">${l.type==='credit'?'↑ Credit':'↓ Debit'}</span></td>
+    <td style="font-family:var(--font-num);font-weight:700;color:${l.type==='credit'?'var(--g)':'var(--r)'};">${l.type==='credit'?'+':'-'}${inr(l.amount||0)}</td>
+    <td style="font-size:.8rem;">${esc((l.description||'').slice(0,60))}</td>
+    <td style="font-size:.78rem;">${esc(l.workRef||'—')}</td>
+    <td style="font-size:.78rem;">${esc(l.by||'—')}</td>
+  </tr>`).join('');
+}
+
 function wtLabel(t){return wtLabels[t]||t||'—';}
 // Plain version for PDF (no emoji — jsPDF can't render them)
 const wtPlainLabels={
@@ -10405,7 +11064,7 @@ const wtPlainLabels={
   'Conversion':'Conversion','RCNOC':'RC NOC','Permit':'Permit',
   'TradeCertificate':'Trade Certificate','Challan':'Challan',
   'Insurance':'Insurance','RoadTax':'Road Tax','PUC':'PUC','HSRP':'HSRP',
-  'DrivingLicense':'Driving License','Others':'Others',
+  'DrivingLicense':'Driving License','Others':'Others','DCRB':'DCRB','VIPNumber':'VIP Number',
   'Registration':'Registration','Challan-Online':'Challan (Online)','Challan-Court':'Challan (Court)',
   'Permit-AllIndia':'Permit (All India)','Permit-State':'Permit (State)',
   'RoadTax-OTT':'Road Tax (OTT)','RoadTax-Quarterly':'Road Tax (Quarterly)'
@@ -11082,7 +11741,7 @@ function toast(msg,type=''){const el=document.createElement('div');el.className=
 
 <div id="clientPortalPage" style="display:none;">
   <!-- Header -->
-  <div style="background:linear-gradient(135deg,#0a0f1e,#1e1b4b,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
+  <div style="background:linear-gradient(135deg,#0a0f1e,#0f1f3a,#2d2b7a);position:sticky;top:0;z-index:10;box-shadow:0 4px 24px rgba(0,0,0,.3);">
     <div style="max-width:680px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⚖️</div>
@@ -11100,12 +11759,12 @@ function toast(msg,type=''){const el=document.createElement('div');el.className=
   </div>
 
   <!-- Footer -->
-  <div style="background:#1e1b4b;color:rgba(255,255,255,.5);text-align:center;padding:20px;font-size:.75rem;border-top:1px solid rgba(255,255,255,.08);">
+  <div style="background:#0f1f3a;color:rgba(255,255,255,.5);text-align:center;padding:20px;font-size:.75rem;border-top:1px solid rgba(255,255,255,.08);">
     <div style="margin-bottom:4px;"><strong style="color:#fff;">Nandan Legal Services</strong> &nbsp;·&nbsp; RTO Work Specialists</div>
     <div>
-      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="color:#818cf8;text-decoration:none;font-weight:600;cursor:pointer;">94505 56304</a>
+      📞 <a href="tel:9450556304" onclick="navigator.clipboard.writeText('9450556304').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='94505 56304',1500)})" style="color:var(--acc);text-decoration:none;font-weight:600;cursor:pointer;">94505 56304</a>
       &nbsp;·&nbsp;
-      <a href="https://nandanlegalservices.in" target="_blank" style="color:#818cf8;text-decoration:none;">nandanlegalservices.in</a>
+      <a href="https://nandanlegalservices.in" target="_blank" style="color:var(--acc);text-decoration:none;">nandanlegalservices.in</a>
     </div>
     <div style="margin-top:6px;font-size:.68rem;opacity:.5;">For any queries, please contact us at the number above</div>
   </div>
