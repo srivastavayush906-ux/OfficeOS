@@ -2079,7 +2079,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         </div>
         <div style="margin-bottom:10px;"><input type="text" id="ledgerSearchInput" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
-        <div class="ox"><table class="wt"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount (₹)</th><th>Linked Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Balance</th><th>Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
       </div>
     </div>
 
@@ -2181,7 +2181,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div class="card-title">🧾 RTO Inside Spend</div>
         <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Record office expenses. Search by vehicle to link to an open work, or save as a general spend.</p>
         <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input type="text" id="ospVehicle" placeholder="Enter vehicle number (optional)" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+          <input type="text" id="ospVehicle" placeholder="Enter vehicle number (optional)" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchOspWork();}"/>
           <button class="btn btn-primary" onclick="searchOspWork()">🔍 Search</button>
           <button class="btn btn-outline" onclick="showOspFormDirect()">➕ Add Without Vehicle</button>
         </div>
@@ -3924,6 +3924,7 @@ async function loginSuccess(deviceName) {
   showPage('dashboard');
   startClock();
   applyStaffRestrictions();
+  startBackgroundRefresh();
   if(currentUser.role === 'owner') setTimeout(checkBackupReminder, 4000);
   setTimeout(checkExpiryNotifications, 1500);
 }
@@ -4021,6 +4022,30 @@ async function loadAllData() {
   const topbar2 = document.getElementById('topbar');
   if(topbar2) topbar2.style.opacity = '1';
 }
+// Silent background refresh every 30 seconds for multi-staff sync
+let _bgRefreshInterval = null;
+function startBackgroundRefresh() {
+  if(_bgRefreshInterval) clearInterval(_bgRefreshInterval);
+  _bgRefreshInterval = setInterval(async () => {
+    if(!currentUser) return;
+    // Don't refresh if user is in the middle of a form
+    const activeTag = document.activeElement?.tagName;
+    if(activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+    // Don't refresh if a modal is open
+    if(document.querySelector('.mo.show')) return;
+    try {
+      await loadAllData();
+      // Re-render current page silently
+      const currentPage = document.querySelector('.page[style*="display: block"],.page[style*="display:block"]');
+      if(currentPage) {
+        const pageId = currentPage.id?.replace('page-','');
+        const renders = {allWork:renderWorkTable,dashboard:renderDashboard,verification:renderVerification,bankLedger:renderLedger,cashTracker:renderCashTracker,payments:renderPayments,expiry:renderExpiry,dues:renderDues};
+        if(renders[pageId]) renders[pageId]();
+      }
+    } catch(e) { /* silent fail */ }
+  }, 30000);
+}
+
 
 function updateSidebarBadges() {
   const now = Date.now();
@@ -7793,11 +7818,25 @@ function cwBuildCompletionFields() {
 
   if(needsPermit) {
     const isNational = permitType==='National';
+    // Check sub-type for authorisation
+    let permitNewCat = '';
+    try {
+      const ex = JSON.parse(w.workExtras||'{}');
+      permitNewCat = ex.permitNewCat || '';
+      // Also check vehicleWorkItems
+      if(!permitNewCat) {
+        const items = JSON.parse(w.vehicleWorkItems||'[]');
+        const pItem = items.find(r=>r.workType==='Permit');
+        if(pItem) permitNewCat = pItem.permitNewCat || '';
+      }
+    } catch(e){}
+    const hasAuth = isNational && permitNewCat === 'Auth';
     html += `<div style="background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
-      <div style="font-weight:800;font-size:.88rem;color:#854d0e;margin-bottom:10px;">🗺️ Permit Details</div>
+      <div style="font-weight:800;font-size:.88rem;color:#854d0e;margin-bottom:10px;">🗺️ Permit Details${isNational?' (National)':''}</div>
       ${isNational
         ? lbl('State Permit Expiry') + dateInp('cw-permit-expiry-state','State Permit Expiry') +
-          lbl('All-India Permit Expiry') + dateInp('cw-permit-expiry-national','All-India Permit Expiry')
+          lbl('All-India Permit Expiry') + dateInp('cw-permit-expiry-national','All-India Permit Expiry') +
+          (hasAuth ? lbl('Authorisation Expiry') + dateInp('cw-permit-expiry-auth','Authorisation Permit Expiry') : '')
         : lbl('Permit Expiry Date') + dateInp('cw-permit-expiry','Permit Expiry Date')
       }
     </div>`;
@@ -7840,6 +7879,7 @@ function cwGetCompletionExtras() {
     fitnessExpiry: g('cw-fitness-expiry'),
     permitExpiry:  g('cw-permit-expiry') || g('cw-permit-expiry-state'),
     permitExpiryNational: g('cw-permit-expiry-national'),
+    permitExpiryAuth: g('cw-permit-expiry-auth'),
     dlLicNo:       g('cw-dl-licno'),
     dlExpiry:      g('cw-dl-expiry'),
     pucExpiry:     g('cw-puc-expiry'),
@@ -8023,7 +8063,7 @@ async function completeWork() {
     // WhatsApp prompt
     if(w.phone) {
       const compMsg = isFullyDone
-        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${expiry?'\n\n📅 Document Expiry: '+fmtDate(expiry):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack status at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services`
+        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${expiry?'\n\n📅 Document Expiry: '+fmtDate(expiry):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack status at:\n👉 https://nandanlegalservices.in/?track=${w.clientId||''}\n\nRegards,\nTeam Nandan Legal Services`
         : `Hello ${w.ownerName||w.clientName}! 🙏\n\nYour work (#${w.workNum}) has been *partially completed*. Completed: ${newlyDone.join(', ')}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nRegards,\nTeam Nandan Legal Services`;
       const waUrl = 'https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
@@ -8113,9 +8153,13 @@ function renderLedger(){
     entries=allLedger.filter(l=>l.bank===currentLedgerBank);
   }
   if(ledgerSearchTerm) entries=entries.filter(e=>(e.description||'').toLowerCase().includes(ledgerSearchTerm)||(e.date||'').includes(ledgerSearchTerm)||(e.workRef||'').toLowerCase().includes(ledgerSearchTerm));
-  const credits=entries.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
-  const debits=entries.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
-  const opening=entries.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
+
+  // Sort by timestamp ascending (oldest first) for running balance calculation
+  const sorted = [...entries].sort((a,b) => (a.timestamp||0) - (b.timestamp||0));
+
+  const credits=sorted.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
+  const debits=sorted.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
+  const opening=sorted.filter(e=>e.type==='opening').reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('ledgerSummary').innerHTML=`
     <div class="sc"><div class="sl">Opening Balance</div><div class="sv">${inr(opening)}</div></div>
     <div class="sc green"><div class="sl">Total Credits</div><div class="sv">${inr(credits)}</div></div>
@@ -8123,13 +8167,26 @@ function renderLedger(){
     <div class="sc"><div class="sl">Closing Balance</div><div class="sv">${inr(opening+credits-debits)}</div></div>
   `;
   const tbody=document.getElementById('ledgerBody');
-  if(!entries.length){tbody.innerHTML=`<tr><td colspan="6" class="nd">No entries for ${currentLedgerBank}</td></tr>`;return;}
-  tbody.innerHTML=entries.map(e=>`<tr>
-    <td style="font-size:.78rem;">${fmtDate(e.date)}${e.autoEntry?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
+  if(!sorted.length){tbody.innerHTML=`<tr><td colspan="7" class="nd">No entries for ${currentLedgerBank}</td></tr>`;return;}
+
+  // Calculate running balance (ascending order)
+  let runBal = 0;
+  sorted.forEach(e => {
+    if(e.type==='opening') runBal += (e.amount||0);
+    else if(e.type==='credit') runBal += (e.amount||0);
+    else if(e.type==='debit') runBal -= (e.amount||0);
+    e._runBal = runBal;
+  });
+
+  // Display in reverse (newest first) but with running balance
+  const display = [...sorted].reverse();
+  tbody.innerHTML=display.map(e=>`<tr>
+    <td style="font-size:.78rem;white-space:nowrap;">${fmtDate(e.date)}${e.autoEntry?` <span class="badge bgr" style="font-size:.6rem;">auto</span>`:''}</td>
     <td><span class="badge ${e.type==='credit'?'bg':e.type==='debit'?'br':'bgr'}">${e.type==='opening'?'Opening':e.type==='credit'?'↑ Credit':'↓ Debit'}</span></td>
     <td style="font-weight:800;color:${e.type==='credit'?'var(--g)':e.type==='debit'?'var(--r)':'#374151'};">${inr(e.amount||0)}</td>
+    <td style="font-family:var(--font-num);font-size:.8rem;font-weight:700;color:${e._runBal>=0?'var(--p)':'var(--r)'};">${inr(e._runBal)}</td>
     <td style="font-size:.78rem;color:var(--gray);">${esc(e.workRef||'—')}</td>
-    <td style="font-size:.82rem;">${esc(e.description||'—')}</td>
+    <td style="font-size:.82rem;">${esc((e.description||'—').slice(0,50))}</td>
     <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
   </tr>`).join('');
 }
@@ -9410,7 +9467,7 @@ async function saveOspSpend() {
   try {
     // Try with extended columns first; if schema cache error, retry without
     let ledgerResult = await _sb.from('ledger').insert({
-      bank:'Cash', type:'debit', amount:amt,
+      bank:'RTO_Internal', type:'debit', amount:amt,
       date:dateStr, timestamp:now.getTime(),
       work_ref: workRef,
       description:`RTO Inside Spend: ${reason}`,
@@ -9422,11 +9479,12 @@ async function saveOspSpend() {
     });
     if(ledgerResult.error && ledgerResult.error.message&&ledgerResult.error.message.includes('schema cache')) {
       ledgerResult = await _sb.from('ledger').insert({
-        bank:'Cash', type:'debit', amount:amt,
+        bank:'RTO_Internal', type:'debit', amount:amt,
         date:dateStr, timestamp:now.getTime(),
         work_ref: workRef,
         description:`RTO Inside Spend: ${reason}`,
-        by: currentUser.name, auto_entry: true
+        by: currentUser.name, auto_entry: true,
+        osp_entry: true
       });
     }
     if(ledgerResult.error) throw ledgerResult.error;
@@ -10444,6 +10502,13 @@ async function saveComplaint(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 async function renderComplaints(){
+  // Non-owner can add complaints but cannot see the list
+  const complaintsBody = document.getElementById('complaintsBody');
+  if(currentUser.role !== 'owner') {
+    if(complaintsBody) complaintsBody.innerHTML = '<tr><td colspan="8" class="nd">Only the owner can view registered complaints. You can still file a new complaint using the button above.</td></tr>';
+    return;
+  }
+
   let data=[]; try{const r=await _sb.from('complaints').select('*').order('timestamp',{ascending:false});data=r.data||[];}catch(e){}
   const list=data.filter(c=>c.type===_cmpFilter);
   const tbody=document.getElementById('complaintsBody');
@@ -11126,36 +11191,59 @@ async function downloadClientDoc(workKey, workNum) {
     if(imgData) {
       try {
         if(imgData.startsWith('http')) {
-          // Extract storage path from full Supabase public URL
-          // URL format: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
-          const storageMarker = '/object/public/receipts/';
-          const markerIdx = imgData.indexOf(storageMarker);
-          if(markerIdx !== -1) {
-            const storagePath = imgData.substring(markerIdx + storageMarker.length);
-            const { data: blob, error: dlErr } = await _sb.storage.from('receipts').download(storagePath);
-            if(dlErr) throw dlErr;
-            imgData = await new Promise((res, rej) => {
-              const r = new FileReader();
-              r.onload = () => res(r.result);
-              r.onerror = rej;
-              r.readAsDataURL(blob);
-            });
-            imgLoaded = true;
+          // Check if it's a PDF file (can't embed in jsPDF image)
+          const isPdf = imgData.toLowerCase().endsWith('.pdf') || imgData.includes('application/pdf');
+          if(isPdf) {
+            // Can't embed PDF in PDF — open it directly
+            imgLoaded = false;
           } else {
-            // Fallback: try Canvas approach for external URLs
-            imgData = await new Promise((res, rej) => {
-              const img = new Image();
-              img.crossOrigin = 'anonymous';
-              img.onload = () => {
-                const c = document.createElement('canvas');
-                c.width = img.naturalWidth; c.height = img.naturalHeight;
-                c.getContext('2d').drawImage(img, 0, 0);
-                res(c.toDataURL('image/jpeg', 0.85));
-              };
-              img.onerror = rej;
-              img.src = w.receiptPhoto;
-            });
-            imgLoaded = true;
+            // Extract storage path from full Supabase public URL
+            const storageMarker = '/object/public/receipts/';
+            const markerIdx = imgData.indexOf(storageMarker);
+            if(markerIdx !== -1) {
+              const storagePath = imgData.substring(markerIdx + storageMarker.length);
+              try {
+                const { data: blob, error: dlErr } = await _sb.storage.from('receipts').download(storagePath);
+                if(dlErr) throw dlErr;
+                imgData = await new Promise((res, rej) => {
+                  const r = new FileReader();
+                  r.onload = () => res(r.result);
+                  r.onerror = rej;
+                  r.readAsDataURL(blob);
+                });
+                imgLoaded = true;
+              } catch(e) {
+                // Storage download failed (maybe client portal, no auth) — try direct fetch
+                try {
+                  const resp = await fetch(w.receiptPhoto);
+                  const blob2 = await resp.blob();
+                  if(blob2.type.startsWith('image/')) {
+                    imgData = await new Promise((res, rej) => {
+                      const r = new FileReader();
+                      r.onload = () => res(r.result);
+                      r.onerror = rej;
+                      r.readAsDataURL(blob2);
+                    });
+                    imgLoaded = true;
+                  }
+                } catch(e2) { imgLoaded = false; }
+              }
+            } else {
+              // Fallback: try fetch for external URLs
+              try {
+                const resp = await fetch(w.receiptPhoto);
+                const blob2 = await resp.blob();
+                if(blob2.type.startsWith('image/')) {
+                  imgData = await new Promise((res, rej) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result);
+                    r.onerror = rej;
+                    r.readAsDataURL(blob2);
+                  });
+                  imgLoaded = true;
+                }
+              } catch(e) { imgLoaded = false; }
+            }
           }
         } else if(imgData.startsWith('data:')) {
           // Already base64
@@ -11461,7 +11549,7 @@ async function saveEmpLedgerEntry() {
   const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
   try {
     await _sb.from('ledger').insert({
-      bank: 'Employee', type, amount,
+      bank: 'Cash', type, amount,
       date: dateStr, timestamp: now.getTime(),
       description: 'Employee Ledger: ' + desc,
       employee_name: emp,
@@ -11721,7 +11809,7 @@ function followupTab(tab, btn) {
 }
 function waClientId(phone, clientId, name) {
   if(!phone) { toast('No phone number','error'); return; }
-  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with Nandan Legal Services is:\n\n📋 *'+clientId+'*\n\nUse this ID to track all your works and document expiry dates anytime at:\n👉 https://nandanlegalservices.in/\n\nRegards,\nTeam Nandan Legal Services';
+  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with Nandan Legal Services is:\n\n📋 *'+clientId+'*\n\nUse this ID to track all your works and document expiry dates anytime at:\n👉 https://nandanlegalservices.in/?track='+clientId+'\n\nRegards,\nTeam Nandan Legal Services';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
