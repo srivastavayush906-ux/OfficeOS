@@ -8154,8 +8154,19 @@ function renderLedger(){
   }
   if(ledgerSearchTerm) entries=entries.filter(e=>(e.description||'').toLowerCase().includes(ledgerSearchTerm)||(e.date||'').includes(ledgerSearchTerm)||(e.workRef||'').toLowerCase().includes(ledgerSearchTerm));
 
-  // Sort by timestamp ascending (oldest first) for running balance calculation
-  const sorted = [...entries].sort((a,b) => (a.timestamp||0) - (b.timestamp||0));
+  // Sort by actual date (DD/MM/YYYY) then by timestamp for same-day entries
+  function parseDateKey(d) {
+    if(!d) return 0;
+    const p = String(d).split('/');
+    if(p.length===3) return new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime()||0;
+    const dt = new Date(d);
+    return isNaN(dt) ? 0 : dt.getTime();
+  }
+  const sorted = [...entries].sort((a,b) => {
+    const da = parseDateKey(a.date), db = parseDateKey(b.date);
+    if(da !== db) return da - db;
+    return (a.timestamp||0) - (b.timestamp||0);
+  });
 
   const credits=sorted.filter(e=>e.type==='credit').reduce((s,e)=>s+(e.amount||0),0);
   const debits=sorted.filter(e=>e.type==='debit').reduce((s,e)=>s+(e.amount||0),0);
@@ -10963,7 +10974,7 @@ async function clientTrack(){
         <span style="background:${isPaid?'#dcfce7':'#fef9c3'};color:${isPaid?'#166534':'#92400e'};padding:4px 10px;border-radius:6px;font-size:.71rem;font-weight:600;">${isPaid?'✅ Paid':'⏳ Payment Pending'}</span>
         ${isDone&&w.expiryDate?`<span style="background:#fff7ed;color:#c2410c;padding:4px 10px;border-radius:6px;font-size:.71rem;font-weight:600;">📅 Expires: ${fmtDate(w.expiryDate)}</span>`:''}
       </div>
-      ${isDone?`<button onclick="downloadClientDoc('${w._key}',${w.workNum})" style="width:100%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;padding:11px 16px;border-radius:10px;font-size:.84rem;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(79,70,229,.3);">⬇️ Download Your Document (PDF)</button>`:''}
+      ${isDone?`<button onclick="clientDownloadDoc('${w._key}',${w.workNum})" style="width:100%;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;padding:11px 16px;border-radius:10px;font-size:.84rem;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(79,70,229,.3);">⬇️ Download Your Document (PDF)</button>`:''}
     </div>`;
   });
   document.getElementById('clientPortalBody').innerHTML = html;
@@ -11015,6 +11026,26 @@ function openImgInTab(src){
 }
 
 // ── Generate & download branded 2-page PDF for client ──
+async function clientDownloadDoc(workKey, workNum) {
+  let w = allWorks.find(x => x._key === workKey);
+  if(!w) {
+    try {
+      const {data} = await _sb.from('works').select('*').eq('id', workKey).single();
+      if(data) w = {...toCamel(data), _key:data.id};
+    } catch(e) {}
+  }
+  if(!w){ toast('Work not found','error'); return; }
+
+  // If the receipt is a PDF file, open it directly (no need to wrap in jsPDF)
+  if(w.receiptPhoto && (w.receiptPhoto.toLowerCase().endsWith('.pdf') || w.receiptPhoto.includes('.pdf'))) {
+    window.open(w.receiptPhoto, '_blank');
+    toast('Document opened! ✅','success');
+    return;
+  }
+  // Otherwise generate our PDF certificate with embedded image
+  downloadClientDoc(workKey, workNum);
+}
+
 async function downloadClientDoc(workKey, workNum) {
   // First try allWorks (staff view), then fetch directly from DB (client portal - no allWorks available)
   let w = allWorks.find(x => x._key === workKey);
@@ -11188,16 +11219,19 @@ async function downloadClientDoc(workKey, workNum) {
     let imgData = w.receiptPhoto;
     let imgLoaded = false;
 
+    // Load image using multiple fallback approaches
+    let imgData = w.receiptPhoto;
+    let imgLoaded = false;
+
     if(imgData) {
       try {
         if(imgData.startsWith('http')) {
           // Check if it's a PDF file (can't embed in jsPDF image)
-          const isPdf = imgData.toLowerCase().endsWith('.pdf') || imgData.includes('application/pdf');
+          const isPdf = imgData.toLowerCase().endsWith('.pdf') || imgData.includes('.pdf');
           if(isPdf) {
-            // Can't embed PDF in PDF — open it directly
             imgLoaded = false;
           } else {
-            // Extract storage path from full Supabase public URL
+            // Method 1: Try Supabase SDK download (works when authenticated)
             const storageMarker = '/object/public/receipts/';
             const markerIdx = imgData.indexOf(storageMarker);
             if(markerIdx !== -1) {
@@ -11206,43 +11240,48 @@ async function downloadClientDoc(workKey, workNum) {
                 const { data: blob, error: dlErr } = await _sb.storage.from('receipts').download(storagePath);
                 if(dlErr) throw dlErr;
                 imgData = await new Promise((res, rej) => {
-                  const r = new FileReader();
-                  r.onload = () => res(r.result);
-                  r.onerror = rej;
-                  r.readAsDataURL(blob);
+                  const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob);
                 });
                 imgLoaded = true;
-              } catch(e) {
-                // Storage download failed (maybe client portal, no auth) — try direct fetch
-                try {
-                  const resp = await fetch(w.receiptPhoto);
+              } catch(e) { /* Method 1 failed, try next */ }
+            }
+
+            // Method 2: Load via Image element + canvas (bypasses some CORS)
+            if(!imgLoaded) {
+              try {
+                imgData = await new Promise((res, rej) => {
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  img.onload = () => {
+                    try {
+                      const c = document.createElement('canvas');
+                      c.width = img.naturalWidth; c.height = img.naturalHeight;
+                      c.getContext('2d').drawImage(img, 0, 0);
+                      res(c.toDataURL('image/jpeg', 0.9));
+                    } catch(e) { rej(e); }
+                  };
+                  img.onerror = rej;
+                  // Add cache-busting to avoid stale CORS preflight
+                  img.src = w.receiptPhoto + (w.receiptPhoto.includes('?') ? '&' : '?') + 't=' + Date.now();
+                });
+                imgLoaded = true;
+              } catch(e) { /* Method 2 failed, try next */ }
+            }
+
+            // Method 3: Direct fetch with no-cors mode
+            if(!imgLoaded) {
+              try {
+                const resp = await fetch(w.receiptPhoto, {mode:'cors'});
+                if(resp.ok) {
                   const blob2 = await resp.blob();
-                  if(blob2.type.startsWith('image/')) {
+                  if(blob2.type && blob2.type.startsWith('image/')) {
                     imgData = await new Promise((res, rej) => {
-                      const r = new FileReader();
-                      r.onload = () => res(r.result);
-                      r.onerror = rej;
-                      r.readAsDataURL(blob2);
+                      const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(blob2);
                     });
                     imgLoaded = true;
                   }
-                } catch(e2) { imgLoaded = false; }
-              }
-            } else {
-              // Fallback: try fetch for external URLs
-              try {
-                const resp = await fetch(w.receiptPhoto);
-                const blob2 = await resp.blob();
-                if(blob2.type.startsWith('image/')) {
-                  imgData = await new Promise((res, rej) => {
-                    const r = new FileReader();
-                    r.onload = () => res(r.result);
-                    r.onerror = rej;
-                    r.readAsDataURL(blob2);
-                  });
-                  imgLoaded = true;
                 }
-              } catch(e) { imgLoaded = false; }
+              } catch(e) { /* Method 3 failed */ }
             }
           }
         } else if(imgData.startsWith('data:')) {
@@ -11265,19 +11304,26 @@ async function downloadClientDoc(workKey, workNum) {
       }
     }
     if(!imgLoaded) {
-      // Fallback: show a message on page 2
+      // Fallback: show a message on page 2 with the document URL
       doc.setFillColor(248,248,248);
-      doc.rect(15, 30, PW-30, 80, 'F');
-      doc.setTextColor(150,150,150);
+      doc.rect(15, 25, PW-30, 100, 'F');
+      doc.setTextColor(100,100,100);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(14);
+      doc.text('Your Document', PW/2, 50, {align:'center'});
       doc.setFont('helvetica','normal');
-      doc.setFontSize(13);
-      doc.text('Document image could not be embedded.', PW/2, 70, {align:'center'});
+      doc.setFontSize(10);
+      doc.text('The document could not be embedded in this PDF.', PW/2, 65, {align:'center'});
       doc.setFontSize(9);
-      doc.text('Please open your document separately using the link below.', PW/2, 82, {align:'center'});
-      // Also open the original document URL in a new tab so user can access it
+      doc.text('Your document has been opened in a separate tab.', PW/2, 78, {align:'center'});
       if(w.receiptPhoto && w.receiptPhoto.startsWith('http')) {
+        doc.setTextColor(37,99,235);
+        doc.setFontSize(8);
+        const shortUrl = w.receiptPhoto.length > 80 ? w.receiptPhoto.substring(0,77)+'...' : w.receiptPhoto;
+        doc.text(shortUrl, PW/2, 95, {align:'center'});
+        doc.link(15, 88, PW-30, 12, {url: w.receiptPhoto});
+        // Auto-open the document in a new tab
         window.open(w.receiptPhoto, '_blank');
-        toast('Document opened in a new tab ✅', 'success');
       }
     }
 
@@ -11924,8 +11970,19 @@ function renderCashTracker(){
   const opening = allLedger.filter(l=>l.bank==='Cash'&&l.type==='opening').reduce((s,l)=>s+(l.amount||0),0);
   balance = opening;
   
-  // All cash credits and debits from ledger
-  const txns = allLedger.filter(l=>l.bank==='Cash'&&l.type!=='opening').sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  // All cash credits and debits from ledger — sort by actual date
+  function parseDateKeyCash(d) {
+    if(!d) return 0;
+    const p = String(d).split('/');
+    if(p.length===3) return new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime()||0;
+    const dt = new Date(d);
+    return isNaN(dt) ? 0 : dt.getTime();
+  }
+  const txns = allLedger.filter(l=>l.bank==='Cash'&&l.type!=='opening').sort((a,b)=>{
+    const da = parseDateKeyCash(a.date), db = parseDateKeyCash(b.date);
+    if(da !== db) return da - db;
+    return (a.timestamp||0) - (b.timestamp||0);
+  });
   txns.forEach(e=>{
     if(e.type==='credit') balance+=e.amount||0;
     else if(e.type==='debit') balance-=e.amount||0;
