@@ -1527,11 +1527,13 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <a onclick="showPage('performance')" id="nav-performance" class="owner-only-nav"><span class="ico">↗</span> Performance</a>
       <a onclick="showPage('attendance')" id="nav-attendance"><span class="ico">◷</span> Attendance</a>
 
+      <!-- Complaints (all staff) -->
+      <a onclick="showPage('complaints')" id="nav-complaints"><span class="ico">◎</span> Complaints</a>
+
       <!-- Admin (owner only) -->
       <div id="ownerNav" style="display:none;">
         <div class="ns">Admin</div>
         <a onclick="showPage('manageStaff')" id="nav-manageStaff"><span class="ico">⚙</span> Manage Staff</a>
-        <a onclick="showPage('complaints')" id="nav-complaints"><span class="ico">◎</span> Complaints</a>
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">✕</span> Rejected Works</a>
         <a onclick="showPage('accessLog')" id="nav-accessLog"><span class="ico">▤</span> Access Log</a>
         <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">▣</span> Trusted Devices</a>
@@ -2631,11 +2633,11 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div style="font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:700;letter-spacing:-.3px;">💰 Payments</div>
         <div style="font-size:.8rem;opacity:.65;margin-top:3px;">Record any payment received — linked to work or standalone</div>
       </div>
-      <button class="btn btn-sm" id="pmtToggleBtn" onclick="pmtToggleForm()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);">➕ Add Entry</button>
+      <button class="btn btn-sm" id="pmtToggleBtn" onclick="pmtToggleForm()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);">✕ Hide Form</button>
     </div>
 
     <!-- Add Entry Form -->
-    <div class="card" id="pmtForm" style="display:none;margin-bottom:18px;">
+    <div class="card" id="pmtForm" style="display:block;margin-bottom:18px;">
       <div style="font-weight:800;font-size:.95rem;margin-bottom:16px;color:#065f46;">➕ New Payment Entry</div>
       <div class="g2">
         <div class="field">
@@ -4079,7 +4081,7 @@ const pageTitles={dashboard:'🏠 Dashboard',newWork:'➕ New Work',verification
 let currentActivePage = 'dashboard';
 
 function showPage(page) {
-  const ownerPages=['reconcile','combinedBalance','pnl','rejectedWorks','officeExpenditure','dailySummary','staff','performance','manageStaff','accessLog','complaints'];
+  const ownerPages=['reconcile','combinedBalance','pnl','rejectedWorks','officeExpenditure','dailySummary','staff','performance','manageStaff','accessLog'];
   const ownerManagerPages=['verification'];
   if(ownerPages.includes(page) && currentUser && currentUser.role!=='owner'){
     return; // silent — nav link is hidden anyway
@@ -5698,9 +5700,10 @@ async function _doSubmitWork() {
       const dateInp = firstPayRow.querySelector('.pay-date-inp'); if(dateInp) dateInp.value = new Date().toISOString().split('T')[0];
     }
     resetVWRows();
-    // Scroll to top of form
+    // Scroll to top of form and auto-focus first field
     window.scrollTo({top: 0, behavior: 'smooth'});
     document.getElementById('content').scrollTo({top: 0, behavior: 'smooth'});
+    setTimeout(() => { const nameEl = document.getElementById('w_name'); if(nameEl) nameEl.focus(); }, 400);
     await loadAllData();
     renderDashboard(); startClock(); applyStaffRestrictions();
     showWhatsAppPopup(ownerName, phone, clientId, primaryRow.workType, primaryRow.dlLicenseType||'');
@@ -9761,7 +9764,25 @@ async function savePaymentEntry() {
     }
 
     toast(`✅ ${entryType==='credit'?'Credit':'Debit'} of ${inr(amount)} saved`, 'success');
-    pmtToggleForm();
+    // Reset all fields but keep form open
+    ['pmt_name','pmt_vehicle','pmt_amount','pmt_bankCharges','pmt_remarks','pmt_other_desc'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('pmt_source').value = '';
+    const empSel=document.getElementById('pmt_employee'); if(empSel) empSel.value='';
+    const empField=document.getElementById('pmt_employee_field'); if(empField) empField.style.display='none';
+    document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
+    document.getElementById('pmt_work_specify').style.display = 'none';
+    document.getElementById('pmt_vehicle_hint').textContent = '';
+    document.getElementById('pmt_date').value = new Date().toISOString().split('T')[0];
+    pmtSetType('debit');
+    // Delete editing state
+    const form = document.getElementById('pmtForm');
+    delete form.dataset.editingId; delete form.dataset.editingWorkKey;
+    delete form.dataset.editingType; delete form.dataset.editingAmount;
+    // Scroll to top and focus first field
+    document.getElementById('content').scrollTo({top: 0, behavior: 'smooth'});
+    setTimeout(() => { const nameEl = document.getElementById('pmt_name'); if(nameEl) nameEl.focus(); }, 300);
     await loadAllData();
     renderPayments();
   } catch(e) { toast('Error: '+e.message,'error'); }
@@ -11214,10 +11235,6 @@ async function downloadClientDoc(workKey, workNum) {
 
     // ── PAGE 2: Document image ──
     doc.addPage();
-
-    // Load image using Supabase SDK (bypasses CORS, works with private buckets)
-    let imgData = w.receiptPhoto;
-    let imgLoaded = false;
 
     // Load image using multiple fallback approaches
     let imgData = w.receiptPhoto;
