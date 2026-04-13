@@ -1891,36 +1891,11 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <input type="hidden" id="allWorkTabFilter" value="open"/>
         <div class="sbar">
           <input type="text" id="searchInput" placeholder="🔍 Search name, vehicle, chassis, engine, #, Client ID, phone…" oninput="filterWorks()"/>
-          <select id="filterType" onchange="filterWorks()">
-            <option value="">All Types</option>
-            <option value="NewRegistration">🆕 New Registration</option>
-            <option value="TempRegistration">📋 Temp Registration</option>
-            <option value="Transfer">🔄 RC Transfer</option>
-            <option value="ChangeOfAddress">📍 Change of Address</option>
-            <option value="DoubleAddress">📍📍 Double Address</option>
-            <option value="ReRegistration">♻️ Re-Registration</option>
-            <option value="FRC">📄 FRC</option>
-            <option value="RCDC">📑 RC/DC</option>
-            <option value="RCParticular">📝 RC Particular</option>
-            <option value="RCSurrender">🏳️ RC Surrender</option>
-            <option value="RCCancel">❌ RC Cancel</option>
-            <option value="Hypothecation">🔗 Hypothecation</option>
-            <option value="Fitness">✅ Fitness</option>
-            <option value="Alteration">🔧 Alteration</option>
-            <option value="Conversion">🔀 Conversion</option>
-            <option value="RCNOC">📤 RC NOC</option>
-            <option value="Permit">🗺️ Permit</option>
-            <option value="TradeCertificate">🏷️ Trade Certificate</option>
-            <option value="Challan">⚖️ Challan</option>
-            <option value="Insurance">🛡️ Insurance</option>
-            <option value="RoadTax">🛣️ Road Tax</option>
-            <option value="PUC">🌿 PUC</option>
-            <option value="HSRP">🔖 HSRP</option>
-            <option value="DrivingLicense">🪪 Driving License</option>
-            <option value="Others">📦 Others</option>
-            <option value="DCRB">📃 DCRB</option>
-            <option value="VIPNumber">⭐ VIP Number</option>
-          </select>
+          <div style="position:relative;min-width:180px;">
+            <input type="text" id="filterTypeSearch" placeholder="🔍 All Types" oninput="filterTypeSearchInput()" onfocus="filterTypeShowDd()" onblur="setTimeout(()=>filterTypeHideDd(),200)" autocomplete="off" style="padding:9px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;width:100%;background:var(--surface);"/>
+            <input type="hidden" id="filterType" value=""/>
+            <div id="filterTypeDd" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:400;background:var(--surface);border:1.5px solid var(--p);border-radius:10px;box-shadow:var(--shadow-md);max-height:280px;overflow-y:auto;margin-top:3px;font-size:.84rem;"></div>
+          </div>
           <select id="filterStatus" onchange="syncStatusToTab();filterWorks()">
             <option value="">All Status</option>
             <option value="open">Open</option>
@@ -2021,19 +1996,64 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
 
     <!-- EXPIRY -->
     <div class="page" id="page-expiry">
-      <div class="card">
-        <div class="sh">
-          <div class="card-title" style="margin:0;">🔔 Expiry Alerts</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm" style="background:#25d366;color:#fff;border:none;" onclick="bulkWAExpiryReminder()" title="Send WhatsApp reminder to all clients expiring this week">📱 Bulk WA Reminder</button>
-            <button class="btn btn-sm btn-outline" onclick="exportExpiryExcel()" data-restrict="print-export">📥 Export</button>
+      <!-- Expiry header -->
+      <div style="background:linear-gradient(135deg,#0f1f3a 0%,var(--r) 100%);border-radius:16px;padding:20px 24px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">🔔 Expiry Alerts</div>
+          <div style="font-size:.8rem;opacity:.65;margin-top:3px;">Track document expirations & follow up with clients</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showManualExpiryForm()">➕ Manual Entry</button>
+          <button class="btn btn-sm" style="background:#25d366;color:#fff;border:none;" onclick="bulkWAExpiryReminder()">📱 Bulk WA</button>
+          <button class="btn btn-sm" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);" onclick="exportExpiryExcel()" data-restrict="print-export">📥 Export</button>
+        </div>
+      </div>
+
+      <!-- Manual Expiry Entry Form -->
+      <div class="card" id="manualExpiryForm" style="display:none;margin-bottom:16px;border-left:4px solid var(--acc);">
+        <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;color:var(--acc);">➕ Add Old Work Expiry (Manual Entry)</div>
+        <div class="g2">
+          <div class="field"><label>Owner Name *</label><input type="text" id="mexp_owner" placeholder="Vehicle owner's name"/></div>
+          <div class="field"><label>Phone *</label><input type="tel" id="mexp_phone" placeholder="10-digit mobile" maxlength="10"/></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Client Name <span style="font-size:.72rem;color:var(--gray);">(if different)</span></label><input type="text" id="mexp_client" placeholder="Leave blank if same as owner"/></div>
+          <div class="field"><label>Alt Phone <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label><input type="tel" id="mexp_altphone" placeholder="Alternate number" maxlength="10"/></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Vehicle Number *</label><input type="text" id="mexp_vehicle" placeholder="UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/></div>
+          <div class="field"><label>Work Type *</label>
+            <select id="mexp_worktype">
+              <option value="">— Select —</option>
+              <option value="Fitness">✅ Fitness</option>
+              <option value="Insurance">🛡️ Insurance</option>
+              <option value="Permit">🗺️ Permit</option>
+              <option value="PUC">🌿 PUC</option>
+              <option value="RoadTax">🛣️ Road Tax</option>
+              <option value="DrivingLicense">🪪 Driving License</option>
+              <option value="TradeCertificate">🏷️ Trade Certificate</option>
+              <option value="Others">📦 Others</option>
+            </select>
           </div>
         </div>
+        <div class="g2">
+          <div class="field"><label>Expiry Date *</label><input type="date" id="mexp_expiry"/></div>
+          <div class="field"><label>Remarks <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label><input type="text" id="mexp_remarks" placeholder="e.g. Old fitness renewal needed"/></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn btn-primary" onclick="saveManualExpiry()">💾 Save Expiry Entry</button>
+          <button class="btn btn-gray" onclick="document.getElementById('manualExpiryForm').style.display='none'">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="card">
         <div class="tab-row" style="margin-bottom:14px;">
           <button class="tb expiry-filter-btn active" id="expiryFilterBtn" onclick="setExpiryFilter('all',this)">All Upcoming</button>
           <button class="tb expiry-filter-btn" onclick="setExpiryFilter('month',this)">This Month</button>
           <button class="tb expiry-filter-btn" onclick="setExpiryFilter('week',this)">This Week</button>
           <button class="tb expiry-filter-btn" onclick="setExpiryFilter('expired',this)">Expired</button>
+          <button class="tb expiry-filter-btn" onclick="setExpiryFilter('lost',this)" style="color:var(--r);">❌ Lost Clients</button>
         </div>
         <div id="expiryList"></div>
       </div>
@@ -2063,7 +2083,6 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
           <button class="tb" onclick="filterLedger('SBI',this)">SBI</button>
           <button class="tb" onclick="filterLedger('Kotak',this)">Kotak</button>
           <button class="tb" onclick="filterLedger('Cash',this)">Cash</button>
-          <button class="tb" onclick="filterLedger('Employee',this)">👤 Employee</button>
         </div>
         <div style="margin-bottom:10px;"><input type="text" id="ledgerSearchInput" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
@@ -2729,6 +2748,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;">👤 Employee Ledger</div>
         <div style="font-size:.8rem;opacity:.65;margin-top:3px;">Track per-employee credits, debits & RTO spends</div>
       </div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);" onclick="showEmpLedgerForm()">➕ Add Entry</button>
     </div>
     <div class="card" style="margin-bottom:16px;">
       <div class="field" style="margin-bottom:0;">
@@ -2736,6 +2756,31 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <select id="empLedger_staff" onchange="renderEmployeeLedger()" style="max-width:300px;">
           <option value="">— Select Employee —</option>
         </select>
+      </div>
+    </div>
+    <!-- Manual Entry Form -->
+    <div class="card" id="empLedgerForm" style="display:none;margin-bottom:16px;">
+      <div style="font-weight:800;font-size:.95rem;margin-bottom:14px;color:var(--pu);">➕ New Employee Ledger Entry</div>
+      <div class="g2">
+        <div class="field"><label>Employee *</label>
+          <select id="empL_staff"><option value="">— Select —</option></select>
+        </div>
+        <div class="field"><label>Date *</label><input type="date" id="empL_date"/></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Type *</label>
+          <div style="display:flex;gap:8px;">
+            <button type="button" id="empL_credit_btn" onclick="empLSetType('credit')" style="flex:1;padding:7px;border-radius:8px;border:2px solid var(--grayb);background:#fff;color:var(--gray);font-weight:700;cursor:pointer;font-size:.84rem;">↑ Credit</button>
+            <button type="button" id="empL_debit_btn" onclick="empLSetType('debit')" style="flex:1;padding:7px;border-radius:8px;border:2px solid var(--r);background:var(--rl);color:var(--r);font-weight:700;cursor:pointer;font-size:.84rem;">↓ Debit</button>
+          </div>
+          <input type="hidden" id="empL_type" value="debit"/>
+        </div>
+        <div class="field"><label>Amount (₹) *</label><input type="number" id="empL_amount" placeholder="e.g. 500" min="0"/></div>
+      </div>
+      <div class="field"><label>Description / Remarks *</label><input type="text" id="empL_desc" placeholder="e.g. Advance given, Petrol money, Salary deduction…"/></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="saveEmpLedgerEntry()">💾 Save Entry</button>
+        <button class="btn btn-gray" onclick="document.getElementById('empLedgerForm').style.display='none'">Cancel</button>
       </div>
     </div>
     <div class="stats-row" id="empLedgerStats" style="margin-bottom:16px;"></div>
@@ -3062,6 +3107,12 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
     <div class="md-title">🏦 Manual Ledger Entry</div>
     <div class="g2">
       <div class="field"><label>Bank / Account *</label>
+        <select id="l_bank">
+          <option value="HDFC">HDFC</option>
+          <option value="SBI">SBI</option>
+          <option value="Kotak">Kotak</option>
+          <option value="Cash">Cash</option>
+        </select>
       </div>
       <div class="field"><label>Entry Type *</label>
         <select id="l_type"><option value="credit">↑ Credit (Money In)</option><option value="debit">↓ Debit (Money Out)</option><option value="opening">Opening Balance</option></select>
@@ -4205,7 +4256,7 @@ function dashVehicleSearch() {
         <span class="badge ${w.status==='done'?'bg':w.status==='partial'?'':'bb'}" style="${w.status==='partial'?'background:#fef3c7;color:#b45309;':''}">${w.status==='done'?'✅ Done':w.status==='partial'?'⏳ Partial':'🔄 Open'}</span>
       </div>
       <div style="font-size:.82rem;margin-top:6px;color:var(--gray);">
-        ${esc(w.vehicles||w.vehicle)} · ${wtLabel(w.workType)} · ${fmtDate(w.date)}
+        ${esc(dedupVeh(w.vehicles||w.vehicle))} · ${wtLabel(w.workType)} · ${fmtDate(w.date)}
       </div>
       <div style="display:flex;gap:12px;margin-top:8px;font-size:.8rem;flex-wrap:wrap;">
         <span>💰 Work Value: <strong>${inr(w.workValue||0)}</strong></span>
@@ -4684,7 +4735,7 @@ function renderDashboard() {
   document.getElementById('overdueSnippet').innerHTML=ovList.length===0?'<div class="nd">🎉 No overdue works!</div>':ovList.map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--rl);cursor:pointer;">
       <div><div style="font-weight:700;font-size:.87rem;color:var(--r);">${esc(w.ownerName||w.clientName)}</div>
-      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)} · ${wtLabel(w.workType)}</div></div>
+      <div style="font-size:.74rem;color:var(--gray);">${esc(dedupVeh(w.vehicles||w.vehicle))} · ${wtLabel(w.workType)}</div></div>
       <span class="badge br">${(()=>{const pts=w.date?w.date.split('/'):[];const d=pts.length===3?new Date(pts[2]+'-'+pts[1].padStart(2,'0')+'-'+pts[0].padStart(2,'0')):new Date(w.timestamp||0);return Math.max(0,Math.floor((Date.now()-d.getTime())/86400000));})()}d</span>
     </div>`).join('');
   // Expiry snippet
@@ -4702,7 +4753,7 @@ function renderDashboard() {
   document.getElementById('udhariSnippet').innerHTML=udList.length===0?'<div class="nd">No dues pending</div>':udList.map(w=>`
     <div onclick="viewWork('${w._key}')" style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--grayb);cursor:pointer;">
       <div><div style="font-weight:700;font-size:.87rem;">${esc(w.ownerName||w.clientName)}</div>
-      <div style="font-size:.74rem;color:var(--gray);">${esc(w.vehicles||w.vehicle)}</div></div>
+      <div style="font-size:.74rem;color:var(--gray);">${esc(dedupVeh(w.vehicles||w.vehicle))}</div></div>
       <span class="badge br">${inr(w.remainingBalance||Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)))}</span>
     </div>`).join('');
 
@@ -5007,7 +5058,17 @@ function vwTypeChange(el, forcedVal) {
 
   if(vehicleInput) {
     vehicleInput.style.display = val==='DrivingLicense' ? 'none' : '';
-    vehicleInput.placeholder = val==='Others' ? 'Vehicle No. (optional)' : 'UP32AB1234';
+    if(val==='NewRegistration'||val==='TempRegistration') {
+      vehicleInput.placeholder = 'Temp No. (if applicable) — optional';
+      vehicleInput.required = false;
+    } else if(val==='TradeCertificate') {
+      vehicleInput.placeholder = 'Vehicle No. (optional)';
+      vehicleInput.required = false;
+    } else if(val==='Others') {
+      vehicleInput.placeholder = 'Vehicle No. (optional)';
+    } else {
+      vehicleInput.placeholder = 'UP32AB1234';
+    }
     if(val==='DrivingLicense') vehicleInput.value='DL';
     else if(vehicleInput.value==='DL') vehicleInput.value='';
   }
@@ -5075,19 +5136,65 @@ function vwTypeChange(el, forcedVal) {
       html = _xLabel('Permit Type') +
         _xSel('x-permit-type',[
           ['State','State Permit'],['National','National Permit'],
-          ['StateAuth','State Permit Auth.'],['Zone','Zone Permit'],
+          ['Zone','Zone Permit'],
           ['Temp','Temporary Permit'],['DC','Permit D/C'],['Cancel','Permit Cancel']
-        ],'Select');
-      // Expiry dates asked at complete-work time (dual dates for National)
+        ],'Select') +
+        '<div class="x-permit-sub-wrap" style="display:none;margin-top:6px;"></div>';
+      // Show sub-options when National is selected
       setTimeout(()=>{
         const sel = row.querySelector('.x-permit-type');
-        if(sel) sel.addEventListener('change', ()=>{});
+        if(sel) sel.addEventListener('change', ()=>{
+          const sub = row.querySelector('.x-permit-sub-wrap');
+          if(!sub) return;
+          if(sel.value === 'National') {
+            sub.style.display = 'block';
+            sub.innerHTML = _xLabel('National Permit Sub-type') +
+              _xSel('x-permit-national-sub',[['New','New National Permit'],['Renewal','Renewal']],'Select') +
+              '<div class="x-permit-new-wrap" style="display:none;margin-top:6px;"></div>';
+            setTimeout(()=>{
+              const natSel = row.querySelector('.x-permit-national-sub');
+              if(natSel) natSel.addEventListener('change', ()=>{
+                const newWrap = row.querySelector('.x-permit-new-wrap');
+                if(!newWrap) return;
+                if(natSel.value === 'New') {
+                  newWrap.style.display = 'block';
+                  newWrap.innerHTML = _xLabel('New Permit Category') +
+                    _xSel('x-permit-new-cat',[['Basic','Basic'],['Auth','Authorisation']],'Select');
+                } else {
+                  newWrap.style.display = 'block';
+                  newWrap.innerHTML = _xLabel('Renewal Category') + '<div style="font-size:.82rem;color:var(--text3);padding:4px 0;">Basic (default for renewal)</div>' +
+                    '<input type="hidden" class="x-permit-new-cat" value="Basic"/>';
+                }
+              });
+            }, 20);
+          } else {
+            sub.style.display = 'none';
+            sub.innerHTML = '';
+          }
+        });
       }, 20);
       break;
 
     case 'TradeCertificate':
       html = _xLabel('Certificate Type') +
-        _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']]);
+        _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']]) +
+        '<div class="x-trade-renewal-wrap" style="display:none;margin-top:6px;"></div>';
+      setTimeout(()=>{
+        const sel = row.querySelector('.x-trade-type');
+        if(sel) sel.addEventListener('change', ()=>{
+          const wrap = row.querySelector('.x-trade-renewal-wrap');
+          if(!wrap) return;
+          if(sel.value === 'Renewal') {
+            wrap.style.display = 'block';
+            wrap.innerHTML = _xLabel('Old Trade Certificate Details') +
+              _xInp('x-trade-old-number','Old Trade Certificate Number') +
+              _xDate('x-trade-old-expiry','Old Certificate Expiry Date');
+          } else {
+            wrap.style.display = 'none';
+            wrap.innerHTML = '';
+          }
+        });
+      }, 20);
       break;
 
     case 'Challan':
@@ -5182,7 +5289,11 @@ function getRowExtras(row) {
   ex.altBody       = gc('x-alt-body');
   ex.fitnessType   = g('x-fitness-type');
   ex.permitType    = g('x-permit-type');
+  ex.permitNationalSub = g('x-permit-national-sub');
+  ex.permitNewCat  = g('x-permit-new-cat');
   ex.tradeType     = g('x-trade-type');
+  ex.tradeOldNumber = g('x-trade-old-number');
+  ex.tradeOldExpiry = g('x-trade-old-expiry');
   ex.challanNo     = g('x-challan-no');
   ex.challanDate   = g('x-challan-date');
   ex.challanType   = g('x-challan-type');
@@ -5429,7 +5540,7 @@ async function _doSubmitWork() {
 
   // Validations
   if(!ownerName){toast('Enter owner name','error');return;}
-  if(!vwRows.length||(!vwRows[0].vehicle&&vwRows[0].workType!=='DrivingLicense'&&vwRows[0].workType!=='Others')){toast('Enter at least one vehicle number','error');return;}
+  if(!vwRows.length||(!vwRows[0].vehicle&&!['DrivingLicense','Others','NewRegistration','TempRegistration','TradeCertificate'].includes(vwRows[0].workType))){toast('Enter at least one vehicle number','error');return;}
   if(vwRows.some(r=>!r.workType)){toast('Select work type for each row','error');return;}
   if(vwRows.some(r=>r.workType==='Others'&&!r.othersSpecify)){toast('Specify work for "Others" row','error');return;}
   if(vwRows.some(r=>r.workType==='DrivingLicense'&&!r.dlLicenseType)){toast('Select License Type for Driving License','error');return;}
@@ -5490,7 +5601,7 @@ async function _doSubmitWork() {
 
   // Primary vehicle/type from first row
   const primaryRow = vwRows[0];
-  const allVehicles = vwRows.map(r=>r.vehicle).filter(Boolean).join(', ');
+  const allVehicles = [...new Set(vwRows.map(r=>r.vehicle).filter(Boolean))].join(', ');
 
   const workData = {
     workNum, clientId,
@@ -5713,9 +5824,22 @@ function renderWorkTable(){
     <td style="font-weight:700;font-size:.84rem;">${(()=>{
       try{
         const items=JSON.parse(w.vehicleWorkItems||'[]');
-        if(items.length>0) return items.map(r=>{const xs=fmtExtrasShort(r);return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;"><span style="font-family:monospace;font-size:.82rem;">${esc(r.vehicle||'—')}</span><span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(r.workType)}</span>${r.rowWorkValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(r.rowWorkValue)}</span>`:''}${xs?`<span style="font-size:.68rem;color:var(--acc);font-weight:600;">${esc(xs)}</span>`:''}</div>`;}).join('');
+        if(items.length>0) {
+          // Group work types by vehicle
+          const byVeh = {};
+          items.forEach(r => {
+            const v = r.vehicle||'—';
+            if(!byVeh[v]) byVeh[v] = [];
+            byVeh[v].push(r);
+          });
+          return Object.entries(byVeh).map(([veh, rows]) => {
+            const typeBadges = rows.map(r => `<span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.64rem;">${wtLabel(r.workType)}</span>${r.rowWorkValue>0?` <span style="font-size:.68rem;color:var(--p);font-weight:800;">${inr(r.rowWorkValue)}</span>`:''}`).join(' ');
+            const xs = rows.map(r=>fmtExtrasShort(r)).filter(Boolean).join(' · ');
+            return `<div style="margin-bottom:4px;"><span style="font-family:var(--font-num);font-size:.82rem;">${esc(veh)}</span><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;">${typeBadges}</div>${xs?`<div style="font-size:.66rem;color:var(--acc);margin-top:1px;">${esc(xs)}</div>`:''}</div>`;
+          }).join('');
+        }
       }catch(e){}
-      return `<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</span><span class="badge ${wtClasses[w.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(w.workType)}</span>${w.workValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(w.workValue)}</span>`:''}</div>`;
+      return `<div style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;">${esc(dedupVeh(w.vehicles||w.vehicle))}</span><span class="badge ${wtClasses[w.workType]||'bgr'}" style="font-size:.66rem;">${wtLabel(w.workType)}</span>${w.workValue>0?`<span style="font-size:.7rem;color:var(--p);font-weight:800;">${inr(w.workValue)}</span>`:''}</div>`;
     })()}</td>
     <td>${wtBadge(w)}</td>
     <td>${payBadge(w)}${w.remainingBalance>0?`<br/><span style='font-size:.7rem;color:var(--r);font-weight:800;'>⚠️ Due: ${inr(w.remainingBalance)}</span>`:''}${(()=>{const excess=(w.amount||0)-(w.workValue||0);return excess>0?`<br/><span style='font-size:.7rem;color:#16a34a;font-weight:800;background:#dcfce7;padding:1px 6px;border-radius:10px;'>+${inr(excess)} Excess</span>`:'';})()} </td>
@@ -5739,6 +5863,40 @@ function renderWorkTable(){
     </td>
   </tr>`).join('');
 }
+
+// Searchable work type filter for All Works
+const _allWorkTypes = [
+  {val:'',label:'All Types'},{val:'NewRegistration',label:'🆕 New Registration'},{val:'TempRegistration',label:'📋 Temp Registration'},
+  {val:'Transfer',label:'🔄 RC Transfer'},{val:'ChangeOfAddress',label:'📍 Change of Address'},{val:'DoubleAddress',label:'📍📍 Double Address'},
+  {val:'ReRegistration',label:'♻️ Re-Registration'},{val:'FRC',label:'📄 FRC'},{val:'RCDC',label:'📑 RC/DC'},
+  {val:'RCParticular',label:'📝 RC Particular'},{val:'RCSurrender',label:'🏳️ RC Surrender'},{val:'RCCancel',label:'❌ RC Cancel'},
+  {val:'Hypothecation',label:'🔗 Hypothecation'},{val:'Fitness',label:'✅ Fitness'},{val:'Alteration',label:'🔧 Alteration'},
+  {val:'Conversion',label:'🔀 Conversion'},{val:'RCNOC',label:'📤 RC NOC'},{val:'Permit',label:'🗺️ Permit'},
+  {val:'TradeCertificate',label:'🏷️ Trade Certificate'},{val:'Challan',label:'⚖️ Challan'},{val:'Insurance',label:'🛡️ Insurance'},
+  {val:'RoadTax',label:'🛣️ Road Tax'},{val:'PUC',label:'🌿 PUC'},{val:'HSRP',label:'🔖 HSRP'},
+  {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'},
+  {val:'DCRB',label:'📃 DCRB'},{val:'VIPNumber',label:'⭐ VIP Number'}
+];
+function filterTypeSearchInput() {
+  const q = (document.getElementById('filterTypeSearch')?.value||'').toLowerCase();
+  const dd = document.getElementById('filterTypeDd');
+  const filtered = _allWorkTypes.filter(t => t.label.toLowerCase().includes(q) || t.val.toLowerCase().includes(q));
+  dd.innerHTML = filtered.map(t => `<div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--bg2);transition:background .1s;" onmousedown="filterTypeSelect('${t.val}','${t.label.replace(/'/g,'')}')" onmouseover="this.style.background='var(--pl)'" onmouseout="this.style.background=''">${t.label}</div>`).join('');
+  dd.style.display = filtered.length ? 'block' : 'none';
+}
+function filterTypeShowDd() {
+  filterTypeSearchInput(); // populate
+}
+function filterTypeHideDd() {
+  document.getElementById('filterTypeDd').style.display = 'none';
+}
+function filterTypeSelect(val, label) {
+  document.getElementById('filterType').value = val;
+  document.getElementById('filterTypeSearch').value = val ? label : '';
+  document.getElementById('filterTypeDd').style.display = 'none';
+  filterWorks();
+}
+
 function filterWorks(){renderWorkTable();}
 
 // ============================================================
@@ -6305,7 +6463,7 @@ function renderVerification() {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:14px;">
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Phone</div><div style="font-weight:700;">${esc(w.phone)}</div></div>
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle(s)</div><div style="font-weight:700;font-family:monospace;">${esc(w.vehicles||w.vehicle)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle(s)</div><div style="font-weight:700;font-family:monospace;">${esc(dedupVeh(w.vehicles||w.vehicle))}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Type</div><div>${wtBadge(w)}</div></div>
         ${(()=>{try{const items=JSON.parse(w.vehicleWorkItems||'[]');if(!items.length)return '';return items.map(r=>{const xs=fmtExtrasShort(r);if(!xs)return '';return '<div style="grid-column:1/-1;"><div style="font-size:.72rem;background:#fff;border:1px solid var(--grayb);border-radius:7px;padding:6px 10px;margin-bottom:4px;"><span style="font-weight:700;font-family:monospace;font-size:.78rem;">'+esc(r.vehicle||'—')+'</span> <span style="font-size:.72rem;color:var(--acc);font-weight:600;">'+esc(xs)+'</span></div></div>';}).filter(Boolean).join('');}catch(e){return '';}})()}
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Payment</div><div>${payBadge(w)}</div></div>
@@ -6318,7 +6476,7 @@ function renderVerification() {
                <span style="font-size:.8rem;font-weight:700;color:#166534;">👤 Assign to:</span>
                <select id="assignSel_${w._key}" style="flex:1;min-width:140px;padding:7px 10px;border:1.5px solid #86efac;border-radius:8px;font-size:.85rem;background:#fff;">
                  <option value="">— Select Employee —</option>
-                 ${allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)} (${s.role})</option>`).join('')}
+                 ${allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('')}
                </select>
                <button class="btn btn-success" onclick="verifyWork('${w._key}')">✅ Verify & Assign</button>
                <button class="btn btn-danger" onclick="openRejectWork('${w._key}')">❌ Reject</button>
@@ -6404,7 +6562,7 @@ function renderRejectedWorks() {
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle</div><div style="font-family:monospace;font-weight:700;">${esc(w.vehicles||w.vehicle)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle</div><div style="font-family:monospace;font-weight:700;">${esc(dedupVeh(w.vehicles||w.vehicle))}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Type</div><div>${wtBadge(w)}</div></div>
         <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Date</div><div style="font-size:.82rem;">${fmtDate(w.date)}</div></div>
       </div>
@@ -6656,7 +6814,7 @@ function renderUdhari(){
       <td><span class="wnum">#${w.workNum}</span></td>
       <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
       <td><strong>${esc(w.ownerName||w.clientName)}</strong><br/><span style="font-size:.73rem;color:var(--gray);">${esc(w.phone)}</span></td>
-      <td style="font-weight:700;font-size:.82rem;">${esc(w.vehicles||w.vehicle)}</td>
+      <td style="font-weight:700;font-size:.82rem;">${esc(dedupVeh(w.vehicles||w.vehicle))}</td>
       <td>${wtBadge(w)}</td>
       <td style="font-weight:800;color:${isExcess?'#16a34a':'var(--r)'};">
         ${isExcess?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;">+${inr(excess)} Excess</span>`:inr(due)}
@@ -6741,47 +6899,208 @@ function setExpiryFilter(filter, btn) {
   renderExpiry();
 }
 
+
+// Manual Expiry Entry
+function showManualExpiryForm() {
+  document.getElementById('manualExpiryForm').style.display = 'block';
+  document.getElementById('mexp_expiry').value = '';
+  ['mexp_owner','mexp_phone','mexp_client','mexp_altphone','mexp_vehicle','mexp_remarks'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('mexp_worktype').value = '';
+}
+
+async function saveManualExpiry() {
+  const owner = document.getElementById('mexp_owner').value.trim();
+  const phone = document.getElementById('mexp_phone').value.trim();
+  const client = document.getElementById('mexp_client').value.trim();
+  const altPhone = document.getElementById('mexp_altphone').value.trim();
+  const vehicle = document.getElementById('mexp_vehicle').value.trim().toUpperCase();
+  const workType = document.getElementById('mexp_worktype').value;
+  const expiry = document.getElementById('mexp_expiry').value;
+  const remarks = document.getElementById('mexp_remarks').value.trim();
+
+  if(!owner) { toast('Enter owner name','error'); return; }
+  if(!phone || !/^\d{10}$/.test(phone)) { toast('Enter valid 10-digit phone','error'); return; }
+  if(!vehicle) { toast('Enter vehicle number','error'); return; }
+  if(!workType) { toast('Select work type','error'); return; }
+  if(!expiry) { toast('Select expiry date','error'); return; }
+
+  const clientId = await getOrCreateClientId(phone);
+  const workNum = await getNextWorkNum();
+  const now = new Date();
+
+  try {
+    await _sb.from('works').insert(toSnake({
+      workNum, clientId,
+      ownerName: owner,
+      clientName: client || owner,
+      vehicle, vehicles: vehicle,
+      vehicleWorkItems: JSON.stringify([{vehicle, workType, rowWorkValue:0, fee:0, penalty:0}]),
+      phone, altPhone: altPhone||'',
+      workType,
+      workExtras: '{}',
+      workValue: 0, totalPaid: 0, remainingBalance: 0,
+      payModes: '[]', payMode: 'Unpaid', amount: 0,
+      status: 'done', // Already completed (old work)
+      takenBy: currentUser.name, takenByKey: currentUser.key,
+      date: now.toLocaleDateString('en-IN'),
+      time: now.toLocaleTimeString('en-IN'),
+      timestamp: now.getTime(),
+      expiryDate: expiry,
+      notes: remarks ? 'Manual expiry entry: ' + remarks : 'Manual expiry entry',
+      completedBy: 'System (Manual Entry)',
+      completedDate: now.toLocaleDateString('en-IN'),
+      verifiedBy: currentUser.name,
+      verifiedAt: now.getTime()
+    }));
+    toast('✅ Expiry entry saved! Work #' + workNum, 'success');
+    document.getElementById('manualExpiryForm').style.display = 'none';
+    await loadAllData();
+    renderExpiry();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Mark expired work as done
+function markExpiryDone(key) {
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+  const html = `
+    <div style="margin-bottom:14px;">
+      <div style="font-weight:800;">Mark "${wtLabel(w.workType)}" for ${esc(dedupVeh(w.vehicles||w.vehicle))} as done?</div>
+      <div style="font-size:.82rem;color:var(--gray);margin-top:4px;">${esc(w.ownerName||w.clientName)} · ${esc(w.phone)}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="btn btn-success" onclick="confirmExpiryDone('${key}','byus')">✅ Done by Us</button>
+      <button class="btn btn-danger" onclick="showExpiryLostReason('${key}')">❌ Done by Someone Else</button>
+    </div>
+    <div id="expiryLostReason_${key}" style="display:none;">
+      <div class="field"><label>Reason (mandatory) — why did they go elsewhere?</label>
+        <textarea id="expiryLostNote_${key}" placeholder="e.g. Client went to another RTO agent, price issue, location convenience…" style="min-height:60px;"></textarea>
+      </div>
+      <button class="btn btn-danger" onclick="confirmExpiryDone('${key}','byother')">❌ Mark as Lost Client</button>
+    </div>
+  `;
+  document.getElementById('workDetailBody').innerHTML = html;
+  openModal('workDetailModal');
+}
+
+function showExpiryLostReason(key) {
+  document.getElementById('expiryLostReason_' + key).style.display = 'block';
+}
+
+async function confirmExpiryDone(key, who) {
+  const w = allWorks.find(x=>x._key===key);
+  if(!w) return;
+  const now = new Date();
+
+  if(who === 'byother') {
+    const noteEl = document.getElementById('expiryLostNote_' + key);
+    const reason = noteEl ? noteEl.value.trim() : '';
+    if(!reason) { toast('Please enter a reason — why did they choose someone else?', 'error'); return; }
+    try {
+      await _sb.from('works').update({
+        expiry_resolved: 'lost',
+        expiry_resolved_by: currentUser.name,
+        expiry_resolved_at: now.getTime(),
+        expiry_lost_reason: reason,
+        close_notes: (w.closeNotes||'') + ' | LOST CLIENT: ' + reason
+      }).eq('id', key);
+      toast('Marked as lost client. Reason saved.', 'warn');
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } else {
+    try {
+      await _sb.from('works').update({
+        expiry_resolved: 'done_by_us',
+        expiry_resolved_by: currentUser.name,
+        expiry_resolved_at: now.getTime()
+      }).eq('id', key);
+      toast('✅ Marked as renewed by us!', 'success');
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+  }
+  closeModal('workDetailModal');
+  await loadAllData();
+  renderExpiry();
+}
+
 function renderExpiry(){
   const today=new Date(); today.setHours(0,0,0,0);
   const in7=new Date(today.getTime()+7*86400000);
   const in30=new Date(today.getTime()+30*86400000);
-  // All works with expiry date
   let allExpiry = allWorks.filter(w=>w.expiryDate);
   let list;
-  if(expiryFilter==='all') {
-    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today);
+
+  // Lost clients filter
+  if(expiryFilter==='lost') {
+    list = allExpiry.filter(w => w.expiryResolved === 'lost');
+    list.sort((a,b) => (b.expiryResolvedAt||0) - (a.expiryResolvedAt||0));
+  } else if(expiryFilter==='all') {
+    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today && w.expiryResolved!=='done_by_us' && w.expiryResolved!=='lost');
   } else if(expiryFilter==='month') {
-    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in30;});
+    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in30 && w.expiryResolved!=='done_by_us' && w.expiryResolved!=='lost';});
   } else if(expiryFilter==='week') {
-    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in7;});
+    list = allExpiry.filter(w=>{const d=new Date(w.expiryDate);return d>=today&&d<=in7 && w.expiryResolved!=='done_by_us' && w.expiryResolved!=='lost';});
   } else if(expiryFilter==='expired') {
-    list = allExpiry.filter(w=>new Date(w.expiryDate)<today);
+    list = allExpiry.filter(w=>new Date(w.expiryDate)<today && w.expiryResolved!=='done_by_us' && w.expiryResolved!=='lost');
   } else {
-    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today);
+    list = allExpiry.filter(w=>new Date(w.expiryDate)>=today && w.expiryResolved!=='done_by_us' && w.expiryResolved!=='lost');
   }
-  list.sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
+
+  if(expiryFilter !== 'lost') {
+    list.sort((a,b)=>new Date(a.expiryDate)-new Date(b.expiryDate));
+  }
+
   const el=document.getElementById('expiryList');
-  if(!list.length){el.innerHTML=`<div class="nd" style="padding:30px;">✅ No papers ${expiryFilter==='expired'?'expired':'expiring'} for this filter</div>`;return;}
+
+  // Lost clients view
+  if(expiryFilter === 'lost') {
+    if(!list.length) {
+      el.innerHTML = '<div class="nd" style="padding:30px;">✅ No lost clients recorded</div>';
+      return;
+    }
+    el.innerHTML = '<div style="font-size:.82rem;color:var(--r);font-weight:700;margin-bottom:12px;">Clients who chose someone else for their renewal/work:</div>' +
+      list.map(w => `
+        <div style="background:var(--rl);border:1.5px solid #fca5a5;border-radius:12px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+            <div>
+              <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:var(--font-num);">${esc(dedupVeh(w.vehicles||w.vehicle))}</span></div>
+              <div style="font-size:.78rem;color:var(--gray);margin-top:3px;">📞 ${esc(w.phone)} · ${wtLabel(w.workType)} · Expired: ${fmtDate(w.expiryDate)}</div>
+            </div>
+            <button class="btn btn-sm" style="background:#25d366;color:#fff;" onclick="window.open('https://wa.me/91${esc(w.phone)}','_blank')">📱 Contact</button>
+          </div>
+          <div style="background:rgba(255,255,255,.6);border-radius:8px;padding:10px 12px;font-size:.84rem;">
+            <strong style="color:var(--r);">Reason:</strong> ${esc(w.expiryLostReason||w.closeNotes||'No reason recorded')}
+          </div>
+          <div style="font-size:.72rem;color:var(--gray);margin-top:6px;">Marked by ${esc(w.expiryResolvedBy||'—')} on ${w.expiryResolvedAt?new Date(w.expiryResolvedAt).toLocaleDateString('en-IN'):''}</div>
+        </div>
+      `).join('');
+    return;
+  }
+
+  if(!list.length){el.innerHTML=`<div class="nd" style="padding:30px;">\u2705 No papers ${expiryFilter==='expired'?'expired':'expiring'} for this filter</div>`;return;}
   el.innerHTML=list.map(w=>{
     const d=new Date(w.expiryDate);
     const diffMs = d-today;
     const days=Math.ceil(diffMs/86400000);
     const isExpired = days<0;
     const urgentClass = isExpired?'expiry-alert':days<=7?'expiry-alert':'expiry-alert warn';
-    const chassisInfo = w.chassisLast5 ? `<span style="font-size:.72rem;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px;font-family:monospace;">C:${esc(w.chassisLast5)}</span>` : '';
-    const engineInfo  = w.engineLast5  ? `<span style="font-size:.72rem;color:#1e40af;background:#dbeafe;padding:1px 6px;border-radius:6px;font-family:monospace;">E:${esc(w.engineLast5)}</span>`  : '';
+    const chassisInfo = w.chassisLast5 ? `<span style="font-size:.72rem;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:5px;font-family:var(--font-num);">C:${esc(w.chassisLast5)}</span>` : '';
+    const engineInfo  = w.engineLast5  ? `<span style="font-size:.72rem;color:#1e40af;background:#dbeafe;padding:1px 6px;border-radius:5px;font-family:var(--font-num);">E:${esc(w.engineLast5)}</span>`  : '';
     return `<div class="${urgentClass}" style="cursor:pointer;">
       <div onclick="viewWork('${w._key}')" style="flex:1;">
-        <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</span></div>
+        <div style="font-weight:800;font-size:.92rem;">${esc(w.ownerName||w.clientName)} — <span style="font-family:var(--font-num);">${esc(dedupVeh(w.vehicles||w.vehicle))}</span></div>
         <div style="font-size:.78rem;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
-          ${wtLabel(w.workType)} · ${esc(w.phone)}
+          ${wtLabel(w.workType)} \u00B7 ${esc(w.phone)}
           ${chassisInfo}${engineInfo}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
         <div style="font-weight:800;font-size:.9rem;">Expires: ${fmtDate(w.expiryDate)}</div>
-        <span class="badge ${isExpired?'br':days<=7?'br':'by'}">${isExpired?`Expired ${Math.abs(days)}d ago`:`${days}d left`}</span>
-        ${w.phone?`<button onclick="event.stopPropagation();waExpiryReminder('${w._key}')" style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;">📱 WA</button>`:''}
+        <span class="badge ${isExpired?'br':days<=7?'br':'by'}">${isExpired?'Expired '+Math.abs(days)+'d ago':days+'d left'}</span>
+        <div style="display:flex;gap:4px;margin-top:2px;">
+          ${w.phone?`<button onclick="event.stopPropagation();waExpiryReminder('${w._key}')" style="background:#25d366;color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;">\uD83D\uDCF1 WA</button>`:''}
+          ${isExpired?`<button onclick="event.stopPropagation();markExpiryDone('${w._key}')" style="background:var(--p);color:#fff;border:none;border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;">\u2714 Mark Done</button>`:''}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -6870,7 +7189,7 @@ function searchClientHistory(){
   <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Vehicle(s)</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
     ${list.map(w=>`<tr>
       <td><span class="wnum">#${w.workNum}</span></td>
-      <td style="font-size:.8rem;font-weight:700;">${esc(w.vehicles||w.vehicle)}</td>
+      <td style="font-size:.8rem;font-weight:700;">${esc(dedupVeh(w.vehicles||w.vehicle))}</td>
       <td>${wtBadge(w)}</td>
       <td>${payBadge(w)}</td>
       <td><span class="badge ${w.status==='done'?'bg':(w.status==='partial'?'by':'bb')}">${w.status==='done'?'✅ Done':(w.status==='partial'?'⏳ Partial':'🔄 Open')}</span></td>
@@ -6939,8 +7258,8 @@ function viewWork(key){
     add('Policy', r.insPolicy); add('Ins. Company', r.insCompany);
     add('Ins. Type', r.insType); add('Validity', r.insValidity); add('Ins. Transfer To', r.insTransferTo);
     add('Tax Type', r.roadTaxType); add('Tax Pos.', r.roadTaxPosition); add('Tax Dist.', r.roadTaxDistrict);
-    add('Permit Type', r.permitType); add('Hyp. Type', r.hypType);
-    add('Fitness', r.fitnessType); add('Conversion', r.conversionType); add('Trade', r.tradeType);
+    add('Permit Type', r.permitType); add('Permit Sub', r.permitNationalSub); add('Permit Category', r.permitNewCat); add('Hyp. Type', r.hypType);
+    add('Fitness', r.fitnessType); add('Conversion', r.conversionType); add('Trade', r.tradeType); add('Old Trade No.', r.tradeOldNumber); add('Old Expiry', r.tradeOldExpiry);
     add('DL Type', r.dlSubtype); add('DL Category', r.dlCategory); add('License No.', r.dlLicNo);
     if(r.altChassis||r.altEngine||r.altBody) { const p=[r.altChassis&&'Chassis',r.altEngine&&'Engine',r.altBody&&'Body'].filter(Boolean); add('Alteration', p.join(', ')); }
     add('Work Detail', r.othersSpec||r.othersSpecify);
@@ -6950,19 +7269,38 @@ function viewWork(key){
     return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 14px;margin-top:8px;padding:10px 12px;background:var(--accl);border-radius:8px;border:1px solid rgba(232,119,34,.18);">${items.map(i=>`<div style="padding:2px 0;"><div style="font-size:.64rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;">${esc(i.label)}</div><div style="font-size:.84rem;font-weight:600;color:var(--text);">${esc(i.val)}</div></div>`).join('')}</div>`;
   }
 
-  // Vehicle cards
-  const vehicleSection = vwItems.map(r => {
-    const extras = buildExtras(r);
+  // Vehicle cards — group by vehicle number
+  const byVehicle = {};
+  vwItems.forEach(r => {
+    const v = r.vehicle || '—';
+    if(!byVehicle[v]) byVehicle[v] = {rows: [], chassis: r.chassisLast5||'', engine: r.engineLast5||''};
+    byVehicle[v].rows.push(r);
+    if(r.chassisLast5 && !byVehicle[v].chassis) byVehicle[v].chassis = r.chassisLast5;
+    if(r.engineLast5 && !byVehicle[v].engine) byVehicle[v].engine = r.engineLast5;
+  });
+
+  const vehicleSection = Object.entries(byVehicle).map(([veh, {rows, chassis, engine}]) => {
+    const workCards = rows.map(r => {
+      const extras = buildExtras(r);
+      return `<div style="padding:8px 10px;background:var(--bg2);border-radius:8px;margin-top:8px;border:1px solid var(--grayb);">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.72rem;">${wtLabel(r.workType)}</span>
+          ${r.rowWorkValue>0?`<span style="font-family:var(--font-num);font-weight:700;color:var(--g);font-size:.85rem;">${inr(r.rowWorkValue)}</span>`:''}
+          ${r.fee>0?`<span style="font-size:.7rem;color:var(--text3);">Fee:${inr(r.fee)}</span>`:''}
+          ${r.penalty>0?`<span style="font-size:.7rem;color:var(--r);">Pen:${inr(r.penalty)}</span>`:''}
+        </div>
+        ${extras}
+      </div>`;
+    }).join('');
+
     return `<div style="background:var(--surface);border:1.5px solid var(--grayb);border-radius:12px;padding:14px;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <span style="font-family:var(--font-num);font-weight:700;font-size:.92rem;background:var(--bg2);padding:4px 10px;border-radius:6px;">${esc(r.vehicle||'—')}</span>
-        <span class="badge ${wtClasses[r.workType]||'bgr'}" style="font-size:.72rem;">${wtLabel(r.workType)}</span>
-        ${r.rowWorkValue>0?`<span style="font-family:var(--font-num);font-weight:700;color:var(--g);font-size:.85rem;">${inr(r.rowWorkValue)}</span>`:''}
-        ${r.fee>0?`<span style="font-size:.7rem;color:var(--text3);">Fee:${inr(r.fee)}</span>`:''}
-        ${r.penalty>0?`<span style="font-size:.7rem;color:var(--r);">Pen:${inr(r.penalty)}</span>`:''}
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-num);font-weight:700;font-size:.95rem;background:var(--pl);padding:5px 12px;border-radius:8px;border:1px solid #c7d8ec;">${esc(veh)}</span>
+        ${chassis?`<span style="font-size:.72rem;background:#fffbeb;border:1px solid #fde68a;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">C:${esc(chassis)}</span>`:''}
+        ${engine?`<span style="font-size:.72rem;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">E:${esc(engine)}</span>`:''}
+        <span style="font-size:.72rem;color:var(--text3);font-weight:600;">${rows.length} work type${rows.length>1?'s':''}</span>
       </div>
-      ${r.chassisLast5||r.engineLast5?`<div style="margin-top:6px;display:flex;gap:6px;">${r.chassisLast5?`<span style="font-size:.72rem;background:#fffbeb;border:1px solid #fde68a;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">C:${esc(r.chassisLast5)}</span>`:``}${r.engineLast5?`<span style="font-size:.72rem;background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:5px;font-family:var(--font-num);">E:${esc(r.engineLast5)}</span>`:``}</div>`:''}
-      ${extras}
+      ${workCards}
     </div>`;
   }).join('');
 
@@ -7270,8 +7608,8 @@ function openCloseWork(key){
     // No items parsed — single completion
     box.innerHTML = `<div style="padding:12px;background:#f0fdf4;border-radius:10px;border:1.5px solid #bbf7d0;">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        <input type="checkbox" class="cw-row-cb" data-vehicle="${esc(w.vehicles||w.vehicle)}" data-type="${esc(w.workType)}" data-val="${esc(w.workValue||0)}" checked style="width:18px;height:18px;"/>
-        <span><strong>${esc(w.vehicles||w.vehicle)}</strong> — ${wtLabel(w.workType)} ${w.workValue?'('+inr(w.workValue)+')':''}</span>
+        <input type="checkbox" class="cw-row-cb" data-vehicle="${esc(dedupVeh(w.vehicles||w.vehicle))}" data-type="${esc(w.workType)}" data-val="${esc(w.workValue||0)}" checked style="width:18px;height:18px;"/>
+        <span><strong>${esc(dedupVeh(w.vehicles||w.vehicle))}</strong> — ${wtLabel(w.workType)} ${w.workValue?'('+inr(w.workValue)+')':''}</span>
       </label>
     </div>`;
   } else {
@@ -8918,7 +9256,7 @@ function searchOspWork() {
   } else {
     res.innerHTML=`<div style="font-weight:800;margin-bottom:8px;">Multiple open works found — select one:</div>`+
       matches.map(w=>`<div style="border:1.5px solid var(--grayb);border-radius:var(--rads);padding:10px;margin-bottom:8px;cursor:pointer;background:var(--graylite);" onclick="selectOspWork(${JSON.stringify(w).replace(/"/g,'&quot;')},this)">
-        <strong>#${w.workNum}</strong> — ${esc(w.ownerName||w.clientName)} — ${esc(w.vehicles||w.vehicle)} — ${esc(wtLabel(w.workType))}
+        <strong>#${w.workNum}</strong> — ${esc(w.ownerName||w.clientName)} — ${esc(dedupVeh(w.vehicles||w.vehicle))} — ${esc(wtLabel(w.workType))}
       </div>`).join('');
     document.getElementById('ospEntryForm').style.display='none';
   }
@@ -8927,7 +9265,7 @@ function searchOspWork() {
 function selectOspWork(w, el) {
   ospSelectedWork = w;
   const vehicles = (w.vehicles||w.vehicle||'').split(',').map(v=>v.trim()).filter(Boolean);
-  let vehicleNote = esc(w.vehicles||w.vehicle);
+  let vehicleNote = esc(dedupVeh(w.vehicles||w.vehicle));
   if(vehicles.length > 1) {
     vehicleNote = `<div style="margin-top:6px;"><label style="font-size:.8rem;font-weight:700;">Select Vehicle for this Expense:</label><select id="ospVehicleSel" style="width:100%;margin-top:4px;padding:7px 10px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.88rem;"><option value="">— All Vehicles —</option>${vehicles.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select></div>`;
   }
@@ -9096,10 +9434,11 @@ function pmtToggleForm() {
     // Init form
     const d = document.getElementById('pmt_date');
     if(d) d.value = new Date().toISOString().split('T')[0];
-    ['pmt_name','pmt_vehicle','pmt_amount','pmt_bankCharges','pmt_remarks'].forEach(id=>{
+    ['pmt_name','pmt_vehicle','pmt_amount','pmt_bankCharges','pmt_remarks','pmt_other_desc'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
     });
     document.getElementById('pmt_source').value = '';
+    const empSel=document.getElementById('pmt_employee'); if(empSel) empSel.value='';
     pmtSetType('debit');
     document.getElementById('pmt_work').innerHTML = '<option value="">— Select open work (optional) —</option><option value="other">📦 Other / Not linked</option>';
     document.getElementById('pmt_work_specify').style.display = 'none';
@@ -9139,16 +9478,18 @@ function pmtVehicleInput() {
 }
 
 function pmtNameInput() {
-  // Auto-populate vehicle if client has open works
+  // Only populate the work dropdown when name matches — do NOT auto-fill vehicle
   const name = document.getElementById('pmt_name').value.trim().toLowerCase();
   if(name.length < 3) return;
-  const match = allWorks.find(w =>
+  const matches = allWorks.filter(w =>
     (w.status==='open'||w.status==='partial') &&
     ((w.ownerName||w.clientName||'').toLowerCase().includes(name))
   );
-  if(match && !document.getElementById('pmt_vehicle').value) {
-    document.getElementById('pmt_vehicle').value = match.vehicles||match.vehicle||'';
-    pmtVehicleInput();
+  if(matches.length > 0) {
+    const workSel = document.getElementById('pmt_work');
+    workSel.innerHTML = '<option value="">— Select open work (optional) —</option>' +
+      matches.map(w => `<option value="${w._key}">#${w.workNum} — ${esc(dedupVeh(w.vehicles||w.vehicle))} — ${wtLabelPlain(w.workType)} — ${inr(w.remainingBalance||0)} due</option>`).join('') +
+      '<option value="other">📦 Other / Not linked</option>';
   }
 }
 
@@ -9611,7 +9952,7 @@ function renderSummary(){
     ${works.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Works on ${selDate}</div>
       <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Client</th><th>Vehicle</th><th>Type</th><th>Fee</th><th>Penalty</th><th>Payment</th><th>Status</th><th>Assigned</th></tr></thead>
-      <tbody>${works.map(w=>`<tr><td><span class="wnum">#${w.workNum}</span></td><td>${esc(w.clientName||w.ownerName)}</td><td style="font-family:monospace;">${esc(w.vehicles||w.vehicle)}</td><td>${wtBadge(w)}</td><td style="color:#16a34a;font-size:.8rem;">${w.totalFee?inr(w.totalFee):'—'}</td><td style="color:#dc2626;font-size:.8rem;">${w.totalPenalty?inr(w.totalPenalty):'—'}</td><td>${payBadge(w)}</td><td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span></td><td style="font-size:.78rem;">${esc(w.assignedTo||w.takenBy||'—')}</td></tr>`).join('')}</tbody>
+      <tbody>${works.map(w=>`<tr><td><span class="wnum">#${w.workNum}</span></td><td>${esc(w.clientName||w.ownerName)}</td><td style="font-family:monospace;">${esc(dedupVeh(w.vehicles||w.vehicle))}</td><td>${wtBadge(w)}</td><td style="color:#16a34a;font-size:.8rem;">${w.totalFee?inr(w.totalFee):'—'}</td><td style="color:#dc2626;font-size:.8rem;">${w.totalPenalty?inr(w.totalPenalty):'—'}</td><td>${payBadge(w)}</td><td><span class="badge ${w.status==='done'?'bg':'bb'}">${w.status==='done'?'✅':'🔄'}</span></td><td style="font-size:.78rem;">${esc(w.assignedTo||w.takenBy||'—')}</td></tr>`).join('')}</tbody>
       </table></div></div>`:''}
     ${ledgerEntries.length?`<div class="card" style="margin-top:16px;">
       <div class="card-title">Bank Ledger Entries on ${selDate}</div>
@@ -10419,7 +10760,7 @@ async function clientTrack(){
     expiring.slice(0,4).forEach(w => {
       const days = Math.ceil((new Date(w.expiryDate) - today) / 86400000);
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(234,179,8,.25);font-size:.83rem;">
-        <span style="color:#713f12;font-weight:600;">${wtLabel(w.workType)} — ${esc(w.vehicles||w.vehicle)}</span>
+        <span style="color:#713f12;font-weight:600;">${wtLabel(w.workType)} — ${esc(dedupVeh(w.vehicles||w.vehicle))}</span>
         <span style="font-weight:800;color:${days<=30?'#dc2626':'#d97706'};">${days<=0?'Expired':days+'d left'}</span>
       </div>`;
     });
@@ -10813,7 +11154,7 @@ function fmtExtras(r, sep='<br>') {
   // Road Tax
   a('Tax Type', r.roadTaxType); a('Tax Position', r.roadTaxPosition); a('Tax District', r.roadTaxDistrict);
   // Permit
-  a('Permit Type', r.permitType);
+  a('Permit Type', r.permitType); a('Permit Sub', r.permitNationalSub); a('Permit Cat', r.permitNewCat);
   // Hypothecation
   a('Hyp Type', r.hypType);
   // Fitness
@@ -10847,7 +11188,7 @@ function fmtExtrasShort(r) {
   if(r.challanAmount) p.push('₹'+r.challanAmount);
   if(r.challanType) p.push(r.challanType);
   if(r.hypType) p.push(r.hypType);
-  if(r.permitType) p.push(r.permitType);
+  if(r.permitType) p.push(r.permitType); if(r.permitNationalSub) p.push(r.permitNationalSub); if(r.permitNewCat) p.push(r.permitNewCat);
   if(r.fitnessType) p.push(r.fitnessType);
   if(r.conversionType) p.push(r.conversionType);
   if(r.roadTaxType) p.push(r.roadTaxType);
@@ -10979,6 +11320,56 @@ function populateEmpLedgerStaff() {
   sel.innerHTML = '<option value="">— Select Employee —</option>' +
     allStaff.map(s => '<option value="'+esc(s.name)+'">'+esc(s.name)+' ('+s.role+')</option>').join('');
   if(current) sel.value = current;
+}
+
+
+function showEmpLedgerForm() {
+  const form = document.getElementById('empLedgerForm');
+  form.style.display = 'block';
+  document.getElementById('empL_date').value = new Date().toISOString().split('T')[0];
+  const sel = document.getElementById('empL_staff');
+  sel.innerHTML = '<option value="">— Select Employee —</option>' +
+    allStaff.map(s => '<option value="'+esc(s.name)+'">'+esc(s.name)+'</option>').join('');
+  empLSetType('debit');
+}
+function empLSetType(type) {
+  document.getElementById('empL_type').value = type;
+  const cb = document.getElementById('empL_credit_btn');
+  const db = document.getElementById('empL_debit_btn');
+  if(type==='credit') {
+    cb.style.border='2px solid var(--g)'; cb.style.background='var(--gl)'; cb.style.color='var(--g)';
+    db.style.border='2px solid var(--grayb)'; db.style.background='#fff'; db.style.color='var(--gray)';
+  } else {
+    db.style.border='2px solid var(--r)'; db.style.background='var(--rl)'; db.style.color='var(--r)';
+    cb.style.border='2px solid var(--grayb)'; cb.style.background='#fff'; cb.style.color='var(--gray)';
+  }
+}
+async function saveEmpLedgerEntry() {
+  const emp = document.getElementById('empL_staff').value;
+  const date = document.getElementById('empL_date').value;
+  const type = document.getElementById('empL_type').value;
+  const amount = parseFloat(document.getElementById('empL_amount').value)||0;
+  const desc = document.getElementById('empL_desc').value.trim();
+  if(!emp) { toast('Select employee','error'); return; }
+  if(!amount) { toast('Enter amount','error'); return; }
+  if(!desc) { toast('Enter description','error'); return; }
+  const now = new Date();
+  const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
+  try {
+    await _sb.from('ledger').insert({
+      bank: 'Employee', type, amount,
+      date: dateStr, timestamp: now.getTime(),
+      description: 'Employee Ledger: ' + desc,
+      employee_name: emp,
+      by: currentUser.name, auto_entry: false,
+      receipt_urls: JSON.stringify({payment_employee: emp, is_emp_ledger: true})
+    });
+    toast('✅ Entry saved for ' + emp, 'success');
+    document.getElementById('empLedgerForm').style.display = 'none';
+    ['empL_amount','empL_desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    await loadAllData();
+    renderEmployeeLedger();
+  } catch(e) { toast('Error: '+e.message,'error'); }
 }
 
 function renderEmployeeLedger() {
@@ -11733,6 +12124,7 @@ function markBackupDone() { try{localStorage.setItem('officeOS_lastBackup',Date.
 // Hook backup reminder into export
 
 function esc(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function dedupVeh(s){if(!s)return '';return [...new Set(String(s).split(',').map(v=>v.trim()).filter(Boolean))].join(', ');}
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function previewImg(src){document.getElementById('imgPreviewSrc').src=src;openModal('imgPreviewModal');}
