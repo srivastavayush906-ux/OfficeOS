@@ -2022,20 +2022,13 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         </div>
         <div class="g2">
           <div class="field"><label>Vehicle Number *</label><input type="text" id="mexp_vehicle" placeholder="UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/></div>
-          <div class="field"><label>Work Type *</label>
-            <select id="mexp_worktype">
-              <option value="">— Select —</option>
-              <option value="Fitness">✅ Fitness</option>
-              <option value="Insurance">🛡️ Insurance</option>
-              <option value="Permit">🗺️ Permit</option>
-              <option value="PUC">🌿 PUC</option>
-              <option value="RoadTax">🛣️ Road Tax</option>
-              <option value="DrivingLicense">🪪 Driving License</option>
-              <option value="TradeCertificate">🏷️ Trade Certificate</option>
-              <option value="Others">📦 Others</option>
-            </select>
+          <div class="field" style="position:relative;"><label>Work Type *</label>
+            <input type="text" id="mexp_wtype_search" placeholder="🔍 Type to search work type…" oninput="mexpWtSearch()" onfocus="mexpWtShowDd()" onblur="setTimeout(()=>mexpWtHideDd(),200)" autocomplete="off" style="width:100%;padding:9px 11px;border:1.5px solid var(--grayb);border-radius:9px;font-size:.88rem;background:#fff;"/>
+            <input type="hidden" id="mexp_worktype" value=""/>
+            <div id="mexp_wtype_dd" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:400;background:var(--surface);border:1.5px solid var(--p);border-radius:10px;box-shadow:var(--shadow-md);max-height:240px;overflow-y:auto;margin-top:3px;"></div>
           </div>
         </div>
+        <div id="mexp_wtype_extras" style="margin-bottom:12px;"></div>
         <div class="g2">
           <div class="field"><label>Expiry Date *</label><input type="date" id="mexp_expiry"/></div>
           <div class="field"><label>Remarks <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label><input type="text" id="mexp_remarks" placeholder="e.g. Old fitness renewal needed"/></div>
@@ -6904,10 +6897,97 @@ function setExpiryFilter(filter, btn) {
 function showManualExpiryForm() {
   document.getElementById('manualExpiryForm').style.display = 'block';
   document.getElementById('mexp_expiry').value = '';
-  ['mexp_owner','mexp_phone','mexp_client','mexp_altphone','mexp_vehicle','mexp_remarks'].forEach(id => {
+  ['mexp_owner','mexp_phone','mexp_client','mexp_altphone','mexp_vehicle','mexp_remarks','mexp_wtype_search'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
   document.getElementById('mexp_worktype').value = '';
+  document.getElementById('mexp_wtype_extras').innerHTML = '';
+}
+
+// Searchable work type for manual expiry
+const _mexpWtList = [
+  {val:'NewRegistration',label:'🆕 New Registration'},{val:'TempRegistration',label:'📋 Temp Registration'},
+  {val:'Transfer',label:'🔄 RC Transfer'},{val:'ChangeOfAddress',label:'📍 Change of Address'},
+  {val:'DoubleAddress',label:'📍📍 Double Address'},{val:'ReRegistration',label:'♻️ Re-Registration'},
+  {val:'FRC',label:'📄 FRC'},{val:'RCDC',label:'📑 RC/DC'},{val:'RCParticular',label:'📝 RC Particular'},
+  {val:'RCSurrender',label:'🏳️ RC Surrender'},{val:'RCCancel',label:'❌ RC Cancel'},
+  {val:'Hypothecation',label:'🔗 Hypothecation'},{val:'Fitness',label:'✅ Fitness'},
+  {val:'Alteration',label:'🔧 Alteration'},{val:'Conversion',label:'🔀 Conversion'},
+  {val:'RCNOC',label:'📤 RC NOC'},{val:'Permit',label:'🗺️ Permit'},
+  {val:'TradeCertificate',label:'🏷️ Trade Certificate'},{val:'Challan',label:'⚖️ Challan'},
+  {val:'Insurance',label:'🛡️ Insurance'},{val:'RoadTax',label:'🛣️ Road Tax'},
+  {val:'PUC',label:'🌿 PUC'},{val:'HSRP',label:'🔖 HSRP'},
+  {val:'DrivingLicense',label:'🪪 Driving License'},{val:'Others',label:'📦 Others'},
+  {val:'DCRB',label:'📃 DCRB'},{val:'VIPNumber',label:'⭐ VIP Number'}
+];
+function mexpWtSearch() {
+  const q = (document.getElementById('mexp_wtype_search')?.value||'').toLowerCase();
+  const dd = document.getElementById('mexp_wtype_dd');
+  const filtered = _mexpWtList.filter(t => t.label.toLowerCase().includes(q) || t.val.toLowerCase().includes(q));
+  dd.innerHTML = filtered.map(t =>
+    `<div style="padding:9px 13px;cursor:pointer;border-bottom:1px solid var(--bg2);transition:background .1s;" onmousedown="mexpWtSelect('${t.val}','${t.label.replace(/'/g,'')}')" onmouseover="this.style.background='var(--pl)'" onmouseout="this.style.background=''">${t.label}</div>`
+  ).join('');
+  dd.style.display = filtered.length ? 'block' : 'none';
+}
+function mexpWtShowDd() { mexpWtSearch(); }
+function mexpWtHideDd() { document.getElementById('mexp_wtype_dd').style.display = 'none'; }
+function mexpWtSelect(val, label) {
+  document.getElementById('mexp_worktype').value = val;
+  document.getElementById('mexp_wtype_search').value = label;
+  document.getElementById('mexp_wtype_dd').style.display = 'none';
+  // Inject work-type specific extras (reuse the same logic as New Work)
+  mexpInjectExtras(val);
+}
+function mexpInjectExtras(val) {
+  const container = document.getElementById('mexp_wtype_extras');
+  let html = '';
+  switch(val) {
+    case 'Transfer':
+      html = _xLabel('Seller (Current Owner)') + _xInp('x-seller-name','Seller Full Name') + _xInp('x-seller-mob','Seller Mobile','text','maxlength="10"') +
+        _xLabel('Purchaser (New Owner)') + _xInp('x-buyer-name','Purchaser Full Name') + _xInp('x-buyer-mob','Purchaser Mobile','text','maxlength="10"');
+      break;
+    case 'DoubleAddress': case 'ChangeOfAddress':
+      html = _xLabel('New Address') + _xInp('x-district','District Name') + _xInp('x-state','State Name');
+      break;
+    case 'Hypothecation':
+      html = _xLabel('Sub-type') + _xSel('x-hyp-type',[['Addition','Addition'],['Continuation','Continuation'],['Termination','Termination']],'Select');
+      break;
+    case 'Fitness':
+      html = _xLabel('Fitness Type') + _xSel('x-fitness-type',[['Fitness','Fitness (Normal)'],['Fitness38A','Fitness 38-A (Goods)']]);
+      break;
+    case 'Permit':
+      html = _xLabel('Permit Type') + _xSel('x-permit-type',[['State','State Permit'],['National','National Permit'],['Zone','Zone Permit'],['Temp','Temporary Permit'],['DC','Permit D/C'],['Cancel','Permit Cancel']],'Select');
+      break;
+    case 'Challan':
+      html = _xLabel('Challan Details') + _xInp('x-challan-no','Challan No.') + _xDate('x-challan-date','Challan Date') +
+        _xSel('x-challan-type',[['Traffic','Traffic'],['RTO','RTO'],['Mining','Mining']],'Type') +
+        _xInp('x-challan-position','Position / Offence') + _xInp('x-challan-amount','Challan Amount (₹)','number','min="0"') + _xInp('x-challan-district','District');
+      break;
+    case 'Insurance':
+      html = _xLabel('Insurance Type') + _xSel('x-ins-type',[['ThirdParty','Third Party'],['Package','Package'],['ZeroDep','Zero Dep']],'Type') +
+        _xInp('x-ins-company','Insurance Company') + _xInp('x-ins-policy','Policy Number');
+      break;
+    case 'RoadTax':
+      html = _xLabel('Road Tax Type') + _xSel('x-roadtax-type',[['OTT','One Time Tax (OTT)'],['Quarterly','Quarterly'],['Annual','Annual']],'Type');
+      break;
+    case 'TradeCertificate':
+      html = _xLabel('Certificate Type') + _xSel('x-trade-type',[['New','New Trade Certificate'],['Renewal','Renewal']]);
+      break;
+    case 'DrivingLicense':
+      html = _xLabel('License Sub-type') + _xSel('x-dl-subtype',[['MCLMV-Learner','MC/LMV — Learner'],['MCLMV-Permanent','MC/LMV — Permanent'],['Renewal','License Renewal'],['Duplicate','Duplicate']],'Select') +
+        _xInp('x-dl-licno','License No.');
+      break;
+    case 'Conversion':
+      html = _xSel('x-conversion-type',[['PrivateToTaxi','Private → Taxi'],['TaxiToPrivate','Taxi → Private']],'Select');
+      break;
+    case 'RCNOC':
+      html = _xInp('x-noc-district','District') + _xInp('x-noc-state','State') + _xInp('x-noc-rto','RTO Code');
+      break;
+    case 'Others':
+      html = _xInp('x-others-spec','Specify work type in detail…');
+      break;
+  }
+  container.innerHTML = html ? '<div style="background:var(--bg2);border-radius:10px;padding:12px;border:1px solid var(--grayb);">' + html + '</div>' : '';
 }
 
 async function saveManualExpiry() {
@@ -6926,6 +7006,30 @@ async function saveManualExpiry() {
   if(!workType) { toast('Select work type','error'); return; }
   if(!expiry) { toast('Select expiry date','error'); return; }
 
+  // Read extras from the injected form fields
+  const extrasContainer = document.getElementById('mexp_wtype_extras');
+  const ex = {};
+  if(extrasContainer) {
+    const g = (cls) => { const el=extrasContainer.querySelector('.'+cls); return el ? el.value||'' : ''; };
+    const gc = (cls) => { const el=extrasContainer.querySelector('.'+cls); return el ? el.checked : false; };
+    ex.sellerName = g('x-seller-name'); ex.sellerMob = g('x-seller-mob');
+    ex.buyerName = g('x-buyer-name'); ex.buyerMob = g('x-buyer-mob');
+    ex.district = g('x-district') || g('x-noc-district'); ex.state = g('x-state') || g('x-noc-state');
+    ex.nocRto = g('x-noc-rto');
+    ex.hypType = g('x-hyp-type'); ex.fitnessType = g('x-fitness-type');
+    ex.permitType = g('x-permit-type'); ex.permitNationalSub = g('x-permit-national-sub'); ex.permitNewCat = g('x-permit-new-cat');
+    ex.challanNo = g('x-challan-no'); ex.challanDate = g('x-challan-date'); ex.challanType = g('x-challan-type');
+    ex.challanPosition = g('x-challan-position'); ex.challanAmount = g('x-challan-amount'); ex.challanDistrict = g('x-challan-district');
+    ex.insType = g('x-ins-type'); ex.insCompany = g('x-ins-company'); ex.insPolicy = g('x-ins-policy');
+    ex.roadTaxType = g('x-roadtax-type');
+    ex.tradeType = g('x-trade-type'); ex.tradeOldNumber = g('x-trade-old-number'); ex.tradeOldExpiry = g('x-trade-old-expiry');
+    ex.dlSubtype = g('x-dl-subtype'); ex.dlLicNo = g('x-dl-licno');
+    ex.conversionType = g('x-conversion-type');
+    ex.othersSpec = g('x-others-spec');
+  }
+
+  const vwRow = {vehicle, workType, rowWorkValue:0, fee:0, penalty:0, ...ex};
+
   const clientId = await getOrCreateClientId(phone);
   const workNum = await getNextWorkNum();
   const now = new Date();
@@ -6936,10 +7040,10 @@ async function saveManualExpiry() {
       ownerName: owner,
       clientName: client || owner,
       vehicle, vehicles: vehicle,
-      vehicleWorkItems: JSON.stringify([{vehicle, workType, rowWorkValue:0, fee:0, penalty:0}]),
+      vehicleWorkItems: JSON.stringify([vwRow]),
       phone, altPhone: altPhone||'',
       workType,
-      workExtras: '{}',
+      workExtras: JSON.stringify(vwRow),
       workValue: 0, totalPaid: 0, remainingBalance: 0,
       payModes: '[]', payMode: 'Unpaid', amount: 0,
       status: 'done', // Already completed (old work)
