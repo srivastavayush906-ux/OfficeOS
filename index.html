@@ -5787,8 +5787,8 @@ function showWhatsAppPopup(name, phone, uid, workType, dlLicenseType='') {
   document.getElementById("wa_uid").textContent = uid;
   const wtDisplay = wtLabel(workType)+(dlLicenseType?' — '+dlLicenseType:'');
   document.getElementById("wa_workType").textContent = wtDisplay;
-  const siteUrl = "https://nandanlegalservices.in/";
-  const msg = "Hello "+name+"! 🙏\n\nYour work ("+wtDisplay+") has been successfully registered with Nandan Legal Services.\n\n📋 *Client ID: "+uid+"*\n\nYou can track your work status and document expiry dates anytime by visiting our website and entering your Client ID:\n👉 "+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
+  const siteUrl = "https://nandanlegalservices.in/?track="+encodeURIComponent(uid);
+  const msg = "Hello "+name+"! 🙏\n\nYour work ("+wtDisplay+") has been successfully registered with Nandan Legal Services.\n\n📋 *Client ID: "+uid+"*\n\nTrack your work status anytime:\n"+siteUrl+"\n\nRegards,\nTeam Nandan Legal Services";
   document.getElementById("wa_sendBtn").href = "https://wa.me/91"+phone+"?text="+encodeURIComponent(msg);
   openModal("whatsappModal");
   // Auto-focus close button so Enter closes the popup by default
@@ -8150,8 +8150,19 @@ async function uploadDocToStorage(file, workKey) {
     const {data: urlData} = _sb.storage.from('receipts').getPublicUrl(path);
     return urlData.publicUrl;
   } catch(e) {
-    console.warn('Storage upload failed, falling back to base64:', e.message);
+    console.warn('Storage upload failed:', e.message);
+    // Fallback: try uploading original file as-is
+    try {
+      const fbPath = `documents/${workKey||'w'}_${Date.now()}_fb.${ext}`;
+      const {data:fbData, error:fbErr} = await _sb.storage.from('receipts').upload(fbPath, file, {contentType: file.type, upsert:true});
+      if(!fbErr) {
+        const {data:fbUrl} = _sb.storage.from('receipts').getPublicUrl(fbPath);
+        if(fbUrl?.publicUrl) { toast('File uploaded (original format)','success'); return fbUrl.publicUrl; }
+      }
+    } catch(e2) {}
+    // Last fallback: base64 for images
     if(file.type.startsWith('image/')) return await compressImage(file);
+    toast('Could not upload document — check Supabase storage settings','error');
     return '';
   }
 }
