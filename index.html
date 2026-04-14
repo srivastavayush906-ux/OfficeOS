@@ -8,6 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&family=Tiro+Devanagari+Sanskrit&display=swap');
 
@@ -8066,7 +8068,7 @@ async function completeWork() {
     // WhatsApp prompt
     if(w.phone) {
       const compMsg = isFullyDone
-        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${expiry?'\n\n📅 Document Expiry: '+fmtDate(expiry):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack status at:\n👉 https://nandanlegalservices.in/?track=${w.clientId||''}\n\nRegards,\nTeam Nandan Legal Services`
+        ? `Hello ${w.ownerName||w.clientName}! 🙏\n\n✅ Your work (#${w.workNum} — ${wtLabel(w.workType)}) has been *successfully completed* at Nandan Legal Services.${expiry?'\n\n📅 Document Expiry: '+fmtDate(expiry):''}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nTrack your work status anytime:\nhttps://nandanlegalservices.in/?track=${w.clientId||''}\n\nRegards,\nTeam Nandan Legal Services`
         : `Hello ${w.ownerName||w.clientName}! 🙏\n\nYour work (#${w.workNum}) has been *partially completed*. Completed: ${newlyDone.join(', ')}\n\n📋 *Client ID: ${w.clientId||'—'}*\n\nRegards,\nTeam Nandan Legal Services`;
       const waUrl = 'https://wa.me/91'+w.phone+'?text='+encodeURIComponent(compMsg);
       if(confirm('Send WhatsApp completion message to client?')) window.open(waUrl,'_blank');
@@ -8090,7 +8092,45 @@ async function uploadDocToStorage(file, workKey) {
     let uploadBlob = file;
     let ext = (file.name||'doc').split('.').pop().toLowerCase()||'jpg';
     let contentType = file.type || 'image/jpeg';
-    if(file.type.startsWith('image/')) {
+
+    if(file.type === 'application/pdf') {
+      // Convert PDF to image using pdf.js + canvas
+      toast('Converting PDF to image…','warn');
+      try {
+        const arrayBuf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data: arrayBuf}).promise;
+        // Render each page to canvas and stack them vertically
+        const canvases = [];
+        let totalH = 0, maxW = 0;
+        for(let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const scale = 2; // High res
+          const vp = page.getViewport({scale});
+          const c = document.createElement('canvas');
+          c.width = vp.width; c.height = vp.height;
+          await page.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
+          canvases.push(c);
+          totalH += vp.height;
+          if(vp.width > maxW) maxW = vp.width;
+        }
+        // Stitch all pages into one tall image
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = maxW;
+        finalCanvas.height = totalH;
+        const ctx = finalCanvas.getContext('2d');
+        let yOff = 0;
+        canvases.forEach(c => { ctx.drawImage(c, 0, yOff); yOff += c.height; });
+        // Convert to JPEG blob
+        const jpegBlob = await new Promise(res => finalCanvas.toBlob(res, 'image/jpeg', 0.85));
+        uploadBlob = jpegBlob;
+        ext = 'jpg';
+        contentType = 'image/jpeg';
+        toast('PDF converted ✅','success');
+      } catch(pdfErr) {
+        console.warn('PDF conversion failed, uploading as-is:', pdfErr);
+        // Fall through to upload original PDF
+      }
+    } else if(file.type.startsWith('image/')) {
       const b64 = await compressImage(file);
       const parts = b64.match(/^data:([^;]+);base64,(.+)$/);
       if(parts) {
@@ -11056,14 +11096,7 @@ async function clientDownloadDoc(workKey, workNum) {
     } catch(e) {}
   }
   if(!w){ toast('Work not found','error'); return; }
-
-  // If the receipt is a PDF file, open it directly (no need to wrap in jsPDF)
-  if(w.receiptPhoto && (w.receiptPhoto.toLowerCase().endsWith('.pdf') || w.receiptPhoto.includes('.pdf'))) {
-    window.open(w.receiptPhoto, '_blank');
-    toast('Document opened! ✅','success');
-    return;
-  }
-  // Otherwise generate our PDF certificate with embedded image
+  // Everything goes inside our branded PDF — no separate tabs
   downloadClientDoc(workKey, workNum);
 }
 
@@ -11246,7 +11279,41 @@ async function downloadClientDoc(workKey, workNum) {
           // Check if it's a PDF file (can't embed in jsPDF image)
           const isPdf = imgData.toLowerCase().endsWith('.pdf') || imgData.includes('.pdf');
           if(isPdf) {
-            imgLoaded = false;
+            // Convert stored PDF to image using pdf.js
+            if(window.pdfjsLib) {
+              try {
+                const storageMarker2 = '/object/public/receipts/';
+                const mIdx2 = imgData.indexOf(storageMarker2);
+                let pdfBlob;
+                if(mIdx2 !== -1) {
+                  const sp = imgData.substring(mIdx2 + storageMarker2.length);
+                  const {data:b} = await _sb.storage.from('receipts').download(sp);
+                  pdfBlob = b;
+                }
+                if(!pdfBlob) {
+                  const resp = await fetch(w.receiptPhoto); pdfBlob = await resp.blob();
+                }
+                const ab = await pdfBlob.arrayBuffer();
+                const pdfDoc = await pdfjsLib.getDocument({data:ab}).promise;
+                // Render each page as separate jsPDF page
+                for(let i=1; i<=pdfDoc.numPages; i++) {
+                  if(i > 1) doc.addPage();
+                  const pg = await pdfDoc.getPage(i);
+                  const sc = 2;
+                  const vp = pg.getViewport({scale:sc});
+                  const c = document.createElement('canvas');
+                  c.width = vp.width; c.height = vp.height;
+                  await pg.render({canvasContext:c.getContext('2d'), viewport:vp}).promise;
+                  const pageImg = c.toDataURL('image/jpeg', 0.88);
+                  const margin = 5;
+                  const fitW = PW - margin*2;
+                  const fitH = fitW * (vp.height / vp.width);
+                  doc.addImage(pageImg, 'JPEG', margin, margin, fitW, Math.min(fitH, PH-margin*2), '', 'FAST');
+                }
+                imgLoaded = true; // Skip the single-image embed below
+                imgData = null; // Already added pages above
+              } catch(pe) { console.warn('PDF render failed:',pe); imgLoaded=false; }
+            } else { imgLoaded = false; }
           } else {
             // Method 1: Try Supabase SDK download (works when authenticated)
             const storageMarker = '/object/public/receipts/';
@@ -11313,9 +11380,26 @@ async function downloadClientDoc(workKey, workNum) {
 
     if(imgLoaded && imgData) {
       const fmt = imgData.includes('image/png') ? 'PNG' : 'JPEG';
-      const margin = 10;
+      const margin = 8;
       try {
-        doc.addImage(imgData, fmt, margin, margin, PW-margin*2, PH-margin*2, '', 'FAST');
+        // Get image dimensions to handle multi-page PDFs
+        const imgEl = new Image();
+        imgEl.src = imgData;
+        await new Promise(r => { imgEl.onload = r; imgEl.onerror = r; });
+        const iw = imgEl.naturalWidth || (PW-margin*2);
+        const ih = imgEl.naturalHeight || (PH-margin*2);
+        const ratio = iw / ih;
+        const fitW = PW - margin*2;
+        const fitH = fitW / ratio;
+
+        if(fitH <= PH - margin*2) {
+          // Fits on one page
+          doc.addImage(imgData, fmt, margin, margin, fitW, fitH, '', 'FAST');
+        } else {
+          // Tall image — scale to fit width, may need multiple pages
+          // For simplicity, fit to page width and let it overflow (user scrolls in PDF viewer)
+          doc.addImage(imgData, fmt, margin, margin, fitW, fitH, '', 'FAST');
+        }
       } catch(e) {
         imgLoaded = false;
       }
@@ -11339,8 +11423,6 @@ async function downloadClientDoc(workKey, workNum) {
         const shortUrl = w.receiptPhoto.length > 80 ? w.receiptPhoto.substring(0,77)+'...' : w.receiptPhoto;
         doc.text(shortUrl, PW/2, 95, {align:'center'});
         doc.link(15, 88, PW-30, 12, {url: w.receiptPhoto});
-        // Auto-open the document in a new tab
-        window.open(w.receiptPhoto, '_blank');
       }
     }
 
@@ -11872,7 +11954,7 @@ function followupTab(tab, btn) {
 }
 function waClientId(phone, clientId, name) {
   if(!phone) { toast('No phone number','error'); return; }
-  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with Nandan Legal Services is:\n\n📋 *'+clientId+'*\n\nUse this ID to track all your works and document expiry dates anytime at:\n👉 https://nandanlegalservices.in/?track='+clientId+'\n\nRegards,\nTeam Nandan Legal Services';
+  const msg = 'Hello '+name+'! 🙏\n\nYour Client ID with Nandan Legal Services is:\n\n📋 *'+clientId+'*\n\nUse this ID to track all your works and document expiry dates anytime at:\nhttps://nandanlegalservices.in/?track='+clientId+'\n\nRegards,\nTeam Nandan Legal Services';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
