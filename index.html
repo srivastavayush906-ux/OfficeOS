@@ -1868,8 +1868,19 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         </div>
       </div>
 
+      <!-- Document Upload (optional) -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="font-weight:700;font-size:.88rem;margin-bottom:8px;">📎 Attach Documents <span style="font-size:.72rem;color:var(--gray);font-weight:400;">(optional — receipts, RTO slips, etc.)</span></div>
+        <div id="newWorkDocList">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <input type="file" class="nw-doc-input" accept="image/*,application/pdf" multiple style="flex:1;font-size:.84rem;" tabindex="14"/>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addNewWorkDocSlot()" style="font-size:.78rem;">+ Add More Files</button>
+      </div>
+
       <!-- Submit Button -->
-      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="14" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
+      <button id="submitWorkBtn" onclick="submitWork()" class="submit-work-btn" tabindex="15" onkeydown="if(event.key==='Enter'){event.preventDefault();submitWork();}">
         ✅ Save Work &amp; Send to Verification →
       </button>
       <div style="text-align:center;margin-top:10px;font-size:.76rem;color:var(--gray);">⏳ A manager or owner will verify before it appears in All Works</div>
@@ -4827,15 +4838,25 @@ function initNewWorkDate(){
   if(fp) fp.value=today;
 }
 
+function addNewWorkDocSlot() {
+  const list = document.getElementById('newWorkDocList');
+  const div = document.createElement('div');
+  div.style = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  div.innerHTML = '<input type="file" class="nw-doc-input" accept="image/*,application/pdf" multiple style="flex:1;font-size:.84rem;"/><button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="this.parentElement.remove()">✕</button>';
+  list.appendChild(div);
+}
+
 function resetNewWorkForm() {
   try {
     ['w_name','w_clientName','w_phone','w_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     const _ra=document.getElementById('w_amount');if(_ra)_ra.value='';document.querySelectorAll('.pay-date-inp').forEach(d=>{d.value=new Date().toISOString().split('T')[0];});
     const remDiv=document.getElementById('remainingBal'); if(remDiv) remDiv.style.display='none';
     resetVWRows();
-    // Reset pay modes to a single blank row
     const pml=document.getElementById('payModeList');
     initNewWorkDate();
+    // Reset doc uploads
+    const docList = document.getElementById('newWorkDocList');
+    if(docList) docList.innerHTML = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;"><input type="file" class="nw-doc-input" accept="image/*,application/pdf" multiple style="flex:1;font-size:.84rem;"/></div>';
   } catch(e) {}
 }
 // Live clock in topbar
@@ -5625,6 +5646,20 @@ async function _doSubmitWork() {
   const primaryRow = vwRows[0];
   const allVehicles = [...new Set(vwRows.map(r=>r.vehicle).filter(Boolean))].join(', ');
 
+  // Upload attached documents (optional)
+  let attachedDocs = [];
+  const docInputs = document.querySelectorAll('.nw-doc-input');
+  for(const inp of docInputs) {
+    if(inp.files && inp.files.length > 0) {
+      for(const file of inp.files) {
+        try {
+          const url = await uploadDocToStorage(file, 'nw_'+Date.now());
+          if(url) attachedDocs.push({name: file.name, url, type: file.type, uploadedAt: Date.now()});
+        } catch(e) { console.warn('Doc upload failed:', e); }
+      }
+    }
+  }
+
   const workData = {
     workNum, clientId,
     ownerName, clientName: clientName||ownerName,
@@ -5653,6 +5688,7 @@ async function _doSubmitWork() {
     date: dateStr, time: now.toLocaleTimeString('en-IN'), timestamp: now.getTime(),
     completedBy:'', completedDate:'', closingBank:'', receiptAmount:0, closeNotes:'',
     receiptPhoto:'',
+    attachedDocs: attachedDocs.length ? JSON.stringify(attachedDocs) : '',
     expiryDate: primaryRow.expiryDate || primaryRow.expiryState || primaryRow.dlExpiryDate || '',
     expiryNational: primaryRow.expiryNational||'',
     miscExpense:0, miscReason:'', partialDesc:''
@@ -7545,6 +7581,21 @@ function viewWork(key){
       ${w.notes?`<span>📝 ${esc(w.notes)}</span>`:''}
     </div>
     ${w.receiptPhoto?`<div style="margin-top:12px;"><img src="${w.receiptPhoto}" style="max-width:100%;max-height:200px;border-radius:var(--rads);border:2px solid var(--grayb);cursor:pointer;" onclick="openImgInTab('${w.receiptPhoto}')"/></div>`:''}
+    ${(()=>{
+      try {
+        const docs = JSON.parse(w.attachedDocs||'[]');
+        if(!docs.length) return '';
+        return '<div style="margin-top:14px;"><div style="font-weight:700;font-size:.82rem;color:var(--p);margin-bottom:8px;">📎 Attached Documents ('+docs.length+')</div>' +
+          docs.map((d,i) => {
+            const isImg = (d.type||'').startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(d.url||'');
+            return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border:1px solid var(--grayb);">' +
+              (isImg ? '<img src="'+esc(d.url)+'" style="width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid var(--grayb);cursor:pointer;" onclick="openImgInTab(\''+esc(d.url)+'\')" />' : '<span style="font-size:1.4rem;">📄</span>') +
+              '<div style="flex:1;min-width:0;"><div style="font-size:.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(d.name||'Document '+(i+1))+'</div></div>' +
+              '<a href="'+esc(d.url)+'" target="_blank" class="btn btn-outline btn-sm" style="font-size:.74rem;">View</a>' +
+            '</div>';
+          }).join('') + '</div>';
+      } catch(e) { return ''; }
+    })()}
   `;
   openModal('workDetailModal');
 }
