@@ -7748,8 +7748,13 @@ function openCloseWork(key){
     </div>`;
   } else {
     box.innerHTML = items.map((r,i) => {
-      const key = (r.vehicle+' — '+wtLabelPlain(r.workType)).toLowerCase();
-      const alreadyDone = doneParts.some(d => d.includes((r.vehicle||'').toLowerCase()) || key.includes(d));
+      const thisKey = ((r.vehicle||'') + ' — ' + wtLabelPlain(r.workType)).toLowerCase().trim();
+      // Check if this exact vehicle+type combo was already completed
+      const alreadyDone = doneParts.some(d => {
+        const dTrimmed = d.trim().toLowerCase();
+        // Exact match on the full "vehicle — type" string
+        return dTrimmed === thisKey || dTrimmed === ((r.vehicle||'') + ' — ' + (r.workType||'')).toLowerCase().trim();
+      });
       if(alreadyDone) {
         return `<div style="padding:10px 14px;background:#f0fdf4;border-radius:10px;margin-bottom:8px;border:1.5px solid #bbf7d0;opacity:0.6;display:flex;align-items:center;gap:10px;">
           <span style="color:#16a34a;font-size:1.2rem;">✓</span>
@@ -8026,8 +8031,8 @@ async function completeWork() {
 
     // Is everything done now?
     const totalPendingItems = items.filter(r=>{
-      const key = (r.vehicle+' — '+wtLabelPlain(r.workType)).toLowerCase();
-      return !doneParts.some(d=>d.toLowerCase().includes((r.vehicle||'').toLowerCase()));
+      const thisKey = ((r.vehicle||'') + ' — ' + wtLabelPlain(r.workType)).toLowerCase().trim();
+      return !doneParts.some(d => d.trim().toLowerCase() === thisKey);
     });
     const isFullyDone = newlyDone.length >= totalPendingItems.length;
 
