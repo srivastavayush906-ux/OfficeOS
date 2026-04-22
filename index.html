@@ -2697,11 +2697,11 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <div class="g2">
         <div class="field">
           <label>Amount (₹) *</label>
-          <input type="number" id="pmt_amount" placeholder="e.g. 5000" min="0" oninput="showAmtHint(this)"/>
+          <input type="text" id="pmt_amount" placeholder="e.g. 5000" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');showAmtHint(this)"/>
         </div>
         <div class="field">
           <label>Bank Charges (₹) <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label>
-          <input type="number" id="pmt_bankCharges" placeholder="0" min="0"/>
+          <input type="text" id="pmt_bankCharges" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
           <div class="hint">If any bank charges, total saved = Amount + Charges</div>
         </div>
       </div>
@@ -9790,6 +9790,7 @@ async function savePaymentEntry() {
   const amount = Math.round(parseFloat(document.getElementById('pmt_amount').value)||0);
   const bankCharges = Math.round(parseFloat(document.getElementById('pmt_bankCharges')?.value)||0);
   const totalWithCharges = amount + bankCharges;
+  console.log('[Payment Save] Raw input:', document.getElementById('pmt_amount').value, '→ parsed:', amount, '+ charges:', bankCharges, '= total:', totalWithCharges);
   const paymentEmployee = document.getElementById('pmt_employee')?.value||'';
   const entryType = document.getElementById('pmt_type')?.value || 'credit';
   const workKey = document.getElementById('pmt_work').value;
