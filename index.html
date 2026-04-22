@@ -8320,7 +8320,7 @@ function showAddLedger(){document.getElementById('l_bank').value=currentLedgerBa
 
 async function saveLedgerEntry(){
   const bank=document.getElementById('l_bank').value,type=document.getElementById('l_type').value;
-  const amount=parseFloat(document.getElementById('l_amount').value);
+  const amount=Math.round(parseFloat(document.getElementById('l_amount').value));
   const date=document.getElementById('l_date').value,desc=document.getElementById('l_desc').value.trim();
   const workRef=document.getElementById('l_workRef').value.trim();
   if(!bank||!type||!amount||isNaN(amount)||!date||!desc){toast('Fill all required fields','error');return;}
@@ -9787,8 +9787,8 @@ async function savePaymentEntry() {
   const name = document.getElementById('pmt_name').value.trim();
   const vehicle = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
   const source = document.getElementById('pmt_source').value;
-  const amount = parseFloat(document.getElementById('pmt_amount').value)||0;
-  const bankCharges = parseFloat(document.getElementById('pmt_bankCharges')?.value)||0;
+  const amount = Math.round(parseFloat(document.getElementById('pmt_amount').value)||0);
+  const bankCharges = Math.round(parseFloat(document.getElementById('pmt_bankCharges')?.value)||0);
   const totalWithCharges = amount + bankCharges;
   const paymentEmployee = document.getElementById('pmt_employee')?.value||'';
   const entryType = document.getElementById('pmt_type')?.value || 'credit';
