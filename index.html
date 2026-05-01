@@ -8384,14 +8384,17 @@ function showAmtHint(inp) {
 // Indian number formatting (1,35,000 style)
 function inr(n){
   if(n===undefined||n===null||isNaN(n)) return '₹0';
-  const neg = n<0; const num = Math.abs(Math.round(Number(n)));
-  const s = String(num);
+  const neg = n<0; const num = Math.abs(Number(n));
+  const intPart = Math.floor(num);
+  const decPart = num % 1;
+  const s = String(intPart);
   let result='';
   if(s.length<=3) result=s;
   else{ result=s.slice(-3); let rem=s.slice(0,-3);
     while(rem.length>2){result=rem.slice(-2)+','+result;rem=rem.slice(0,-2);}
     if(rem.length) result=rem+','+result; }
-  return (neg?'-':'')+'₹'+result;
+  const dec = decPart > 0 ? '.'+Math.round(decPart*100).toString().padStart(1,'0').replace(/0+$/,'') : '';
+  return (neg?'-':'')+'₹'+result+dec;
 }
 
 
