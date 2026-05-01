@@ -3923,7 +3923,7 @@ async function loginSuccess(deviceName) {
 
   // Start security watchers
   start8HourExpiry();
-  if(currentUser.role !== 'owner') startSessionWatcher();
+  startSessionWatcher();
   if(currentUser.role === 'owner') startApprovalWatcher();
   updateDeviceNameDisplay();
 
