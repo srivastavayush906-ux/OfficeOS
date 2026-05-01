@@ -2697,11 +2697,11 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       <div class="g2">
         <div class="field">
           <label>Amount (₹) *</label>
-          <input type="text" id="pmt_amount" placeholder="e.g. 5000" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'');showAmtHint(this)"/>
+          <input type="text" id="pmt_amount" placeholder="e.g. 5000" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');showAmtHint(this)"/>
         </div>
         <div class="field">
           <label>Bank Charges (₹) <span style="font-size:.72rem;color:var(--gray);">(optional)</span></label>
-          <input type="text" id="pmt_bankCharges" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+          <input type="text" id="pmt_bankCharges" placeholder="0" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1')"/>
           <div class="hint">If any bank charges, total saved = Amount + Charges</div>
         </div>
       </div>
@@ -8320,7 +8320,7 @@ function showAddLedger(){document.getElementById('l_bank').value=currentLedgerBa
 
 async function saveLedgerEntry(){
   const bank=document.getElementById('l_bank').value,type=document.getElementById('l_type').value;
-  const amount=Math.round(parseFloat(document.getElementById('l_amount').value));
+  const amount=parseFloat(document.getElementById('l_amount').value);
   const date=document.getElementById('l_date').value,desc=document.getElementById('l_desc').value.trim();
   const workRef=document.getElementById('l_workRef').value.trim();
   if(!bank||!type||!amount||isNaN(amount)||!date||!desc){toast('Fill all required fields','error');return;}
@@ -9787,8 +9787,8 @@ async function savePaymentEntry() {
   const name = document.getElementById('pmt_name').value.trim();
   const vehicle = document.getElementById('pmt_vehicle').value.trim().toUpperCase();
   const source = document.getElementById('pmt_source').value;
-  const amount = Math.round(parseFloat(document.getElementById('pmt_amount').value)||0);
-  const bankCharges = Math.round(parseFloat(document.getElementById('pmt_bankCharges')?.value)||0);
+  const amount = parseFloat(document.getElementById('pmt_amount').value)||0;
+  const bankCharges = parseFloat(document.getElementById('pmt_bankCharges')?.value)||0;
   const totalWithCharges = amount + bankCharges;
   console.log('[Payment Save] Raw input:', document.getElementById('pmt_amount').value, '→ parsed:', amount, '+ charges:', bankCharges, '= total:', totalWithCharges);
   const paymentEmployee = document.getElementById('pmt_employee')?.value||'';
