@@ -4569,7 +4569,7 @@ async function validateSession(userId) {
 function startSessionWatcher() {
   if(_sessionCheckInterval) clearInterval(_sessionCheckInterval);
   _sessionCheckInterval = setInterval(async () => {
-    if(!currentUser || currentUser.role === 'owner') return;
+    if(!currentUser) return;
     const valid = await validateSession(currentUser.uid || currentUser.id);
     if(!valid) {
       clearInterval(_sessionCheckInterval);
