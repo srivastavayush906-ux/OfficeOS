@@ -11812,7 +11812,7 @@ async function saveEmpLedgerEntry() {
   const dateStr = date ? new Date(date).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
   try {
     await _sb.from('ledger').insert({
-      bank: 'Cash', type, amount,
+      bank: 'Employee', type, amount,
       date: dateStr, timestamp: now.getTime(),
       description: 'Employee Ledger: ' + desc,
       employee_name: emp,
@@ -12241,8 +12241,12 @@ function renderPnL() {
   const monthSalary = allSalary.filter(s=>{if(!s.timestamp)return false;const d=new Date(s.timestamp);return d.getMonth()===m&&d.getFullYear()===y;});
 
   const totalCollected = monthWorks.reduce((s,w)=>s+(w.payMode!=='Unpaid'?(w.totalPaid||w.amount||0):0),0);
-  // Use ledger debits (from Payments page debit entries + any auto entries)
-  const totalSpent = monthLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
+  // Only count real bank transactions (exclude RTO_Internal and employee ledger entries)
+  const realLedger = monthLedger.filter(l => 
+    l.bank !== 'RTO_Internal' && 
+    !(l.description && l.description.startsWith('Employee Ledger:'))
+  );
+  const totalSpent = realLedger.filter(l=>l.type==='debit').reduce((s,l)=>s+(l.amount||0),0);
   const totalSalary = monthSalary.reduce((s,x)=>s+(x.amount||0),0);
   // FIX: ospEntry debits are already counted in totalSpent (they have type='debit'). Don't double-count.
   const totalMiscPnL = monthWorks.reduce((s,w)=>s+(w.miscExpense||0),0);
