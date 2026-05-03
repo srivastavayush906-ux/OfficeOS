@@ -1539,6 +1539,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <a onclick="showPage('rejectedWorks')" id="nav-rejectedWorks"><span class="ico">✕</span> Rejected Works</a>
         <a onclick="showPage('accessLog')" id="nav-accessLog"><span class="ico">▤</span> Access Log</a>
         <a onclick="openModal('trustedDevicesModal');loadTrustedDevices()" style="cursor:pointer;"><span class="ico">▣</span> Trusted Devices</a>
+        <a onclick="openModal('activeSessionsModal');loadActiveSessions()" style="cursor:pointer;"><span class="ico">📡</span> Active Sessions</a>
       </div>
     </nav>
 
@@ -2872,6 +2873,16 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
   </div>
 </div>
 
+<!-- ACTIVE SESSIONS MODAL (Owner only) -->
+<div class="mo" id="activeSessionsModal">
+  <div class="md" style="max-width:550px;">
+    <button class="md-close" onclick="closeModal('activeSessionsModal')">×</button>
+    <div class="md-title">📡 Active Sessions</div>
+    <p style="font-size:.83rem;color:var(--gray);margin-bottom:16px;">See who is currently logged in and force logout if needed.</p>
+    <div id="activeSessionsList"></div>
+  </div>
+</div>
+
 <!-- UNKNOWN DEVICE WAITING MODAL -->
 <div class="mo" id="unknownDeviceModal">
   <div class="md" style="max-width:420px;text-align:center;">
@@ -3923,7 +3934,7 @@ async function loginSuccess(deviceName) {
 
   // Start security watchers
   start8HourExpiry();
-  startSessionWatcher();
+  if(currentUser.role !== 'owner') startSessionWatcher();
   if(currentUser.role === 'owner') startApprovalWatcher();
   updateDeviceNameDisplay();
 
@@ -4452,6 +4463,52 @@ async function isDeviceTrusted(deviceId) {
 }
 
 // ── Load trusted devices for owner management modal ──
+async function loadActiveSessions() {
+  const el = document.getElementById('activeSessionsList');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;color:var(--gray);padding:20px;">Loading…</div>';
+  try {
+    const {data, error} = await _sb.from('device_sessions').select('*');
+    if(error) throw error;
+    if(!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:var(--gray);padding:20px;">No active sessions</div>';
+      return;
+    }
+    // Get staff names
+    const staffMap = {};
+    allStaff.forEach(s => { staffMap[s.id] = s.name || s.email; });
+
+    el.innerHTML = data.map(s => {
+      const name = staffMap[s.user_id] || s.user_id;
+      const device = s.device_name || 'Unknown';
+      const created = s.created_at ? new Date(s.created_at).toLocaleString('en-IN') : '—';
+      const expires = s.expires_at ? new Date(s.expires_at).toLocaleString('en-IN') : '—';
+      const isExpired = s.expires_at && Date.now() > s.expires_at;
+      const isMe = currentUser && (s.user_id === currentUser.uid || s.user_id === currentUser.id);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:${isMe?'#eff6ff':'var(--bg2)'};border-radius:10px;margin-bottom:8px;border:1.5px solid ${isExpired?'var(--r)':isMe?'#93c5fd':'var(--grayb)'};">
+        <div>
+          <div style="font-weight:700;font-size:.88rem;">${esc(name)} ${isMe?'<span style="font-size:.7rem;background:var(--p);color:#fff;padding:2px 6px;border-radius:4px;">YOU</span>':''}</div>
+          <div style="font-size:.76rem;color:var(--gray);">📱 ${esc(device)}</div>
+          <div style="font-size:.72rem;color:var(--gray);">Login: ${created}</div>
+          <div style="font-size:.72rem;color:${isExpired?'var(--r)':'var(--gray)'};">${isExpired?'⚠️ Expired':'Expires: '+expires}</div>
+        </div>
+        ${!isMe?`<button class="btn btn-sm" style="background:var(--r);color:#fff;font-size:.76rem;" onclick="forceLogoutSession('${s.user_id}')">Force Logout</button>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--r);padding:20px;">Error loading sessions: '+esc(e.message)+'</div>';
+  }
+}
+
+async function forceLogoutSession(userId) {
+  if(!confirm('Force logout this user? They will be kicked out within 30 seconds.')) return;
+  try {
+    await _sb.from('device_sessions').delete().eq('user_id', userId);
+    toast('User session terminated','success');
+    loadActiveSessions();
+  } catch(e) { toast('Error: '+e.message,'error'); }
+}
+
 async function loadTrustedDevices() {
   const el = document.getElementById('trustedDevicesList');
   if(!el) return;
@@ -4555,15 +4612,27 @@ async function createSession(userId, deviceId, deviceName) {
   return token;
 }
 
+let _sessionFailCount = 0;
+
 async function validateSession(userId) {
-  if(!_sessionToken) return false;
+  if(!_sessionToken) return true; // Don't logout if token lost from memory
   try {
-    const {data} = await _sb.from('device_sessions').select('session_token,expires_at').eq('user_id', userId).single();
-    if(!data) return false;
-    if(data.session_token !== _sessionToken) return false;
-    if(Date.now() > data.expires_at) return false;
+    const {data, error} = await _sb.from('device_sessions').select('session_token,expires_at').eq('user_id', userId).single();
+    if(error) { 
+      // Network/DB error — don't logout, just skip this check
+      _sessionFailCount++;
+      if(_sessionFailCount < 3) return true; // Allow up to 3 consecutive failures
+      return false;
+    }
+    _sessionFailCount = 0; // Reset on success
+    if(!data) return true; // No session row = don't force logout
+    if(data.session_token !== _sessionToken) return false; // Different device logged in
+    if(Date.now() > data.expires_at) return false; // Session expired
     return true;
-  } catch(e) { return false; }
+  } catch(e) { 
+    _sessionFailCount++;
+    return _sessionFailCount < 3; // Allow 3 network failures before logout
+  }
 }
 
 function startSessionWatcher() {
@@ -5854,19 +5923,21 @@ function renderWorkTable(){
     if(allWorkTab==='closed') return w.status==='done';
     return w.status!=='done'; // open = open + partial
   });
-  if(search) list=list.filter(w=>
+  if(search) {
+    const searchClean = search.replace(/^#/,'');
+    list=list.filter(w=>
     (w.clientName||'').toLowerCase().includes(search)||
     (w.ownerName||'').toLowerCase().includes(search)||
     (w.vehicle||'').toLowerCase().includes(search)||
     (w.vehicles||'').toLowerCase().includes(search)||
-    String(w.workNum).includes(search)||
+    String(w.workNum).includes(searchClean)||
     (w.clientId||'').toLowerCase().includes(search)||
     (w.phone||'').includes(search)||
     (w.chassisLast5||'').toLowerCase().includes(search)||
     (w.engineLast5||'').toLowerCase().includes(search)||
     // also search inside vehicleWorkItems for chassis/engine
     (()=>{try{const items=JSON.parse(w.vehicleWorkItems||'[]');return items.some(r=>(r.chassisLast5||'').toLowerCase().includes(search)||(r.engineLast5||'').toLowerCase().includes(search));}catch(e){return false;}})()
-  );
+  );}
   if(fType) list=list.filter(w=>w.workType===fType);
   if(fStatus==='open') list=list.filter(w=>w.status==='open'||w.status==='partial');
   else if(fStatus) list=list.filter(w=>w.status===fStatus);
@@ -6071,7 +6142,7 @@ async function autoCreateExpiryFollowup(workKey, workNum, ownerName, phone, work
     const exp = new Date(expiryDate);
     if(isNaN(exp.getTime())) return;
     // Reminder 30 days before expiry
-    const reminderDate = new Date(exp.getTime() - 30*24*60*60*1000);
+    const reminderDate = new Date(exp.getTime() - 30*8*60*60*1000);
     const now = new Date();
     if(reminderDate < now) return; // expiry too soon, no point
     await _sb.from('followups').insert({
