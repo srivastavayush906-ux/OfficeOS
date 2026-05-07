@@ -4023,17 +4023,17 @@ async function loadAllData() {
   const topbar = document.getElementById('topbar');
   if(topbar) topbar.style.opacity = '0.6';
   const [w,s,l] = await Promise.all([
-    _sb.from('works').select('*').order('timestamp', {ascending:false}),
+    _sb.from('works').select('*').order('timestamp', {ascending:false}).limit(100000),
     _sb.from('staff').select('*'),
-    _sb.from('ledger').select('*').order('timestamp', {ascending:false})
+    _sb.from('ledger').select('*').order('timestamp', {ascending:false}).limit(100000)
   ]);
   allWorks = (w.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allStaff = (s.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allLedger = (l.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allSalary = allLedger.filter(r=>r.description&&r.description.toLowerCase().includes('salary'));
   const [fu,at] = await Promise.all([
-    _sb.from('followups').select('*').order('timestamp', {ascending:false}),
-    _sb.from('attendance').select('*').order('timestamp', {ascending:false}),
+    _sb.from('followups').select('*').order('timestamp', {ascending:false}).limit(100000),
+    _sb.from('attendance').select('*').order('timestamp', {ascending:false}).limit(100000),
   ]);
   allFollowups = (fu.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allCash = allLedger.filter(r=>r.bank==='Cash');
@@ -9704,7 +9704,7 @@ async function saveOspSpend() {
 
 let allOspSpend = [];
 async function renderOspHistory() {
-  const {data: ledData} = await _sb.from('ledger').select('*').order('timestamp',{ascending:false});
+  const {data: ledData} = await _sb.from('ledger').select('*').order('timestamp',{ascending:false}).limit(100000);
   const ospEntries = (ledData||[]).map(r=>({...toCamel(r),_key:r.id}))
     .filter(l => l.ospEntry===true || (l.type==='debit' && (l.description||'').startsWith('RTO Inside Spend:')));
   allOspSpend = ospEntries;
