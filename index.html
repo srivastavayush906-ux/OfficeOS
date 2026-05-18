@@ -3752,18 +3752,28 @@ const dbUpd = async (path, val) => {
 };
 const dbGet = async (path) => {
   if(path === '/') {
-    // Full backup — get all tables
+    // Full backup — get all tables (paginated)
     const tables = ['works','staff','ledger','access_log','followups','attendance','pins','office_spend','clients','counter'];
     const out = {};
     for(const t of tables) {
-      const {data} = await _sb.from(t).select('*');
-      out[t] = data || [];
+      // Use fetchAll for tables that might exceed 1000 rows
+      const bigTables = ['works','ledger','followups','attendance','access_log'];
+      if(bigTables.includes(t)) {
+        try { out[t] = await fetchAll(t); } catch(e) { out[t] = []; }
+      } else {
+        const {data} = await _sb.from(t).select('*');
+        out[t] = data || [];
+      }
     }
     return out;
   }
   const parts = path.split('/').filter(Boolean);
   const table = TABLE_MAP[parts[0]] || parts[0];
   if(parts.length === 1) {
+    const bigTables = ['works','ledger','followups','attendance','access_log'];
+    if(bigTables.includes(table)) {
+      try { return await fetchAll(table); } catch(e) { return []; }
+    }
     const {data} = await _sb.from(table).select('*');
     return data || [];
   }
@@ -9891,6 +9901,15 @@ async function savePaymentEntry() {
   if(!amount || amount <= 0) { toast('Enter valid amount','warn'); return; }
   if(workKey === 'other' && !otherDesc) { toast('Describe what this payment is for','warn'); return; }
 
+  // Block linking to works that aren't verified yet
+  if(workKey && workKey !== 'other') {
+    const linkedW = allWorks.find(x=>x._key===workKey);
+    if(linkedW && (linkedW.status === 'pending_verification' || linkedW.status === 'rejected')) {
+      toast('Cannot link payment to a work that is not yet verified','error');
+      return;
+    }
+  }
+
   _savePaymentLock = true;
   const btn = document.querySelector('#pmtForm .btn-primary');
   if(btn) { btn.textContent='⏳ Saving…'; btn.disabled=true; }
@@ -9977,8 +9996,7 @@ async function savePaymentEntry() {
     document.getElementById('pmt_vehicle_hint').textContent = '';
     document.getElementById('pmt_date').value = new Date().toISOString().split('T')[0];
     pmtSetType('debit');
-    // Delete editing state
-    const form = document.getElementById('pmtForm');
+    // Delete editing state (reuse existing form ref)
     delete form.dataset.editingId; delete form.dataset.editingWorkKey;
     delete form.dataset.editingType; delete form.dataset.editingAmount;
     // Scroll to top and focus first field
@@ -10094,13 +10112,24 @@ function renderPayments() {
 
   // Filter ledger for payment entries (both credit and debit)
   const q = (document.getElementById('pmtSearch')?.value||'').toLowerCase();
+  function _pmtDateKey(d) {
+    if(!d) return 0;
+    const p = String(d).split('/');
+    if(p.length===3) return new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime()||0;
+    const dt = new Date(d);
+    return isNaN(dt) ? 0 : dt.getTime();
+  }
   let entries = allLedger.filter(l => {
     if(l.autoEntry) return false;
     try {
       const meta = JSON.parse(l.receiptUrls||'{}');
       return meta.is_payment_entry === true;
     } catch(e) { return false; }
-  }).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  }).sort((a,b)=>{
+    const da = _pmtDateKey(a.date), db = _pmtDateKey(b.date);
+    if(da !== db) return db - da; // newest date first
+    return (b.timestamp||0) - (a.timestamp||0);
+  });
 
   if(q) entries = entries.filter(e =>
     (e.description||'').toLowerCase().includes(q) ||
@@ -12570,10 +12599,15 @@ async function exportFullDBBackup() {
   try {
     toast('Preparing full backup...','warn');
     const tables = ['works','staff','ledger','access_log','followups','attendance','pins','office_spend','clients','counter'];
+    const bigTables = ['works','ledger','followups','attendance','access_log'];
     const allData = {};
     for(const t of tables) {
-      const {data} = await _sb.from(t).select('*');
-      allData[t] = data || [];
+      if(bigTables.includes(t)) {
+        try { allData[t] = await fetchAll(t); } catch(e) { allData[t] = []; }
+      } else {
+        const {data} = await _sb.from(t).select('*');
+        allData[t] = data || [];
+      }
     }
     const json = JSON.stringify(allData, null, 2);
     const blob = new Blob([json], {type:'application/json'});
