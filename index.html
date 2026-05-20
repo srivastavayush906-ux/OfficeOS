@@ -2195,37 +2195,34 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
     <div class="page" id="page-officeSpend">
       <div class="card">
         <div class="card-title">🧾 RTO Inside Spend</div>
-        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Record office expenses. Search by vehicle to link to an open work, or save as a general spend.</p>
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input type="text" id="ospVehicle" placeholder="Enter vehicle number (optional)" style="flex:1;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchOspWork();}"/>
-          <button class="btn btn-primary" onclick="searchOspWork()">🔍 Search</button>
-          <button class="btn btn-outline" onclick="showOspFormDirect()">➕ Add Without Vehicle</button>
+        <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Add multiple expenses at once. The total will be debited from the selected employee's ledger.</p>
+
+        <!-- Employee + Date (top level) -->
+        <div class="g2" style="margin-bottom:14px;">
+          <div class="field"><label>Employee (debit from their ledger) *</label>
+            <select id="ospEmployee">
+              <option value="">— Select Employee —</option>
+            </select>
+            <div class="hint">Total of all expenses below will be debited from this employee's ledger.</div>
+          </div>
+          <div class="field"><label>Date</label><input type="date" id="ospDateTop"/></div>
         </div>
-        <div id="ospSearchResult" style="margin-bottom:16px;"></div>
-        <div id="ospEntryForm" style="display:none;background:var(--pl);border-radius:var(--rads);padding:14px;">
-          <div style="font-weight:800;margin-bottom:10px;" id="ospWorkLabel"></div>
-          <div class="g2">
-            <div class="field"><label>Amount (₹) *</label><input type="number" id="ospAmount" placeholder="e.g. 150" min="0" oninput="showAmtHint(this)"/></div>
-            <div class="field"><label>Reason *</label><input type="text" id="ospReason" placeholder="e.g. Petrol, Stamp fee, Photocopy"/></div>
+
+        <!-- Multi-row expense entries -->
+        <div style="font-weight:800;font-size:.85rem;margin-bottom:8px;color:var(--p);">Expense Entries</div>
+        <div id="ospRows"></div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addOspRow()" style="margin-top:8px;">➕ Add Another Expense</button>
+
+        <div style="margin-top:14px;padding:12px;background:var(--pl);border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;">Total to Debit</div>
+            <div style="font-size:1.4rem;font-weight:800;color:var(--p);" id="ospTotalDisplay">₹0</div>
           </div>
-          <div class="g2">
-            <div class="field"><label>Who Spent? *</label>
-              <select id="ospWhoSpent">
-                <option value="">— Select Staff —</option>
-              </select>
-            </div>
-            <div class="field"><label>Date</label><input type="date" id="ospDate"/></div>
-          </div>
-          <div class="field">
-            <label>Receipts / Bills (optional)</label>
-            <input type="file" id="ospPdfFile" accept=".pdf,image/*" multiple onchange="previewOspFiles(this)"/>
-            <div class="hint">Attach PDF bills or photos. Multiple files allowed.</div>
-            <div id="ospFilePreview" style="margin-top:6px;font-size:.8rem;color:var(--gray);"></div>
-          </div>
-          <button class="btn btn-primary" onclick="saveOspSpend()">💾 Save Expense</button>
+          <button class="btn btn-primary" onclick="saveOspBatch()">💾 Save All Expenses</button>
         </div>
+
         <div style="margin-top:20px;">
-          <div style="font-weight:800;font-size:.88rem;margin-bottom:10px;">Recent Office Spends</div>
+          <div style="font-weight:800;font-size:.88rem;margin-bottom:10px;">Recent RTO Spends</div>
           <div id="ospHistory"><div class="nd">No spends recorded yet</div></div>
         </div>
       </div>
@@ -5715,21 +5712,48 @@ async function _doSubmitWork() {
     if(!confirm('⚠️ WARNING: This client ('+clientId+') already owes '+inr(totalDue)+' from '+existingDues.length+' work(s)!'+(daysPending>0?' ('+daysPending+' days pending)':'')+'\n\nDo you still want to add this new work?')) return;
   }
 
-  // Check if client has excess balance and auto-deduct
+  // Check if client has excess balance from previous works and auto-adjust
   const excessWorks = allWorks.filter(w=>
-    w.clientId===clientId && (w.status==='done'||w.status==='partial') &&
+    w.clientId===clientId && (w.status==='done'||w.status==='partial'||w.status==='open') &&
     (w.workValue||0)>0 && (w.totalPaid||w.amount||0)>(w.workValue||0)
   );
   const totalExcess = excessWorks.reduce((s,w)=>s+Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0)),0);
+  let excessUsed = 0;
+  let excessAdjustments = [];
+
   if(totalExcess > 0 && workValue > 0 && totalPaid < workValue) {
     const deductable = Math.min(totalExcess, workValue - totalPaid);
     if(deductable > 0) {
-      const useExcess = confirm('💚 This client has ₹'+inr(totalExcess)+' excess balance from previous works.\n\nDeduct ₹'+inr(deductable)+' from their excess to cover this work?');
+      const useExcess = confirm('💚 This client has '+inr(totalExcess)+' excess balance from previous works.\n\nAuto-apply '+inr(deductable)+' from their excess to cover this work?');
       if(useExcess) {
-        // We'll mark this in notes — actual balance adjustment happens via payment entries
-        toast('Excess deduction noted. Create a payment entry to formally adjust.','info');
+        excessUsed = deductable;
+        let remaining = deductable;
+        const oldestFirst = [...excessWorks].sort((a,b) => (a.timestamp||0) - (b.timestamp||0));
+        for(const w of oldestFirst) {
+          if(remaining <= 0) break;
+          const wExcess = Math.max(0, (w.totalPaid||w.amount||0) - (w.workValue||0));
+          const take = Math.min(wExcess, remaining);
+          if(take > 0) {
+            excessAdjustments.push({workKey: w._key, amount: take, oldTotal: w.totalPaid||w.amount||0, workValue: w.workValue||0});
+            remaining -= take;
+          }
+        }
       }
     }
+  }
+
+  if(excessUsed > 0) {
+    for(const adj of excessAdjustments) {
+      const newTotal = adj.oldTotal - adj.amount;
+      const newRemaining = Math.max(0, adj.workValue - newTotal);
+      try {
+        await _sb.from('works').update({
+          total_paid: newTotal, amount: newTotal, remaining_balance: newRemaining
+        }).eq('id', adj.workKey);
+      } catch(e) { console.warn('Excess adjust failed:', e); }
+    }
+    totalPaid += excessUsed;
+    toast('Applied '+inr(excessUsed)+' excess to this work','success');
   }
 
   const workNum = await getNextWorkNum();
@@ -6061,22 +6085,6 @@ async function duplicateWork(key) {
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
   if(!confirm(`Duplicate work #${w.workNum} for ${esc(w.ownerName||w.clientName)}?\nA new pending verification entry will be created.`)) return;
-  // Check if client has excess balance and auto-deduct
-  const excessWorks = allWorks.filter(w=>
-    w.clientId===clientId && (w.status==='done'||w.status==='partial') &&
-    (w.workValue||0)>0 && (w.totalPaid||w.amount||0)>(w.workValue||0)
-  );
-  const totalExcess = excessWorks.reduce((s,w)=>s+Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0)),0);
-  if(totalExcess > 0 && workValue > 0 && totalPaid < workValue) {
-    const deductable = Math.min(totalExcess, workValue - totalPaid);
-    if(deductable > 0) {
-      const useExcess = confirm('💚 This client has ₹'+inr(totalExcess)+' excess balance from previous works.\n\nDeduct ₹'+inr(deductable)+' from their excess to cover this work?');
-      if(useExcess) {
-        // We'll mark this in notes — actual balance adjustment happens via payment entries
-        toast('Excess deduction noted. Create a payment entry to formally adjust.','info');
-      }
-    }
-  }
 
   const workNum = await getNextWorkNum();
   const now = new Date();
@@ -8546,6 +8554,28 @@ function renderDues() {
 
   let clients = Object.values(clientMap).filter(c=>c.totalDue>0);
 
+  // Calculate excess per client and subtract from totalDue
+  for(const c of clients) {
+    const phoneClean = (c.phone||'').replace(/\D/g,'');
+    // Find all this client's works with excess (paid > workValue)
+    const clientExcessWorks = allWorks.filter(w => {
+      if(w.status==='pending_verification'||w.status==='rejected') return false;
+      const wPhone = (w.phone||'').replace(/\D/g,'');
+      const matches = (c.clientId && w.clientId===c.clientId) || 
+                      (phoneClean && wPhone===phoneClean) ||
+                      ((w.ownerName||w.clientName||'').toLowerCase() === c.name.toLowerCase());
+      if(!matches) return false;
+      return (w.workValue||0) > 0 && (w.totalPaid||w.amount||0) > (w.workValue||0);
+    });
+    const excess = clientExcessWorks.reduce((s,w) => s + Math.max(0, (w.totalPaid||w.amount||0) - (w.workValue||0)), 0);
+    c.excess = excess;
+    c.grossDue = c.totalDue;
+    c.totalDue = Math.max(0, c.totalDue - excess);
+  }
+
+  // Filter out clients whose excess fully covers their due
+  clients = clients.filter(c=>c.totalDue>0);
+
   // Search filter
   if(searchRaw) {
     clients = clients.filter(c=>
@@ -8599,6 +8629,7 @@ function renderDues() {
           <div style="text-align:right;">
             <div style="font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Total Due</div>
             <div style="font-size:1.3rem;font-weight:700;color:var(--r);font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;letter-spacing:-.5px;">${inr(c.totalDue)}</div>
+            ${c.excess>0?`<div style="font-size:.7rem;color:#16a34a;font-weight:700;margin-top:2px;">Net of ${inr(c.excess)} excess (Gross: ${inr(c.grossDue)})</div>`:''}
             ${(()=>{
               const oldest=c.works.reduce((m,w)=>{
                 let wd=0;if(w.date){const p=w.date.split('/');if(p.length===3)wd=new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime();}
@@ -9592,13 +9623,147 @@ function renderCombinedBalance() {
 let ospSelectedWork = null;
 
 function renderOfficeSpend() {
-  document.getElementById('ospDate').value = new Date().toISOString().split('T')[0];
-  const whoSel = document.getElementById('ospWhoSpent');
-  if(whoSel) {
-    whoSel.innerHTML = '<option value="">— Select Staff —</option>' +
+  // Set today's date
+  const dateInput = document.getElementById('ospDateTop');
+  if(dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+  // Populate employee dropdown
+  const empSel = document.getElementById('ospEmployee');
+  if(empSel) {
+    empSel.innerHTML = '<option value="">— Select Employee —</option>' +
       allStaff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
   }
+
+  // Init with one empty row
+  document.getElementById('ospRows').innerHTML = '';
+  addOspRow();
+  updateOspTotal();
   renderOspHistory();
+}
+
+function addOspRow() {
+  const rows = document.getElementById('ospRows');
+  const idx = Date.now() + Math.random().toString(36).slice(2,5);
+  const div = document.createElement('div');
+  div.className = 'osp-row';
+  div.dataset.rowId = idx;
+  div.style = 'display:grid;grid-template-columns:1fr 1.4fr 100px 30px;gap:8px;margin-bottom:8px;align-items:end;padding:10px;background:var(--bg2);border-radius:8px;border:1px solid var(--grayb);';
+  div.innerHTML = `
+    <div class="field" style="margin:0;">
+      <label style="font-size:.7rem;">Vehicle (optional)</label>
+      <input type="text" class="osp-veh" placeholder="UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+    </div>
+    <div class="field" style="margin:0;">
+      <label style="font-size:.7rem;">Reason *</label>
+      <input type="text" class="osp-reason" placeholder="e.g. Petrol, Stamp fee"/>
+    </div>
+    <div class="field" style="margin:0;">
+      <label style="font-size:.7rem;">Amount (₹) *</label>
+      <input type="text" class="osp-amount" placeholder="150" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\\..*)\\./g,'$1');updateOspTotal();"/>
+    </div>
+    <button type="button" class="btn btn-sm" style="background:var(--r);color:#fff;padding:6px 8px;height:36px;" onclick="removeOspRow('${idx}')" title="Remove">✕</button>
+  `;
+  rows.appendChild(div);
+}
+
+function removeOspRow(rowId) {
+  const row = document.querySelector(`.osp-row[data-row-id="${rowId}"]`);
+  if(!row) return;
+  const rows = document.querySelectorAll('.osp-row');
+  if(rows.length === 1) {
+    // Don't remove the last row, just clear it
+    row.querySelectorAll('input').forEach(i => i.value = '');
+    updateOspTotal();
+    return;
+  }
+  row.remove();
+  updateOspTotal();
+}
+
+function updateOspTotal() {
+  const total = [...document.querySelectorAll('.osp-amount')]
+    .reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+  const el = document.getElementById('ospTotalDisplay');
+  if(el) el.textContent = inr(total);
+}
+
+async function saveOspBatch() {
+  if(window._ospBatchSaveLock) { toast('Already saving…','warn'); return; }
+  const employee = document.getElementById('ospEmployee').value;
+  const dateVal = document.getElementById('ospDateTop').value;
+  if(!employee) { toast('Select employee','error'); return; }
+
+  const rows = [...document.querySelectorAll('.osp-row')].map(r => ({
+    vehicle: r.querySelector('.osp-veh').value.trim().toUpperCase(),
+    reason: r.querySelector('.osp-reason').value.trim(),
+    amount: parseFloat(r.querySelector('.osp-amount').value) || 0
+  })).filter(r => r.amount > 0 && r.reason);
+
+  if(rows.length === 0) { toast('Add at least one expense with amount and reason','error'); return; }
+
+  const totalAmt = rows.reduce((s,r)=>s+r.amount,0);
+  if(!confirm(`Save ${rows.length} expense entr${rows.length===1?'y':'ies'} totalling ${inr(totalAmt)}?\n\nThis will be debited from ${employee}'s ledger.`)) return;
+
+  window._ospBatchSaveLock = true;
+  const now = new Date();
+  const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
+
+  try {
+    // Insert all RTO Spend entries
+    let savedCount = 0;
+    for(const r of rows) {
+      // Find linked work by vehicle (if provided)
+      let workRef = 'General Spend';
+      if(r.vehicle) {
+        const matches = allWorks.filter(w => {
+          if(w.status==='done'||w.status==='pending_verification'||w.status==='rejected') return false;
+          const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
+          return vehStr.includes(r.vehicle);
+        });
+        if(matches.length > 0) {
+          const w = matches[0];
+          workRef = `#${w.workNum} — ${w.ownerName||w.clientName} / ${r.vehicle}`;
+        } else {
+          workRef = `${r.vehicle} (no open work)`;
+        }
+      }
+
+      let ledgerResult = await _sb.from('ledger').insert({
+        bank: 'RTO_Internal', type: 'debit', amount: r.amount,
+        date: dateStr, timestamp: now.getTime() + savedCount, // slight offset for ordering
+        work_ref: workRef,
+        description: `RTO Inside Spend: ${r.reason}`,
+        by: currentUser.name, auto_entry: true,
+        osp_entry: true,
+        spent_by: employee, logged_by: currentUser.name,
+        employee_name: employee
+      });
+      if(ledgerResult.error && ledgerResult.error.message&&ledgerResult.error.message.includes('schema cache')) {
+        ledgerResult = await _sb.from('ledger').insert({
+          bank:'RTO_Internal', type:'debit', amount:r.amount,
+          date:dateStr, timestamp:now.getTime() + savedCount,
+          work_ref: workRef,
+          description:`RTO Inside Spend: ${r.reason}`,
+          by: currentUser.name, auto_entry: true,
+          osp_entry: true
+        });
+      }
+      if(ledgerResult.error) throw ledgerResult.error;
+      savedCount++;
+    }
+
+    toast(`✅ ${savedCount} expense${savedCount>1?'s':''} saved totalling ${inr(totalAmt)}`,'success');
+    // Reset form
+    document.getElementById('ospRows').innerHTML = '';
+    addOspRow();
+    updateOspTotal();
+    await loadAllData();
+    renderOspHistory();
+  } catch(e) {
+    toast('Error: ' + (e.message||'Save failed'), 'error');
+  } finally {
+    window._ospBatchSaveLock = false;
+  }
 }
 
 function showOspFormDirect() {
