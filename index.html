@@ -9647,15 +9647,25 @@ function addOspRow() {
   const div = document.createElement('div');
   div.className = 'osp-row';
   div.dataset.rowId = idx;
-  div.style = 'display:grid;grid-template-columns:1fr 1.4fr 100px 30px;gap:8px;margin-bottom:8px;align-items:end;padding:10px;background:var(--bg2);border-radius:8px;border:1px solid var(--grayb);';
+  div.style = 'display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr 100px 30px;gap:8px;margin-bottom:8px;align-items:end;padding:10px;background:var(--bg2);border-radius:8px;border:1px solid var(--grayb);';
   div.innerHTML = `
     <div class="field" style="margin:0;">
       <label style="font-size:.7rem;">Vehicle (optional)</label>
-      <input type="text" class="osp-veh" placeholder="UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
+      <input type="text" class="osp-veh" placeholder="UP32AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase();populateOspWorks('${idx}')"/>
     </div>
     <div class="field" style="margin:0;">
-      <label style="font-size:.7rem;">Reason *</label>
-      <input type="text" class="osp-reason" placeholder="e.g. Petrol, Stamp fee"/>
+      <label style="font-size:.7rem;">Client Name (optional)</label>
+      <input type="text" class="osp-client" placeholder="Client name"/>
+    </div>
+    <div class="field" style="margin:0;">
+      <label style="font-size:.7rem;">Linked Work</label>
+      <select class="osp-work">
+        <option value="">— No linked work —</option>
+      </select>
+    </div>
+    <div class="field" style="margin:0;">
+      <label style="font-size:.7rem;">Reason / Purpose *</label>
+      <input type="text" class="osp-reason" placeholder="Petrol, Stamp fee"/>
     </div>
     <div class="field" style="margin:0;">
       <label style="font-size:.7rem;">Amount (₹) *</label>
@@ -9664,6 +9674,31 @@ function addOspRow() {
     <button type="button" class="btn btn-sm" style="background:var(--r);color:#fff;padding:6px 8px;height:36px;" onclick="removeOspRow('${idx}')" title="Remove">✕</button>
   `;
   rows.appendChild(div);
+}
+
+function populateOspWorks(rowId) {
+  const row = document.querySelector(`.osp-row[data-row-id="${rowId}"]`);
+  if(!row) return;
+  const veh = row.querySelector('.osp-veh').value.trim().toUpperCase();
+  const workSel = row.querySelector('.osp-work');
+  const clientInput = row.querySelector('.osp-client');
+  if(!veh) {
+    workSel.innerHTML = '<option value="">— No linked work —</option>';
+    return;
+  }
+  const matches = allWorks.filter(w => {
+    if(w.status==='done'||w.status==='pending_verification'||w.status==='rejected') return false;
+    const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
+    if(vehStr.includes(veh)) return true;
+    return vehStr.split(',').map(v=>v.trim()).some(v=>v.includes(veh)||veh.includes(v));
+  });
+  workSel.innerHTML = '<option value="">— No linked work —</option>' +
+    matches.map(w => `<option value="${w._key}">#${w.workNum} — ${esc(w.ownerName||w.clientName)} (${esc(wtLabelPlain(w.workType)||'—')})</option>`).join('');
+  // Auto-fill client name if only one match and client field is empty
+  if(matches.length === 1 && !clientInput.value) {
+    clientInput.value = matches[0].ownerName || matches[0].clientName || '';
+    workSel.value = matches[0]._key;
+  }
 }
 
 function removeOspRow(rowId) {
@@ -9695,6 +9730,8 @@ async function saveOspBatch() {
 
   const rows = [...document.querySelectorAll('.osp-row')].map(r => ({
     vehicle: r.querySelector('.osp-veh').value.trim().toUpperCase(),
+    clientName: r.querySelector('.osp-client').value.trim(),
+    workKey: r.querySelector('.osp-work').value,
     reason: r.querySelector('.osp-reason').value.trim(),
     amount: parseFloat(r.querySelector('.osp-amount').value) || 0
   })).filter(r => r.amount > 0 && r.reason);
@@ -9709,28 +9746,26 @@ async function saveOspBatch() {
   const dateStr = dateVal ? new Date(dateVal).toLocaleDateString('en-IN') : now.toLocaleDateString('en-IN');
 
   try {
-    // Insert all RTO Spend entries
     let savedCount = 0;
     for(const r of rows) {
-      // Find linked work by vehicle (if provided)
+      // Build work_ref: prefer explicitly selected work
       let workRef = 'General Spend';
-      if(r.vehicle) {
-        const matches = allWorks.filter(w => {
-          if(w.status==='done'||w.status==='pending_verification'||w.status==='rejected') return false;
-          const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
-          return vehStr.includes(r.vehicle);
-        });
-        if(matches.length > 0) {
-          const w = matches[0];
-          workRef = `#${w.workNum} — ${w.ownerName||w.clientName} / ${r.vehicle}`;
-        } else {
-          workRef = `${r.vehicle} (no open work)`;
+      if(r.workKey) {
+        const w = allWorks.find(x => x._key === r.workKey);
+        if(w) {
+          workRef = `#${w.workNum} — ${w.ownerName||w.clientName} / ${r.vehicle||w.vehicle||''}`;
         }
+      } else if(r.vehicle || r.clientName) {
+        // Build a descriptive ref from vehicle + client name
+        const parts = [];
+        if(r.clientName) parts.push(r.clientName);
+        if(r.vehicle) parts.push(r.vehicle);
+        workRef = parts.join(' / ') + ' (no linked work)';
       }
 
       let ledgerResult = await _sb.from('ledger').insert({
         bank: 'RTO_Internal', type: 'debit', amount: r.amount,
-        date: dateStr, timestamp: now.getTime() + savedCount, // slight offset for ordering
+        date: dateStr, timestamp: now.getTime() + savedCount,
         work_ref: workRef,
         description: `RTO Inside Spend: ${r.reason}`,
         by: currentUser.name, auto_entry: true,
@@ -9753,7 +9788,6 @@ async function saveOspBatch() {
     }
 
     toast(`✅ ${savedCount} expense${savedCount>1?'s':''} saved totalling ${inr(totalAmt)}`,'success');
-    // Reset form
     document.getElementById('ospRows').innerHTML = '';
     addOspRow();
     updateOspTotal();
