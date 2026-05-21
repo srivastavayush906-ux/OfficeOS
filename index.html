@@ -9682,19 +9682,21 @@ function populateOspWorks(rowId) {
   const veh = row.querySelector('.osp-veh').value.trim().toUpperCase();
   const workSel = row.querySelector('.osp-work');
   const clientInput = row.querySelector('.osp-client');
-  if(!veh) {
+  if(!veh || veh.length < 3) {
     workSel.innerHTML = '<option value="">— No linked work —</option>';
     return;
   }
   const matches = allWorks.filter(w => {
     if(w.status==='done'||w.status==='pending_verification'||w.status==='rejected') return false;
     const vehStr = (w.vehicles||w.vehicle||'').toUpperCase();
-    if(vehStr.includes(veh)) return true;
-    return vehStr.split(',').map(v=>v.trim()).some(v=>v.includes(veh)||veh.includes(v));
+    if(!vehStr) return false;
+    // Strict: typed vehicle must appear within work's vehicle string
+    // Split work's vehicle by common separators and check each
+    const workVehs = vehStr.split(/[,;\s]+/).map(v=>v.trim()).filter(Boolean);
+    return workVehs.some(v => v === veh || v.includes(veh));
   });
   workSel.innerHTML = '<option value="">— No linked work —</option>' +
     matches.map(w => `<option value="${w._key}">#${w.workNum} — ${esc(w.ownerName||w.clientName)} (${esc(wtLabelPlain(w.workType)||'—')})</option>`).join('');
-  // Auto-fill client name if only one match and client field is empty
   if(matches.length === 1 && !clientInput.value) {
     clientInput.value = matches[0].ownerName || matches[0].clientName || '';
     workSel.value = matches[0]._key;
@@ -12112,8 +12114,19 @@ function renderEmployeeLedger() {
     );
   }
 
-  // Sort by timestamp desc
-  filtered.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+  // Sort by actual date field (newest first), then by timestamp
+  function _empDateKey(d) {
+    if(!d) return 0;
+    const p = String(d).split('/');
+    if(p.length===3) return new Date(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')).getTime()||0;
+    const dt = new Date(d);
+    return isNaN(dt) ? 0 : dt.getTime();
+  }
+  filtered.sort((a,b) => {
+    const da = _empDateKey(a.date), db = _empDateKey(b.date);
+    if(da !== db) return db - da;
+    return (b.timestamp||0) - (a.timestamp||0);
+  });
 
   // Stats
   const totalCredit = filtered.filter(l=>l.type==='credit').reduce((s,l)=>s+(l.amount||0),0);
