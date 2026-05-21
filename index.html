@@ -2797,7 +2797,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
       </div>
       <div class="ox">
         <table class="wt">
-          <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Work Ref</th><th>By</th></tr></thead>
+          <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Balance</th><th>Description</th><th>Work Ref</th><th>By</th></tr></thead>
           <tbody id="empLedgerBody"></tbody>
         </table>
       </div>
@@ -12141,14 +12141,23 @@ function renderEmployeeLedger() {
   `;
 
   if(!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="nd">No ledger entries for '+esc(empName)+'</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="nd">No ledger entries for '+esc(empName)+'</td></tr>';
     return;
   }
 
-  tbody.innerHTML = filtered.map(l => `<tr>
+  // Calculate running balance — oldest first, then reverse for display
+  const oldestFirst = [...filtered].reverse();
+  let runBal = 0;
+  const withBal = oldestFirst.map(l => {
+    runBal += (l.type==='credit' ? (l.amount||0) : -(l.amount||0));
+    return { ...l, _runBal: runBal };
+  }).reverse(); // back to newest-first for display
+
+  tbody.innerHTML = withBal.map(l => `<tr>
     <td style="font-size:.8rem;white-space:nowrap;">${esc(l.date||'—')}</td>
     <td><span class="badge ${l.type==='credit'?'bg':'br'}">${l.type==='credit'?'↑ Credit':'↓ Debit'}</span></td>
     <td style="font-family:var(--font-num);font-weight:700;color:${l.type==='credit'?'var(--g)':'var(--r)'};">${l.type==='credit'?'+':'-'}${inr(l.amount||0)}</td>
+    <td style="font-family:var(--font-num);font-weight:700;color:${l._runBal>=0?'var(--g)':'var(--r)'};">${inr(l._runBal)}</td>
     <td style="font-size:.8rem;">${esc((l.description||'').slice(0,60))}</td>
     <td style="font-size:.78rem;">${esc(l.workRef||'—')}</td>
     <td style="font-size:.78rem;">${esc(l.by||'—')}</td>
