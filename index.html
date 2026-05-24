@@ -1996,6 +1996,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
           <button class="tb active" id="clientBalDueBtn" onclick="setClientBalTab('due',this)">⚠️ Due / Partial</button>
           <button class="tb" id="clientBalExcessBtn" onclick="setClientBalTab('excess',this)">💚 Excess Paid</button>
+          <button class="tb" id="clientBalOverspentBtn" onclick="setClientBalTab('overspent',this)">🔴 Overspent (Expenses &gt; Fees)</button>
         </div>
         <input type="hidden" id="clientBalTab" value="due"/>
         <div class="tab-row" style="margin-bottom:14px;">
@@ -3066,7 +3067,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
   <div class="md" style="max-width:460px;">
     <button class="md-close" onclick="closeModal('rejectWorkModal')">×</button>
     <div class="md-title">❌ Reject Work</div>
-    <p style="font-size:.85rem;color:var(--gray);margin:0 0 14px;">Please provide a reason for rejecting this work. This is permanent.</p>
+    <p style="font-size:.85rem;color:var(--r);margin:0 0 14px;font-weight:600;">⚠️ This will permanently delete the work AND all related ledger entries (payments, expenses). Cannot be undone.</p>
     <div class="field"><label>Rejection Reason *</label><textarea id="rejectReason" placeholder="e.g. Duplicate entry, Wrong vehicle number, Missing info…" rows="3"></textarea></div>
     <div class="md-foot">
       <button class="btn btn-gray" onclick="closeModal('rejectWorkModal')">Cancel</button>
@@ -4049,10 +4050,12 @@ async function loadAllData() {
     _sb.from('staff').select('*'),
     fetchAll('ledger')
   ]);
-  allWorks = wData.map(r=>({...toCamel(r),_key:r.id}));
+  allWorks = wData.map(r=>({...toCamel(r),_key:r.id})).filter(w => w.status !== 'rejected');
   allStaff = (sData.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allLedger = lData.map(r=>({...toCamel(r),_key:r.id}));
-  allSalary = allLedger.filter(r=>r.description&&r.description.toLowerCase().includes('salary'));
+  // Salary records: rows with both employee_name AND salary fields (base_salary or salary_note)
+  // This excludes RTO Spend (osp_entry=true) and Employee Ledger (no salary fields)
+  allSalary = allLedger.filter(r => r.employeeName && (r.baseSalary || r.salaryNote !== undefined || r.advanceDeduction !== undefined) && !r.ospEntry);
   const [fuData, atData] = await Promise.all([
     fetchAll('followups'),
     fetchAll('attendance'),
@@ -6694,13 +6697,53 @@ async function confirmRejectWork() {
   const w = allWorks.find(x=>x._key===rejectingWorkKey);
   if(!w) return;
   try {
-    await _sb.from('works').update({
-      status:'rejected',
-      rejection_reason: reason,
-      rejected_by: currentUser.name,
-      rejected_at: Date.now()
-    }).eq('id', rejectingWorkKey);
-    toast('Work rejected','success');
+    // Full audit log
+    await auditLog('REJECT_WORK', {
+      workNum: w.workNum, clientName: w.clientName, ownerName: w.ownerName,
+      vehicle: w.vehicles||w.vehicle, workType: w.workType,
+      workValue: w.workValue, totalPaid: w.totalPaid||w.amount,
+      status: w.status, phone: w.phone, date: w.date,
+      takenBy: w.takenBy, addedAt: w.timestamp,
+      reason: reason
+    });
+
+    // Save a copy of work details (no ledger) into rejected_works for record-keeping
+    try {
+      await _sb.from('rejected_works').insert({
+        work_num: w.workNum,
+        client_name: w.clientName || null,
+        owner_name: w.ownerName || null,
+        phone: w.phone || null,
+        client_id: w.clientId || null,
+        vehicle: (w.vehicles||w.vehicle) || null,
+        work_type: w.workType || null,
+        work_value: w.workValue || 0,
+        total_paid: w.totalPaid || w.amount || 0,
+        status_at_rejection: w.status || null,
+        date: w.date || null,
+        taken_by: w.takenBy || null,
+        added_at: w.timestamp || null,
+        rejection_reason: reason,
+        rejected_by: currentUser.name,
+        rejected_at: Date.now(),
+        original_data: JSON.stringify(toSnake(w))
+      });
+    } catch(saveErr) {
+      console.warn('Failed to save rejected work copy:', saveErr);
+      // Don't block the rejection if archive fails
+    }
+
+    // Delete all related ledger entries
+    const workRef = '#'+w.workNum+' —';
+    const {data: ledgerRows} = await _sb.from('ledger').select('id').ilike('work_ref', workRef+'%');
+    if(ledgerRows && ledgerRows.length > 0) {
+      await _sb.from('ledger').delete().in('id', ledgerRows.map(r=>r.id));
+    }
+
+    // Permanently delete the work from works table
+    await _sb.from('works').delete().eq('id', rejectingWorkKey);
+
+    toast('Work rejected — archived in Rejected Works','success');
     closeModal('rejectWorkModal');
     rejectingWorkKey = null;
     await loadAllData();
@@ -6709,10 +6752,25 @@ async function confirmRejectWork() {
   } catch(e){toast('Error: '+e.message,'error');}
 }
 
-function renderRejectedWorks() {
+async function renderRejectedWorks() {
   if(currentUser.role!=='owner'){document.getElementById('rejectedWorksList').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
-  const list = allWorks.filter(w=>w.status==='rejected');
   const el = document.getElementById('rejectedWorksList');
+  el.innerHTML = '<div class="nd" style="padding:20px;">Loading…</div>';
+  let list = [];
+  try {
+    const {data, error} = await _sb.from('rejected_works').select('*').order('rejected_at', {ascending:false}).limit(1000);
+    if(!error && data) list = data.map(r => toCamel(r));
+  } catch(e) { console.warn('Failed to load rejected_works:', e); }
+
+  // Backwards compatibility: also fetch legacy rejected works directly (they're filtered out of allWorks now)
+  try {
+    const {data: legacyData} = await _sb.from('works').select('*').eq('status', 'rejected').limit(1000);
+    if(legacyData && legacyData.length) {
+      const legacyRejected = legacyData.map(r => ({...toCamel(r), _key: r.id}));
+      list = list.concat(legacyRejected);
+    }
+  } catch(e) { console.warn('Failed to load legacy rejected works:', e); }
+
   if(!list.length){el.innerHTML='<div class="nd" style="padding:40px;">No rejected works</div>';return;}
   el.innerHTML = list.map(w=>`
     <div style="background:#fff5f5;border:2px solid #fca5a5;border-radius:var(--rad);padding:16px;margin-bottom:14px;">
@@ -6721,13 +6779,15 @@ function renderRejectedWorks() {
           <span class="wnum">#${w.workNum}</span>
           <span style="background:#fee2e2;color:#dc2626;border-radius:8px;padding:2px 10px;font-size:.75rem;font-weight:700;margin-left:8px;">❌ Rejected</span>
         </div>
-        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> · Rejected by <strong>${esc(w.rejectedBy||'—')}</strong></div>
+        <div style="font-size:.75rem;color:var(--gray);">Added by <strong>${esc(w.takenBy)}</strong> · Rejected by <strong>${esc(w.rejectedBy||'—')}</strong>${w.rejectedAt?` · ${new Date(w.rejectedAt).toLocaleString('en-IN')}`:''}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:10px;">
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName)}</div></div>
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle</div><div style="font-family:monospace;font-weight:700;">${esc(dedupVeh(w.vehicles||w.vehicle))}</div></div>
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Type</div><div>${wtBadge(w)}</div></div>
-        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Date</div><div style="font-size:.82rem;">${fmtDate(w.date)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Owner</div><div style="font-weight:800;">${esc(w.ownerName||w.clientName||'—')}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Phone</div><div style="font-weight:700;">${esc(w.phone||'—')}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Vehicle</div><div style="font-family:monospace;font-weight:700;">${esc(dedupVeh(w.vehicle||w.vehicles||'—'))}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Type</div><div>${esc(wtLabelPlain(w.workType)||'—')}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Work Value</div><div style="font-weight:700;">${inr(w.workValue||0)}</div></div>
+        <div><div style="font-size:.7rem;color:var(--gray);font-weight:700;text-transform:uppercase;">Date</div><div style="font-size:.82rem;">${esc(fmtDate(w.date)||'—')}</div></div>
       </div>
       <div style="background:#fee2e2;border-radius:var(--rads);padding:10px 14px;">
         <div style="font-size:.72rem;font-weight:800;color:#dc2626;text-transform:uppercase;margin-bottom:3px;">Rejection Reason</div>
@@ -6937,16 +6997,39 @@ function renderUdhari(){
     w.payMode!=='Unpaid' && w.payMode!=='⏳ Unpaid / Due' &&
     ((w.remainingBalance||0)>0 || ((w.workValue||0)>0 && (w.totalPaid||w.amount||0)<(w.workValue||0)))
   );
-  // Excess: paid more than work value (only when workValue is set and > 0)
-  // Due: payMode=Unpaid OR has remainingBalance > 0 OR status=partial
+  // Excess: paid more than work value (open/partial/done) — anyone who paid more than work fees
   const excessWorks = allWorks.filter(w=>
-    (w.status==='done'||w.status==='partial') &&
+    w.status!=='pending_verification' && w.status!=='rejected' &&
     (w.workValue||0)>0 &&
-    (w.amount||w.totalPaid||0)>(w.workValue||0)
+    (w.totalPaid||w.amount||0)>(w.workValue||0)
   );
+
+  // Overspent: works where our expenses (debits) on this work exceed the fees we charged
+  // Looks at ledger debits where work_ref starts with this work's number AND osp_entry or expense
+  const overspentWorks = (function(){
+    const result = [];
+    for(const w of allWorks) {
+      if(w.status==='pending_verification'||w.status==='rejected') continue;
+      const workValue = w.workValue||0;
+      if(workValue <= 0) continue;
+      // Sum all debits linked to this work (RTO spend + close-work expenses + payment debits)
+      const workRefPrefix = '#' + w.workNum + ' ';
+      const workRefPrefix2 = '#' + w.workNum + ' —';
+      const expenses = allLedger.filter(l => {
+        if(l.type !== 'debit') return false;
+        const ref = l.workRef || '';
+        return ref.startsWith(workRefPrefix) || ref.startsWith(workRefPrefix2);
+      }).reduce((s,l) => s + (l.amount||0), 0);
+      if(expenses > workValue) {
+        result.push({ ...w, _expenses: expenses, _overspent: expenses - workValue });
+      }
+    }
+    return result;
+  })();
 
   let list;
   if(tabFilter==='excess') list=excessWorks;
+  else if(tabFilter==='overspent') list=overspentWorks;
   else list=[...pureUdhari,...partialDue];
 
   if(ageFilter!=='all') {
@@ -6969,10 +7052,13 @@ function renderUdhari(){
 
   const tbody = document.getElementById('udhariBody');
   const isExcess = tabFilter==='excess';
+  const isOverspent = tabFilter==='overspent';
 
   const makeRow = (w) => {
     const excess = Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0));
     const due = w.remainingBalance || Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)) || (w.amount||0);
+    const expenses = w._expenses || 0;
+    const overspent = w._overspent || 0;
     return `<tr>
       <td><span class="wnum">#${w.workNum}</span></td>
       <td><span class="uid-tag">${esc(w.clientId||'—')}</span></td>
@@ -6980,12 +7066,12 @@ function renderUdhari(){
       <td style="font-weight:700;font-size:.82rem;">${esc(dedupVeh(w.vehicles||w.vehicle))}</td>
       <td>${wtBadge(w)}</td>
       <td style="font-weight:800;color:${isExcess?'#16a34a':'var(--r)'};">
-        ${isExcess?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;">+${inr(excess)} Excess</span>`:inr(due)}
+        ${isOverspent?`<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;">Fees ${inr(w.workValue||0)} · Spent ${inr(expenses)} · Loss ${inr(overspent)}</span>`:isExcess?`<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;">+${inr(excess)} Excess</span>`:inr(due)}
       </td>
       <td style="font-size:.8rem;">${esc(w.completedDate||w.date||'—')}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap;">
         <button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button>
-        ${!isExcess?`<button class="btn btn-sm btn-success" onclick="openMarkPaid('${w._key}')">💰 Mark Paid</button>`:''}
+        ${!isExcess && !isOverspent?`<button class="btn btn-sm btn-success" onclick="openMarkPaid('${w._key}')">💰 Mark Paid</button>`:''}
       </td>
     </tr>`;
   };
@@ -10739,16 +10825,16 @@ async function saveSalary(){
   const deduction = pendingAdvances.reduce((s,a)=>s+(a.monthlyDeduction||0),0);
   try{
     await _sb.from('ledger').insert(toSnake({
-      staffName:name, amount, mode, bank,
-      paidBy:currentUser.name,
+      employeeName: name, amount, mode, bank,
       date:now.toLocaleDateString('en-IN'),
-      time:now.toLocaleTimeString('en-IN'),
       timestamp:now.getTime(),
       baseSalary: base,
       advanceDeduction: deduction,
       absentDeduction: absentInfo.deduction,
-      absentDays: absentInfo.absentDays,
-      salaryNote: note
+      salaryNote: note,
+      description: `Salary record: ${name}${note?' — '+note:''}`,
+      by: currentUser.name,
+      type: 'salary'
     }));
     await _sb.from('ledger').insert({bank,type:'debit',amount,date:now.toLocaleDateString('en-IN'),timestamp:now.getTime(),work_ref:'',description:`Salary paid to ${name}${note?' — '+note:''}`,by:currentUser.name,auto_entry:true});
     // Reduce pending advance remaining amounts
@@ -10770,14 +10856,14 @@ function renderSalary(){
   if(tbody){
     if(!allSalary.length){tbody.innerHTML='<tr><td colspan="8" class="nd">No salary records yet</td></tr>';}
     else{tbody.innerHTML=allSalary.map(s=>`<tr>
-      <td><strong>${esc(s.staffName)}</strong></td>
+      <td><strong>${esc(s.employeeName||'—')}</strong></td>
       <td style="font-size:.8rem;color:var(--gray);">${s.baseSalary?inr(s.baseSalary):'—'}</td>
       <td style="color:var(--r);font-size:.82rem;">${s.advanceDeduction?'−'+inr(s.advanceDeduction):'—'}</td>
       <td style="font-weight:800;color:var(--g);">${inr(s.amount||0)}</td>
       <td><span class="badge ${s.mode==='Cash'?'by':'bb'}">${s.mode==='Cash'?'💵 Cash':'📱 UPI'}</span></td>
       <td style="font-size:.82rem;">${esc(s.bank||'—')}</td>
-      <td style="font-size:.82rem;">${esc(s.paidBy)}</td>
-      <td style="font-size:.78rem;color:var(--gray);">${esc(s.date)} · ${esc(s.time||'')}${s.salaryNote?'<br/><span style="color:var(--gray)">'+esc(s.salaryNote)+'</span>':''}</td>
+      <td style="font-size:.82rem;">${esc(s.by||'—')}</td>
+      <td style="font-size:.78rem;color:var(--gray);">${esc(s.date)}${s.salaryNote?'<br/><span style="color:var(--gray)">'+esc(s.salaryNote)+'</span>':''}</td>
     </tr>`).join('');}
   }
   renderAdvances();
