@@ -2096,7 +2096,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         </div>
         <div style="margin-bottom:10px;"><input type="text" id="ledgerSearchInput" placeholder="🔍 Search description, date, work ref..." oninput="ledgerSearch(this.value)" style="width:100%;padding:8px 12px;border:1.5px solid var(--grayb);border-radius:var(--rads);font-size:.85rem;"/></div>
         <div class="stats-row" id="ledgerSummary" style="margin-bottom:14px;"></div>
-        <div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Balance</th><th>Work</th><th>Description</th><th>By</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+        <div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Balance</th><th>Work</th><th>Description</th><th>By</th><th id="bankLedgerActionHeader" style="display:none;">Action</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
       </div>
     </div>
 
@@ -3549,7 +3549,7 @@ window.addEventListener('DOMContentLoaded', () => {
           if(sess && sess.id && Date.now() < expiry) {
             currentUser = sess;
             // Owner always restored, non-owners validate session token
-            if(currentUser.role === 'owner') {
+            if((currentUser.role === 'owner' || currentUser.role === 'creator')) {
               await loginSuccess(getDeviceName() || 'Owner Device');
             } else {
               const valid = await validateSession(currentUser.uid || currentUser.id);
@@ -3814,9 +3814,16 @@ async function doLogin() {
     }
     currentUser = { ...toCamel(profile), uid, key: uid };
 
+    // Hardcoded Creator: only this specific email gets the highest tier
+    const CREATOR_EMAIL = 'srivastavayush906@gmail.com';
+    if(authData.user.email && authData.user.email.toLowerCase() === CREATOR_EMAIL) {
+      currentUser.role = 'creator';
+      currentUser.isCreator = true;
+    }
+
     const deviceId = getDeviceId();
     const deviceName = getDeviceName();
-    const isOwner = currentUser.role === 'owner';
+    const isOwner = currentUser.role === 'owner' || currentUser.role === 'creator';
 
     // Owner — always allowed, no device checks
     if(isOwner) {
@@ -3905,13 +3912,13 @@ async function loginSuccess(deviceName) {
   document.getElementById('loginPage').classList.remove('show');
   document.getElementById('mainApp').classList.add('show');
   document.getElementById('sidebarName').textContent = currentUser.name;
-  const roleLabel = currentUser.role==='owner'?'👑 Owner':currentUser.role==='manager'?'🔑 Manager':'👤 Staff';
+  const roleLabel = currentUser.role==='creator'?'⭐ Creator':currentUser.role==='owner'?'👑 Owner':currentUser.role==='manager'?'🔑 Manager':'👤 Staff';
   document.getElementById('sidebarRole').textContent = roleLabel;
-  document.getElementById('ownerNav').style.display = currentUser.role==='owner'?'block':'none';
+  document.getElementById('ownerNav').style.display = (currentUser.role==='owner'||currentUser.role==='creator')?'block':'none';
   const verNav = document.getElementById('nav-verification');
   if(verNav) verNav.style.display = ['owner','manager'].includes(currentUser.role)?'flex':'none';
   document.querySelectorAll('.owner-only-nav').forEach(el=>{
-    el.style.display = currentUser.role==='owner' ? 'flex' : 'none';
+    el.style.display = (currentUser.role==='owner'||currentUser.role==='creator') ? 'flex' : 'none';
   });
   document.querySelectorAll('.manager-only-nav').forEach(el=>{
     el.style.display = ['owner','manager'].includes(currentUser.role) ? 'flex' : 'none';
@@ -3942,8 +3949,8 @@ async function loginSuccess(deviceName) {
 
   // Start security watchers
   start8HourExpiry();
-  if(currentUser.role !== 'owner') startSessionWatcher();
-  if(currentUser.role === 'owner') startApprovalWatcher();
+  if((currentUser.role !== 'owner' && currentUser.role !== 'creator')) startSessionWatcher();
+  if((currentUser.role === 'owner' || currentUser.role === 'creator')) startApprovalWatcher();
   updateDeviceNameDisplay();
 
   // Forcefully hide client portal — never show on top of staff/owner dashboard
@@ -3959,8 +3966,62 @@ async function loginSuccess(deviceName) {
   startClock();
   applyStaffRestrictions();
   startBackgroundRefresh();
-  if(currentUser.role === 'owner') setTimeout(checkBackupReminder, 4000);
+  if((currentUser.role === 'owner' || currentUser.role === 'creator')) setTimeout(checkBackupReminder, 4000);
   setTimeout(checkExpiryNotifications, 1500);
+
+  // Daily auto-backup for Creator on desktop only
+  setTimeout(maybeRunDailyBackup, 6000);
+}
+
+async function maybeRunDailyBackup() {
+  try {
+    if(!currentUser || currentUser.role !== 'creator') return;
+    // Desktop only — skip mobile (window width + no touch)
+    const isDesktop = window.innerWidth > 1024 && (navigator.maxTouchPoints || 0) === 0;
+    if(!isDesktop) return;
+    // Check last backup time from localStorage
+    const lastBackup = parseInt(localStorage.getItem('nls_last_auto_backup') || '0', 10);
+    const now = Date.now();
+    const TWENTY_FOUR_HOURS = 24*60*60*1000;
+    if(now - lastBackup < TWENTY_FOUR_HOURS) return; // less than 24h since last backup
+
+    // Run silently — no toast yet
+    console.log('[Daily Backup] Running auto-backup...');
+    const tables = ['works','staff','ledger','access_log','followups','attendance','pins','office_spend','clients','counter','manual_dues','complaints','inquiries','advances','incentives','trusted_devices','device_sessions','device_requests','rejected_works'];
+    const bigTables = ['works','ledger','followups','attendance','access_log'];
+    const allData = { backup_date: new Date().toISOString(), version: '1.0', business: 'Nandan Legal Services' };
+    for(const t of tables) {
+      try {
+        if(bigTables.includes(t)) {
+          allData[t] = await fetchAll(t);
+        } else {
+          const {data} = await _sb.from(t).select('*');
+          allData[t] = data || [];
+        }
+      } catch(e) {
+        allData[t] = { error: e.message };
+        console.warn(`[Daily Backup] Failed to fetch ${t}:`, e.message);
+      }
+    }
+
+    // Download as JSON file
+    const blob = new Blob([JSON.stringify(allData, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.download = `nls-backup-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    localStorage.setItem('nls_last_auto_backup', String(now));
+    toast('💾 Daily backup saved to Downloads','success');
+    console.log('[Daily Backup] Saved successfully.');
+  } catch(e) {
+    console.warn('[Daily Backup] Failed:', e);
+  }
 }
 
 function checkExpiryNotifications() {
@@ -4012,7 +4073,7 @@ function doLogout() {
   if(_sessionCheckInterval) clearInterval(_sessionCheckInterval);
   if(_deviceApprovalInterval) clearInterval(_deviceApprovalInterval);
   // Clear session from Supabase
-  if(currentUser && currentUser.role !== 'owner') {
+  if(currentUser && (currentUser.role !== 'owner' && currentUser.role !== 'creator')) {
     _sb.from('device_sessions').delete().eq('user_id', currentUser.uid||currentUser.id).then(()=>{}).catch(()=>{});
   }
   try { localStorage.removeItem('nl_session'); localStorage.removeItem('nl_session_expires'); } catch(e) {}
@@ -4132,7 +4193,7 @@ let currentActivePage = 'dashboard';
 function showPage(page) {
   const ownerPages=['reconcile','combinedBalance','pnl','rejectedWorks','officeExpenditure','dailySummary','staff','performance','manageStaff','accessLog'];
   const ownerManagerPages=['verification'];
-  if(ownerPages.includes(page) && currentUser && currentUser.role!=='owner'){
+  if(ownerPages.includes(page) && currentUser && (currentUser.role!=='owner'&&currentUser.role!=='creator')){
     return; // silent — nav link is hidden anyway
   }
   if(ownerManagerPages.includes(page) && currentUser && !['owner','manager'].includes(currentUser.role)){
@@ -4202,7 +4263,7 @@ let _permSlipAction = '';
 
 function requirePermSlip(actionLabel, callback) {
   // Owner bypasses permission slip entirely
-  if(currentUser && currentUser.role === 'owner') {
+  if(currentUser && (currentUser.role === 'owner' || currentUser.role === 'creator')) {
     callback(null, null); // no slip needed
     return;
   }
@@ -4363,7 +4424,7 @@ async function auditLog(action, details) {
 }
 
 async function checkOwnerAuditNotif() {
-  if(!currentUser || currentUser.role !== 'owner') return;
+  if(!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'creator')) return;
   try {
     // Show changes made TODAY
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
@@ -4724,7 +4785,7 @@ async function respondDeviceRequest(action) {
 
 // ── Owner: watch for pending approval requests ──
 function startApprovalWatcher() {
-  if(!currentUser || currentUser.role !== 'owner') return;
+  if(!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'creator')) return;
   setInterval(async () => {
     const {data} = await _sb.from('device_requests').select('*').eq('status','pending');
     if(!data || data.length === 0) return;
@@ -4808,7 +4869,7 @@ function renderDashboard() {
   const empTotal2=Object.values(empMap2).reduce((s,v)=>s+v,0);
   const pendingVerifCount=allWorks.filter(w=>w.status==='pending_verification').length;
   // Show audit notification if owner
-  if(currentUser && currentUser.role==='owner') checkOwnerAuditNotif();
+  if(currentUser && (currentUser.role==='owner'||currentUser.role==='creator')) checkOwnerAuditNotif();
   document.getElementById('dashStats').innerHTML=`<div class="sc green" onclick="showPage('dailySummary')"><div class="sl">Today's Revenue</div><div class="sv">${inr(todayCollected)}</div></div>
     
     <div class="sc" style="cursor:pointer;" onclick="setAllWorkTab('open',document.getElementById('allWorkOpenBtn'));showPage('allWork')"><div class="sl">Total Works</div><div class="sv">${total}</div></div>
@@ -4817,8 +4878,8 @@ function renderDashboard() {
     <div class="sc red" style="cursor:pointer;" onclick="showPage('overdue')"><div class="sl">Overdue</div><div class="sv">${overdue}</div></div>
     <div class="sc orange" style="cursor:pointer;" onclick="showPage('udhari')"><div class="sl">Dues</div><div class="sv">${udhari}</div></div>
     ${pendingVerifCount>0?`<div class="sc" style="border:2px solid var(--o);cursor:pointer;" onclick="showPage('verification')"><div class="sl">⏳ Awaiting Verification</div><div class="sv" style="color:var(--o);">${pendingVerifCount}</div></div>`:''}
-    <div class="sc ${cashBalance<0?'red':'green'}" style="cursor:pointer;" onclick="${currentUser&&currentUser.role==='owner'?`showPage('bankLedger')`:`showPage('cashTracker')`}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
-    ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''}" style="cursor:pointer;" onclick="${currentUser&&currentUser.role==='owner'?`showPage('bankLedger')`:`showPage('combinedBalance')`}"><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">${inr(bal)}</div></div>`;}).join('')}
+    <div class="sc ${cashBalance<0?'red':'green'}" style="cursor:pointer;" onclick="${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`showPage('bankLedger')`:`showPage('cashTracker')`}"><div class="sl">💵 Cash</div><div class="sv" style="color:${cashBalance<0?'var(--r)':'var(--g)'};">${inr(cashBalance)}</div></div>
+    ${bankList.map(b=>{const bal=getBankBal(b);return `<div class="sc ${bal<0?'red':''}" style="cursor:pointer;" onclick="${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`showPage('bankLedger')`:`showPage('combinedBalance')`}"><div class="sl">🏦 ${b}</div><div class="sv" style="color:${bal<0?'var(--r)':'var(--g)'};">${inr(bal)}</div></div>`;}).join('')}
     ${empTotal2>0?`<div class="sc orange" style="cursor:pointer;" onclick="showPage('combinedBalance')"><div class="sl">👤 With Employees</div><div class="sv" style="color:#d97706;">${inr(empTotal2)}</div></div>`:''}
     ${pendingDue>0?`<div class="sc red" style="cursor:pointer;" onclick="showPage('udhari')"><div class="sl">Pending Client Dues</div><div class="sv">${inr(pendingDue)}</div></div>`:''}
     <div class="sc" style="cursor:pointer;" onclick="showPage('datewise')"><div class="sl">Today's Works</div><div class="sv">${todayCount}</div></div>
@@ -5873,7 +5934,7 @@ async function _doSubmitWork() {
 // Delete work (owner only)
 
 async function deleteWork(key) {
-  if(!currentUser || currentUser.role !== 'owner') { toast('Only owner can delete works','error'); return; }
+  if(!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'creator')) { toast('Only owner can delete works','error'); return; }
   const w = allWorks.find(x=>x._key===key);
   if(!w) return;
   if(!confirm('Delete Work #'+w.workNum+' for '+(w.ownerName||w.clientName)+'?\nThis will also delete all related ledger entries. Cannot be undone.')) return;
@@ -6040,7 +6101,7 @@ function renderWorkTable(){
         <button class="btn btn-sm btn-outline" onclick="duplicateWork('${w._key}')" title="Duplicate Work">📋</button>
         <button class="btn btn-sm btn-outline" onclick="printReceipt('${w._key}')" data-restrict="print-export" title="Print Receipt">🖨️</button>
         <button class="btn btn-sm btn-success" onclick="waFromWork('${w._key}')" title="WhatsApp">📱</button>
-        ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-danger" onclick="deleteWork('${w._key}')">🗑️</button>`:''}
+        ${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-danger" onclick="deleteWork('${w._key}')">🗑️</button>`:''}
       </div>
     </td>
   </tr>`).join('');
@@ -6218,7 +6279,7 @@ function renderWorkloadSummary() {
 function applyStaffRestrictions() {
   if(!currentUser) return;
   const isStaff = currentUser.role === 'staff';
-  const isNotOwner = currentUser.role !== 'owner';
+  const isNotOwner = (currentUser.role !== 'owner' && currentUser.role !== 'creator');
   document.querySelectorAll('[data-restrict="print-export"]').forEach(el => {
     el.style.display = isStaff ? 'none' : '';
   });
@@ -6448,7 +6509,7 @@ async function renderAllInquiry() {
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         ${inq.status==='open'?`<button class="btn btn-sm btn-danger" onclick="openEndInquiry('${inq.id}')">🔴 End Inquiry</button>`:''}
         ${inq.phone?`<button class="btn btn-sm btn-outline" onclick="window.open('https://wa.me/91${esc(inq.phone)}?text='+encodeURIComponent('Hello ${esc(inq.owner_name)}! 🙏 Regarding your inquiry at Nandan Legal Services about: ${esc(inq.subject)}'),'_blank')">📱 WhatsApp</button>`:''}
-        ${currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="deleteInquiry('${inq.id}')">🗑️</button>`:''}
+        ${(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--r);" onclick="deleteInquiry('${inq.id}')">🗑️</button>`:''}
       </div>
     </div>`).join('');
 }
@@ -6617,7 +6678,7 @@ function renderVerification() {
     return;
   }
   el.innerHTML = list.map(w=>{
-    const canVerify = currentUser.role==='owner' || (currentUser.role==='manager' && w.takenByKey!==currentUser.key);
+    const canVerify = (currentUser.role==='owner'||currentUser.role==='creator') || (currentUser.role==='manager' && w.takenByKey!==currentUser.key);
     return `<div style="background:var(--pl);border-radius:var(--rad);padding:16px;margin-bottom:14px;border:2px solid var(--o);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
         <div>
@@ -6650,7 +6711,7 @@ function renderVerification() {
           : `<div style="font-size:.82rem;color:var(--gray);padding:8px 0;">⚠️ You cannot verify your own work</div>`
         }
         <button class="btn btn-outline btn-sm" onclick="viewWork('${w._key}')">View Details</button>
-        ${(currentUser.role==='owner'||(w.takenByKey===currentUser.key&&w.status==='pending_verification'))
+        ${((currentUser.role==='owner'||currentUser.role==='creator')||(w.takenByKey===currentUser.key&&w.status==='pending_verification'))
           ? `<button class="btn btn-gray btn-sm" onclick="openEditWork('${w._key}')">✏️ Edit</button>` : ''}
       </div>
     </div>`;
@@ -6753,7 +6814,7 @@ async function confirmRejectWork() {
 }
 
 async function renderRejectedWorks() {
-  if(currentUser.role!=='owner'){document.getElementById('rejectedWorksList').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
+  if((currentUser.role!=='owner'&&currentUser.role!=='creator')){document.getElementById('rejectedWorksList').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
   const el = document.getElementById('rejectedWorksList');
   el.innerHTML = '<div class="nd" style="padding:20px;">Loading…</div>';
   let list = [];
@@ -7861,7 +7922,7 @@ function openEditWork(key){
   const w=allWorks.find(x=>x._key===key); if(!w) return;
 
   requirePermSlip('Edit Work #'+w.workNum+' — '+(w.ownerName||w.clientName), (reason, slipUrl) => {
-    if(reason !== null || currentUser.role === 'owner') {
+    if(reason !== null || (currentUser.role === 'owner' || currentUser.role === 'creator')) {
       // Store slip info for audit on save
       editingWorkKey=key;
       window._editPermReason = reason;
@@ -8493,6 +8554,11 @@ function renderLedger(){
     e._runBal = runBal;
   });
 
+  // Show Action column header only for creator
+  const actionHeader = document.getElementById('bankLedgerActionHeader');
+  const isCreator = currentUser && currentUser.role === 'creator';
+  if(actionHeader) actionHeader.style.display = isCreator ? '' : 'none';
+
   // Display in reverse (newest first) but with running balance
   const display = [...sorted].reverse();
   tbody.innerHTML=display.map(e=>`<tr>
@@ -8503,7 +8569,27 @@ function renderLedger(){
     <td style="font-size:.78rem;color:var(--gray);">${esc(e.workRef||'—')}</td>
     <td style="font-size:.82rem;">${esc((e.description||'—').slice(0,50))}</td>
     <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
+    ${isCreator ? `<td><button class="btn btn-sm" style="background:var(--r);color:#fff;padding:3px 8px;font-size:.7rem;" onclick="creatorDeleteLedgerEntry('${e._key}')" title="Creator delete">🗑️</button></td>` : ''}
   </tr>`).join('');
+}
+
+// Creator-only ledger entry delete (with confirmation + audit log)
+async function creatorDeleteLedgerEntry(id) {
+  if(currentUser.role !== 'creator') { toast('Creator access only','error'); return; }
+  const entry = allLedger.find(l => l._key === id);
+  if(!entry) { toast('Entry not found','error'); return; }
+  const summary = `${entry.type==='credit'?'+':'-'}${inr(entry.amount||0)} · ${entry.bank} · ${fmtDate(entry.date)} · ${(entry.description||'').slice(0,40)}`;
+  if(!confirm('CREATOR DELETE — this permanently removes a ledger entry:\n\n'+summary+'\n\nProceed?')) return;
+  try {
+    await auditLog('CREATOR_DELETE_LEDGER', {
+      ledgerId: id, bank: entry.bank, type: entry.type, amount: entry.amount,
+      date: entry.date, description: entry.description, workRef: entry.workRef
+    });
+    await _sb.from('ledger').delete().eq('id', id);
+    toast('Ledger entry deleted','success');
+    await loadAllData();
+    renderLedger();
+  } catch(e) { toast('Error: '+e.message,'error'); }
 }
 
 function showAddLedger(){document.getElementById('l_bank').value=currentLedgerBank;openModal('addLedgerModal');}
@@ -10034,7 +10120,7 @@ async function renderOspHistory() {
         <td style="font-size:.8rem;font-weight:700;">${esc(s.spentBy||s.by||'—')}</td>
         <td style="font-size:.78rem;color:var(--gray);">${esc(s.loggedBy||s.by||'—')}</td>
         <td>${receiptLinks||'—'}</td>
-        <td>${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deleteOspEntry('${s._key}')">🗑️</button>`:'—'}</td>
+        <td>${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deleteOspEntry('${s._key}')">🗑️</button>`:'—'}</td>
       </tr>`;
     }).join('')}
   </tbody></table></div>`;
@@ -10305,7 +10391,7 @@ function editPaymentEntry(id) {
   try { meta = JSON.parse(entry.receiptUrls||'{}'); } catch(e){}
 
   requirePermSlip('Edit Payment — '+(entry.description||'entry').slice(0,40), (reason, slipUrl) => {
-    if(reason === null && currentUser.role !== 'owner') return; // cancelled
+    if(reason === null && (currentUser.role !== 'owner' && currentUser.role !== 'creator')) return; // cancelled
     window._editPermReason = reason||'Owner';
     window._editPermSlipUrl = slipUrl||'';
     _doEditPaymentEntry(entry, meta);
@@ -10454,7 +10540,7 @@ function renderPayments() {
       <td style="font-size:.78rem;">${esc(e.by||'—')}</td>
       <td style="display:flex;gap:4px;">
         <button class="btn btn-sm btn-outline" style="padding:3px 8px;font-size:.75rem;" onclick="editPaymentEntry('${e._key}')">✏️</button>
-        ${currentUser&&currentUser.role==='owner'?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}
+        ${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deletePaymentEntry('${e._key}')">🗑️</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -11053,7 +11139,7 @@ async function saveComplaint(){
 async function renderComplaints(){
   // Non-owner can add complaints but cannot see the list
   const complaintsBody = document.getElementById('complaintsBody');
-  if(currentUser.role !== 'owner') {
+  if((currentUser.role !== 'owner' && currentUser.role !== 'creator')) {
     if(complaintsBody) complaintsBody.innerHTML = '<tr><td colspan="8" class="nd">Only the owner can view registered complaints. You can still file a new complaint using the button above.</td></tr>';
     return;
   }
@@ -11238,7 +11324,7 @@ async function removeStaffDoc(key, index) {
 }
 
 function renderManageStaff(){
-  if(currentUser.role!=='owner'){document.getElementById('staffListContainer').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
+  if((currentUser.role!=='owner'&&currentUser.role!=='creator')){document.getElementById('staffListContainer').innerHTML='<p style="color:var(--r);font-weight:700;">Access denied.</p>';return;}
   const roleBadge=(role)=>role==='owner'?`<span class="badge bo" style="margin-left:5px;">👑 Owner</span>`:role==='manager'?`<span class="badge" style="margin-left:5px;background:#e0e7ff;color:#3730a3;">🔑 Manager</span>`:`<span class="badge bb" style="margin-left:5px;">👤 Staff</span>`;
   document.getElementById('staffListContainer').innerHTML=allStaff.length===0?'<p class="text-muted">No staff found.</p>':allStaff.map(s=>{
     const salary = s.baseSalary ? inr(s.baseSalary)+'/mo' : 'Not set';
@@ -12716,7 +12802,7 @@ async function markLogout() {
 }
 
 async function deleteAttendance(key) {
-  if(!currentUser||currentUser.role!=='owner'){toast('Owner only','error');return;}
+  if(!currentUser||(currentUser.role!=='owner'&&currentUser.role!=='creator')){toast('Owner only','error');return;}
   if(!confirm('Remove this attendance record?')) return;
   try { await _sb.from('attendance').delete().eq('id',key); await loadAllData(); renderAttendance(); toast('Removed','success'); }
   catch(e){toast('Error: '+e.message,'error');}
@@ -12744,7 +12830,7 @@ function renderAttendance() {
       </tr>`).join('')}
     </tbody></table></div>`;
   } else {
-    const isOwner = currentUser&&currentUser.role==='owner';
+    const isOwner = currentUser&&(currentUser.role==='owner'||currentUser.role==='creator');
     el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Staff Name</th><th>Check-In</th><th>Check-Out</th><th>Location</th>${isOwner?'<th>Action</th>':''}</tr></thead><tbody>
       ${list.map(a=>`<tr>
         <td><strong>${esc(a.staffName)}</strong></td>
@@ -12932,14 +13018,14 @@ async function exportFullDBBackup() {
 
 function checkBackupReminder() {
   // Only show to owner when logged in
-  if(!currentUser || currentUser.role !== 'owner') return;
+  if(!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'creator')) return;
   try {
     const last = localStorage.getItem('officeOS_lastBackup');
     if(!last) { localStorage.setItem('officeOS_lastBackup', Date.now()); return; }
     const daysSince = (Date.now()-parseInt(last))/(86400000);
     if(daysSince>=7) {
       setTimeout(()=>{
-        if(!currentUser || currentUser.role !== 'owner') return; // double-check
+        if(!currentUser || (currentUser.role !== 'owner' && currentUser.role !== 'creator')) return; // double-check
         toast('📥 Reminder: It has been '+Math.floor(daysSince)+' days since last Excel export. Consider exporting!','warn');
       }, 3000);
     }
