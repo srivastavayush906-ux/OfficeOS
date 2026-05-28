@@ -3917,12 +3917,12 @@ async function loginSuccess(deviceName) {
   document.getElementById('sidebarRole').textContent = roleLabel;
   document.getElementById('ownerNav').style.display = (currentUser.role==='owner'||currentUser.role==='creator')?'block':'none';
   const verNav = document.getElementById('nav-verification');
-  if(verNav) verNav.style.display = ['owner','manager'].includes(currentUser.role)?'flex':'none';
+  if(verNav) verNav.style.display = ['owner','manager','creator'].includes(currentUser.role)?'flex':'none';
   document.querySelectorAll('.owner-only-nav').forEach(el=>{
     el.style.display = (currentUser.role==='owner'||currentUser.role==='creator') ? 'flex' : 'none';
   });
   document.querySelectorAll('.manager-only-nav').forEach(el=>{
-    el.style.display = ['owner','manager'].includes(currentUser.role) ? 'flex' : 'none';
+    el.style.display = ['owner','manager','creator'].includes(currentUser.role) ? 'flex' : 'none';
   });
 
   // Log login with device name
@@ -4197,7 +4197,7 @@ function showPage(page) {
   if(ownerPages.includes(page) && currentUser && (currentUser.role!=='owner'&&currentUser.role!=='creator')){
     return; // silent — nav link is hidden anyway
   }
-  if(ownerManagerPages.includes(page) && currentUser && !['owner','manager'].includes(currentUser.role)){
+  if(ownerManagerPages.includes(page) && currentUser && !['owner','manager','creator'].includes(currentUser.role)){
     return; // silent
   }
   // Auto-reset filters when leaving a page
