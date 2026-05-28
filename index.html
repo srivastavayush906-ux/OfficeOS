@@ -2175,6 +2175,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         <button class="md-close" onclick="closeModal('clientDuesModal')">✕</button>
         <div id="clientDuesModalBody"></div>
         <div class="md-foot">
+          <button class="btn btn-primary" onclick="printClientDues()">🖨️ Print</button>
           <button class="btn btn-gray" onclick="closeModal('clientDuesModal')">Close</button>
         </div>
       </div>
@@ -8868,7 +8869,81 @@ function showClientDuesDetail(c) {
   </div>`;
 
   document.getElementById('clientDuesModalBody').innerHTML = html;
+  window._currentDuesClient = c;
   openModal('clientDuesModal');
+}
+
+function printClientDues() {
+  const c = window._currentDuesClient;
+  if(!c) { toast('No data to print','error'); return; }
+  const total = (c.works||[]).reduce((s,w)=>s+w._due,0) + (c.manualEntries||[]).reduce((s,m)=>s+(m.amount||0),0);
+  const today = new Date().toLocaleDateString('en-IN');
+
+  let rowsHtml = '';
+  (c.works||[]).forEach(w => {
+    rowsHtml += `<tr>
+      <td>${esc(wtLabelPlain(w.workType)||'—')}</td>
+      <td>${esc(dedupVeh(w.vehicles||w.vehicle)||'—')}</td>
+      <td style="text-align:right;">Rs.${(w.workValue||0).toLocaleString('en-IN')}</td>
+      <td style="text-align:right;">Rs.${((w.totalPaid||w.amount||0)).toLocaleString('en-IN')}</td>
+      <td style="text-align:right;font-weight:bold;">Rs.${(w._due||0).toLocaleString('en-IN')}</td>
+      <td>${esc(fmtDate(w.date)||'—')}</td>
+    </tr>`;
+  });
+  (c.manualEntries||[]).forEach(m => {
+    rowsHtml += `<tr>
+      <td colspan="4">Manual: ${esc(m.note||'—')}</td>
+      <td style="text-align:right;font-weight:bold;">Rs.${(m.amount||0).toLocaleString('en-IN')}</td>
+      <td>${esc(fmtDate(m.date)||'—')}</td>
+    </tr>`;
+  });
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html><head><title>Dues — ${esc(c.name)}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:30px;color:#1e293b;}
+      .header{text-align:center;border-bottom:3px solid #1e3a5f;padding-bottom:14px;margin-bottom:20px;}
+      .header h1{margin:0;color:#1e3a5f;font-size:24px;}
+      .header p{margin:3px 0;font-size:13px;color:#64748b;}
+      .client-info{background:#f8fafc;padding:14px;border-radius:8px;margin-bottom:18px;}
+      .client-info h2{margin:0 0 6px;font-size:18px;color:#1e3a5f;}
+      .client-info p{margin:2px 0;font-size:13px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:18px;}
+      th{background:#1e3a5f;color:#fff;padding:8px 10px;text-align:left;font-size:12px;}
+      td{padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;}
+      .total-box{text-align:right;background:#fef2f2;padding:14px 18px;border-radius:8px;border:2px solid #fca5a5;}
+      .total-box .label{font-size:12px;color:#64748b;font-weight:bold;text-transform:uppercase;}
+      .total-box .amount{font-size:26px;font-weight:bold;color:#dc2626;}
+      .footer{margin-top:30px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px;}
+      @media print{body{padding:15px;}}
+    </style></head><body>
+      <div class="header">
+        <h1>NANDAN LEGAL SERVICES</h1>
+        <p>RTO Documentation &amp; Vehicle Services | Lucknow</p>
+        <p>Contact: 94505 56304 | nandanlegalservices.in</p>
+      </div>
+      <div class="client-info">
+        <h2>${esc(c.name)}</h2>
+        ${c.phone?`<p><strong>Phone:</strong> ${esc(c.phone)}</p>`:''}
+        ${c.clientId?`<p><strong>Client ID:</strong> ${esc(c.clientId)}</p>`:''}
+        <p><strong>Statement Date:</strong> ${today}</p>
+      </div>
+      <table>
+        <thead><tr><th>Work Type</th><th>Vehicle</th><th style="text-align:right;">Work Value</th><th style="text-align:right;">Paid</th><th style="text-align:right;">Due</th><th>Date</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <div class="total-box">
+        <div class="label">Total Outstanding</div>
+        <div class="amount">Rs.${total.toLocaleString('en-IN')}</div>
+      </div>
+      <div class="footer">
+        Computer-generated statement · Nandan Legal Services · ${today}
+      </div>
+      <script>window.onload=function(){window.print();}<\/script>
+    </body></html>
+  `);
+  printWindow.document.close();
 }
 
 async function deleteManualDue(key) {
