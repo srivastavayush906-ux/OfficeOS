@@ -7572,10 +7572,53 @@ function bulkWAExpiryReminder() {
   });
   toast(`📱 Opening ${urgent.length} WhatsApp chats…`,'success');
 }
+// ============================================================
+// CLIENT HISTORY — RUNNING LEDGER (Dr/Cr/Balance)  [v2]
+// Drop-in replacement for searchClientHistory().
+// Debits  = each work's workValue (fee+penalty) on work.date
+// Credits = ledger 'credit' rows belonging to this client (with bank source)
+// Running balance accumulates chronologically -> true outstanding.
+// ============================================================
+let _chData = null;          // { meta, entries, summary, vehicles, pendingCount }
+let _chVehFilter = '__all';  // current vehicle filter
+
+function chParseDate(d){
+  if(!d) return NaN;
+  const s = String(d).trim();
+  if(s.includes('/')){
+    const p = s.split('/');
+    if(p.length===3){
+      const dd=parseInt(p[0],10), mm=parseInt(p[1],10), yy=parseInt(p[2],10);
+      if(!isNaN(dd)&&!isNaN(mm)&&!isNaN(yy)){
+        const t = new Date(yy, mm-1, dd).getTime();
+        return isNaN(t)?NaN:t;
+      }
+    }
+  }
+  const t = new Date(s).getTime();   // ISO / other
+  return isNaN(t)?NaN:t;
+}
+
+function chBankPill(bank){
+  const b = (bank||'').trim();
+  if(!b) return '';
+  const u = b.toUpperCase();
+  let bg='var(--bg2)', fg='var(--text2)';
+  if(u.includes('HDFC')){ bg='#e6f1fb'; fg='#0c447c'; }
+  else if(u.includes('SBI')){ bg='#eaf3de'; fg='#27500a'; }
+  else if(u.includes('ICICI')){ bg='#faeeda'; fg='#633806'; }
+  else if(u==='CASH'){ bg='var(--gl)'; fg='var(--gd)'; }
+  else if(u==='UPI'){ bg='#eeedfe'; fg='#3c3489'; }
+  return `<span style="display:inline-block;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:6px;font-family:var(--font-num);background:${bg};color:${fg};margin-left:6px;">${esc(b)}</span>`;
+}
+
 function searchClientHistory(){
   const q=document.getElementById('chSearch').value.trim().toLowerCase();
+  const el=document.getElementById('chResult');
   if(!q){toast('Enter phone, vehicle, chassis or engine number','error');return;}
-  const list=allWorks.filter(w=>
+
+  // Match works exactly like before (phone/vehicle/name/clientId/chassis/engine)
+  const matched=allWorks.filter(w=>
     (w.phone||'').includes(q)||
     (w.vehicle||'').toLowerCase().includes(q)||
     (w.vehicles||'').toLowerCase().includes(q)||
@@ -7587,38 +7630,259 @@ function searchClientHistory(){
     (w.engineLast5||'').toLowerCase().includes(q)||
     (()=>{try{return JSON.parse(w.vehicleWorkItems||'[]').some(r=>(r.chassisLast5||'').toLowerCase().includes(q)||(r.engineLast5||'').toLowerCase().includes(q));}catch(e){return false;}})()
   );
+
+  if(!matched.length){el.innerHTML='<div class="nd">No works found for this search</div>';_chData=null;return;}
+
+  // Pending-verification works are NOT billed (consistent with Dues/Balances pages)
+  const pending = matched.filter(w=>w.status==='pending_verification');
+  const billed  = matched.filter(w=>w.status!=='pending_verification' && w.status!=='rejected');
+
+  const cid        = (billed[0]||matched[0]).clientId || '—';
+  const clientPhone= (billed[0]||matched[0]).phone || '';
+  const clientName = (billed[0]||matched[0]).ownerName || (billed[0]||matched[0]).clientName || '';
+
+  // Sets used to attribute ledger credits to this client
+  const workNumSet = new Set(billed.map(w=>String(w.workNum)));
+  const workKeySet = new Set(billed.map(w=>w._key));
+  const vehSet     = new Set();
+  billed.forEach(w=>String(w.vehicles||w.vehicle||'').split(',').forEach(v=>{const t=v.trim().toUpperCase();if(t)vehSet.add(t);}));
+  // map workNum -> work _key (for credit row click-through)
+  const numToKey = {}; billed.forEach(w=>{numToKey[String(w.workNum)]=w._key;});
+
+  const entries=[];
+
+  // ---- DEBIT entries: one per billed work that has a value ----
+  billed.forEach(w=>{
+    const val = Number(w.workValue)||0;
+    if(val<=0) return;
+    entries.push({
+      kind:'debit',
+      ts: chParseDate(w.date), tb: Number(w.timestamp)||0,
+      date: w.date,
+      vehicles: dedupVeh(w.vehicles||w.vehicle)||'—',
+      typeHtml: wtBadge(w),
+      ref: '#'+w.workNum,
+      amount: val,
+      status: w.status,
+      key: w._key
+    });
+  });
+
+  // ---- CREDIT entries: ledger 'credit' rows belonging to this client ----
+  // Single pass over ledger; each row counted at most once. Sources:
+  //   (a) manual payment linked via payment_work_key in this client's works
+  //   (b) any credit whose work_ref begins "#<workNum> " for a billed work
+  //       (covers auto booking-time entries + manual linked entries)
+  //   (c) standalone manual payment whose vehicle matches a client vehicle
+  allLedger.forEach(l=>{
+    if((l.type||'')!=='credit') return;
+    if((Number(l.amount)||0)<=0) return;
+    let meta={}; try{meta=JSON.parse(l.receiptUrls||'{}');}catch(e){}
+    let belongs=false, linkedKey='';
+
+    if(meta.is_payment_entry && meta.payment_work_key && workKeySet.has(meta.payment_work_key)){
+      belongs=true; linkedKey=meta.payment_work_key;
+    }
+    if(!belongs){
+      const m=String(l.workRef||'').match(/^#(\d+)\b/);
+      if(m && workNumSet.has(m[1])){ belongs=true; linkedKey=numToKey[m[1]]||''; }
+    }
+    if(!belongs && meta.is_payment_entry && !meta.payment_work_key){
+      const pv=(meta.payment_vehicle||'').trim().toUpperCase();
+      if(pv && vehSet.has(pv)) belongs=true;
+    }
+    if(!belongs) return;
+
+    entries.push({
+      kind:'credit',
+      ts: chParseDate(l.date), tb: Number(l.timestamp)||0,
+      date: l.date,
+      bank: l.bank||'',
+      desc: meta.payment_remarks || (l.description||'Payment received'),
+      amount: Number(l.amount)||0,
+      linkedKey,
+      ledgerKey: l._key
+    });
+  });
+
+  // ---- Sort by value-date, then entry timestamp; NaN dates sink to end ----
+  entries.sort((a,b)=>{
+    const ax=isNaN(a.ts)?Infinity:a.ts, bx=isNaN(b.ts)?Infinity:b.ts;
+    if(ax!==bx) return ax-bx;
+    return (a.tb||0)-(b.tb||0);
+  });
+
+  // ---- Running balance ----
+  let bal=0;
+  entries.forEach(e=>{ bal += (e.kind==='debit'? e.amount : -e.amount); e.balance=bal; });
+
+  const billedTotal = entries.filter(e=>e.kind==='debit').reduce((s,e)=>s+e.amount,0);
+  const recvTotal   = entries.filter(e=>e.kind==='credit').reduce((s,e)=>s+e.amount,0);
+  const outstanding = billedTotal - recvTotal;
+
+  // bank-wise received
+  const byBank={};
+  entries.filter(e=>e.kind==='credit').forEach(e=>{const k=e.bank||'Other';byBank[k]=(byBank[k]||0)+e.amount;});
+
+  _chData={
+    meta:{cid,clientPhone,clientName},
+    entries,
+    summary:{billedTotal,recvTotal,outstanding,byBank,worksCount:billed.length},
+    vehicles:[...vehSet].sort(),
+    pendingCount:pending.length
+  };
+  _chVehFilter='__all';
+  chRenderLedger();
+}
+
+function chRenderLedger(){
   const el=document.getElementById('chResult');
-  if(!list.length){el.innerHTML='<div class="nd">No works found for this search</div>';return;}
-  const totalAmt=list.reduce((s,w)=>s+(w.amount||0),0);
-  const cid = list[0]?.clientId || '—';
-  const clientPhone = list[0]?.phone || '';
+  if(!_chData){el.innerHTML='';return;}
+  const {meta,summary,vehicles,pendingCount}=_chData;
+  const {cid,clientPhone,clientName}=meta;
+  const {billedTotal,recvTotal,outstanding,byBank,worksCount}=summary;
+
+  // filtered entries (by vehicle) + recomputed running balance for the view
+  let view=_chData.entries;
+  if(_chVehFilter!=='__all'){
+    const vf=_chVehFilter.toUpperCase();
+    view=_chData.entries.filter(e=>{
+      if(e.kind==='debit') return String(e.vehicles).toUpperCase().split(',').map(s=>s.trim()).includes(vf);
+      // credit: keep if its linked work is in view OR no link (show all credits in 'all' only)
+      return false;
+    });
+    // For a vehicle view we also surface credits linked to that vehicle's works:
+    const keysInView=new Set(view.map(e=>e.key));
+    view=view.concat(_chData.entries.filter(e=>e.kind==='credit' && e.linkedKey && keysInView.has(e.linkedKey)));
+    view.sort((a,b)=>{const ax=isNaN(a.ts)?Infinity:a.ts,bx=isNaN(b.ts)?Infinity:b.ts;return ax!==bx?ax-bx:(a.tb||0)-(b.tb||0);});
+    let b=0; view.forEach(e=>{b+=(e.kind==='debit'?e.amount:-e.amount);e.vbal=b;});
+  }
+  const useBal = e => _chVehFilter==='__all' ? e.balance : e.vbal;
+
+  const outNeg = outstanding<0;
+  const outColor = outstanding>0?'var(--r)':(outstanding<0?'var(--g)':'var(--text2)');
+  const outLabel = outstanding<0?'Advance / credit':'Outstanding';
+
+  const bankChips = Object.keys(byBank).length
+    ? Object.entries(byBank).map(([b,a])=>`${chBankPill(b)} <span style="font-family:var(--font-num);font-weight:700;font-size:.78rem;color:var(--text2);">${inr(a)}</span>`).join('&nbsp;&nbsp;')
+    : '<span style="font-size:.78rem;color:var(--text3);">No payments recorded yet</span>';
+
+  const vehOptions = ['<option value="__all">All vehicles</option>']
+    .concat(vehicles.map(v=>`<option value="${esc(v)}"${_chVehFilter===v?' selected':''}>${esc(v)}</option>`)).join('');
+
+  const rows = view.map(e=>{
+    if(e.kind==='debit'){
+      const overdue = e.status!=='done';
+      return `<tr style="cursor:pointer;" onclick="chRowClick('debit','${e.key}')">
+        <td style="font-size:.78rem;color:var(--text2);white-space:nowrap;">${fmtDate(e.date)}</td>
+        <td style="font-size:.8rem;"><span style="font-weight:700;">${esc(e.vehicles)}</span> &nbsp;${e.typeHtml}
+            <span style="font-family:var(--font-num);font-size:.7rem;color:var(--text3);">${esc(e.ref)}</span></td>
+        <td style="text-align:right;font-family:var(--font-num);font-weight:700;color:var(--r);white-space:nowrap;">${inr(e.amount)}</td>
+        <td style="text-align:right;color:var(--text3);">—</td>
+        <td style="text-align:right;font-family:var(--font-num);font-weight:700;white-space:nowrap;">${inr(useBal(e))}</td>
+      </tr>`;
+    } else {
+      const clickable = e.linkedKey ? `onclick="chRowClick('credit','${e.linkedKey}')"` : '';
+      return `<tr style="background:var(--gl);${e.linkedKey?'cursor:pointer;':''}" ${clickable}>
+        <td style="font-size:.78rem;color:var(--text2);white-space:nowrap;">${fmtDate(e.date)}</td>
+        <td style="font-size:.8rem;"><span style="color:var(--gd);font-weight:700;">↓ Payment received</span>${chBankPill(e.bank)}</td>
+        <td style="text-align:right;color:var(--text3);">—</td>
+        <td style="text-align:right;font-family:var(--font-num);font-weight:700;color:var(--gd);white-space:nowrap;">${inr(e.amount)}</td>
+        <td style="text-align:right;font-family:var(--font-num);font-weight:700;white-space:nowrap;">${inr(useBal(e))}</td>
+      </tr>`;
+    }
+  }).join('');
+
   el.innerHTML=`
   <div style="background:var(--pl);border-radius:var(--rad);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div>
       <div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;margin-bottom:3px;">Client ID</div>
       <div style="font-size:1.5rem;font-weight:800;font-family:'Baloo 2',sans-serif;color:var(--p);letter-spacing:2px;cursor:pointer;" title="Click to copy" onclick="navigator.clipboard.writeText('${esc(cid)}').then(()=>toast('Client ID copied! ✅','success'))">${esc(cid)} <span style="font-size:.75rem;font-weight:600;color:var(--gray);">📋</span></div>
+      ${clientName?`<div style="font-size:.82rem;font-weight:700;color:var(--text2);margin-top:2px;">${esc(clientName)}${clientPhone?` · ${esc(clientPhone)}`:''}</div>`:''}
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-sm btn-success" onclick="waClientId('${esc(clientPhone)}','${esc(cid)}','${esc(list[0]?.clientName||'')}')">📱 Send Client ID via WhatsApp</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-sm btn-outline" onclick="printClientStatement()">🖨️ Statement</button>
+      <button class="btn btn-sm btn-success" onclick="waClientId('${esc(clientPhone)}','${esc(cid)}','${esc(clientName)}')">📱 Send Client ID</button>
     </div>
   </div>
-  <div class="stats-row" style="margin-bottom:16px;">
-    <div class="sc"><div class="sl">Total Works</div><div class="sv">${list.length}</div></div>
-    <div class="sc green"><div class="sl">Completed</div><div class="sv">${list.filter(w=>w.status==='done').length}</div></div>
-    <div class="sc orange"><div class="sl">Dues</div><div class="sv">${list.filter(w=>w.payMode==='Unpaid').length}</div></div>
-    <div class="sc yellow"><div class="sl">Total Paid</div><div class="sv">${inr(totalAmt)}</div></div>
+
+  <div class="stats-row" style="margin-bottom:12px;">
+    <div class="sc"><div class="sl">Total Billed (Dr)</div><div class="sv" style="color:var(--r);">${inr(billedTotal)}</div></div>
+    <div class="sc green"><div class="sl">Received (Cr)</div><div class="sv" style="color:var(--gd);">${inr(recvTotal)}</div></div>
+    <div class="sc ${outstanding>0?'orange':'green'}"><div class="sl">${outLabel}</div><div class="sv" style="color:${outColor};">${inr(Math.abs(outstanding))}</div></div>
+    <div class="sc"><div class="sl">Works</div><div class="sv">${worksCount}</div></div>
   </div>
-  <div class="ox"><table class="wt"><thead><tr><th>#</th><th>Vehicle(s)</th><th>Type</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
-    ${list.map(w=>`<tr>
-      <td><span class="wnum">#${w.workNum}</span></td>
-      <td style="font-size:.8rem;font-weight:700;">${esc(dedupVeh(w.vehicles||w.vehicle))}</td>
-      <td>${wtBadge(w)}</td>
-      <td>${payBadge(w)}</td>
-      <td><span class="badge ${w.status==='done'?'bg':(w.status==='partial'?'by':'bb')}">${w.status==='done'?'✅ Done':(w.status==='partial'?'⏳ Partial':'🔄 Open')}</span></td>
-      <td style="font-size:.8rem;">${fmtDate(w.date)}</td>
-      <td><button class="btn btn-sm btn-outline" onclick="viewWork('${w._key}')">View</button></td>
-    </tr>`).join('')}
-  </tbody></table></div>`;
+
+  <div style="background:var(--bg2);border:1px solid var(--grayb);border-radius:var(--rad);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;">Received into</span>
+    ${bankChips}
+  </div>
+
+  ${pendingCount?`<div style="background:var(--yl);border:1px solid var(--y);border-radius:var(--rad);padding:8px 14px;margin-bottom:12px;font-size:.8rem;color:var(--text2);">⏳ ${pendingCount} work${pendingCount>1?'s':''} pending verification — not billed yet.</div>`:''}
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+    <label style="font-size:.78rem;font-weight:700;color:var(--text2);">View:</label>
+    <select onchange="_chVehFilter=this.value;chRenderLedger();" style="padding:6px 10px;border:1px solid var(--grayb);border-radius:8px;font-size:.82rem;">${vehOptions}</select>
+    ${_chVehFilter!=='__all'?`<span style="font-size:.74rem;color:var(--text3);">Showing running balance for ${esc(_chVehFilter)} only</span>`:''}
+  </div>
+
+  <div class="ox"><table class="wt">
+    <thead><tr>
+      <th>Date</th><th>Particulars</th>
+      <th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Balance</th>
+    </tr></thead>
+    <tbody>${rows||'<tr><td colspan="5" class="nd">No ledger entries</td></tr>'}</tbody>
+    <tfoot><tr style="background:var(--bg2);font-weight:800;">
+      <td colspan="2" style="font-weight:800;">Closing balance</td>
+      <td style="text-align:right;font-family:var(--font-num);color:var(--r);">${inr(view.filter(e=>e.kind==='debit').reduce((s,e)=>s+e.amount,0))}</td>
+      <td style="text-align:right;font-family:var(--font-num);color:var(--gd);">${inr(view.filter(e=>e.kind==='credit').reduce((s,e)=>s+e.amount,0))}</td>
+      <td style="text-align:right;font-family:var(--font-num);color:${outColor};">${inr(Math.abs(view.length?useBal(view[view.length-1]):0))}</td>
+    </tr></tfoot>
+  </table></div>`;
+}
+
+function chRowClick(kind,key){
+  if(!key) return;
+  if(typeof viewWork==='function') viewWork(key);
+}
+
+function printClientStatement(){
+  if(!_chData) return;
+  const {meta,summary,entries}=_chData;
+  let bal=0;
+  const body=entries.map(e=>{
+    bal+=(e.kind==='debit'?e.amount:-e.amount);
+    const part = e.kind==='debit'
+      ? `${esc(e.vehicles)} — ${esc(e.ref)}`
+      : `Payment received${e.bank?' ('+esc(e.bank)+')':''}`;
+    return `<tr>
+      <td>${fmtDate(e.date)}</td><td>${part}</td>
+      <td class="r">${e.kind==='debit'?inr(e.amount):''}</td>
+      <td class="r">${e.kind==='credit'?inr(e.amount):''}</td>
+      <td class="r">${inr(bal)}</td></tr>`;
+  }).join('');
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to print the statement','error');return;}
+  w.document.write(`<!doctype html><html><head><title>Statement ${esc(meta.cid)}</title>
+  <style>body{font-family:Arial,sans-serif;padding:24px;color:#1e3a5f;}h1{font-size:18px;margin:0;}
+  .sub{color:#555;font-size:13px;margin:2px 0 16px;}table{width:100%;border-collapse:collapse;font-size:12px;}
+  th,td{border-bottom:1px solid #ddd;padding:6px 8px;text-align:left;}th{background:#faf7f0;}
+  .r{text-align:right;font-variant-numeric:tabular-nums;}tfoot td{font-weight:bold;border-top:2px solid #1e3a5f;}
+  .cards{display:flex;gap:16px;margin-bottom:16px;}.card{flex:1;border:1px solid #eee;border-radius:8px;padding:10px;}
+  .card .l{font-size:11px;color:#777;}.card .v{font-size:16px;font-weight:bold;}</style></head><body>
+  <h1>Nandan Legal Services — Client Statement</h1>
+  <div class="sub">${esc(meta.clientName||'')} · ${esc(meta.clientPhone||'')} · Client ID ${esc(meta.cid)} · ${new Date().toLocaleDateString('en-IN')}</div>
+  <div class="cards">
+    <div class="card"><div class="l">Total Billed</div><div class="v">${inr(summary.billedTotal)}</div></div>
+    <div class="card"><div class="l">Received</div><div class="v">${inr(summary.recvTotal)}</div></div>
+    <div class="card"><div class="l">${summary.outstanding<0?'Advance':'Outstanding'}</div><div class="v">${inr(Math.abs(summary.outstanding))}</div></div>
+  </div>
+  <table><thead><tr><th>Date</th><th>Particulars</th><th class="r">Debit</th><th class="r">Credit</th><th class="r">Balance</th></tr></thead>
+  <tbody>${body}</tbody>
+  <tfoot><tr><td colspan="2">Closing balance</td><td class="r">${inr(summary.billedTotal)}</td><td class="r">${inr(summary.recvTotal)}</td><td class="r">${inr(summary.outstanding)}</td></tr></tfoot>
+  </table></body></html>`);
+  w.document.close();
+  setTimeout(()=>{try{w.print();}catch(e){}},300);
 }
 
 // ============================================================
