@@ -4141,6 +4141,9 @@ function startBackgroundRefresh() {
   if(_bgRefreshInterval) clearInterval(_bgRefreshInterval);
   _bgRefreshInterval = setInterval(async () => {
     if(!currentUser) return;
+    // Skip refresh while the tab/app isn't visible (phone locked, app backgrounded,
+    // other tab in front) — biggest bandwidth saver, avoids re-downloading the DB into a hidden tab
+    if(document.hidden) return;
     // Don't refresh if user is in the middle of a form
     const activeTag = document.activeElement?.tagName;
     if(activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
@@ -4156,7 +4159,7 @@ function startBackgroundRefresh() {
         if(renders[pageId]) renders[pageId]();
       }
     } catch(e) { /* silent fail */ }
-  }, 30000);
+  }, 300000); // 5 min (was 30s) — full-DB refresh is expensive; saves still force an immediate reload
 }
 
 
