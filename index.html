@@ -4166,7 +4166,10 @@ function startBackgroundRefresh() {
 function updateSidebarBadges() {
   const now = Date.now();
   const overdue = allWorks.filter(w=>w.status==='open'&&(now-w.timestamp)>7*86400000).length;
-  const udhari = allWorks.filter(w=>w.status==='done'&&w.payMode==='Unpaid').length;
+  const udhari = allWorks.filter(w=>
+    w.status!=='pending_verification' && w.status!=='rejected' &&
+    (w.remainingBalance>0 || (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue))
+  ).length;
   const today2 = new Date(); const in30 = new Date(today2.getTime()+30*86400000);
   const expiry = allWorks.filter(w=>{if(!w.expiryDate)return false;const d=new Date(w.expiryDate);return d>=today2&&d<=in30;}).length;
   const followupPending = allFollowups.filter(f=>!f.done).length;
@@ -7051,16 +7054,12 @@ function renderUdhari(){
   const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
   const now = Date.now();
 
-  // Pure unpaid — payMode is Unpaid regardless of status
-  const pureUdhari = allWorks.filter(w=>
+  // Works with a real outstanding balance — identical logic to Dues by Client,
+  // so a work booked "Unpaid" but later fully paid (via additional payments) no longer
+  // lingers here. Trusting payMode alone was the bug: that field keeps its booking value.
+  const dueList = allWorks.filter(w=>
     w.status!=='pending_verification' && w.status!=='rejected' &&
-    (w.payMode==='Unpaid' || w.payMode==='⏳ Unpaid / Due')
-  );
-  // Partial paid — has remaining balance OR totalPaid < workValue
-  const partialDue = allWorks.filter(w=>
-    w.status!=='pending_verification' && w.status!=='rejected' &&
-    w.payMode!=='Unpaid' && w.payMode!=='⏳ Unpaid / Due' &&
-    ((w.remainingBalance||0)>0 || ((w.workValue||0)>0 && (w.totalPaid||w.amount||0)<(w.workValue||0)))
+    (w.remainingBalance>0 || (w.workValue>0 && (w.totalPaid||w.amount||0)<w.workValue))
   );
   // Excess: paid more than work value (open/partial/done) — anyone who paid more than work fees
   const excessWorks = allWorks.filter(w=>
@@ -7095,7 +7094,7 @@ function renderUdhari(){
   let list;
   if(tabFilter==='excess') list=excessWorks;
   else if(tabFilter==='overspent') list=overspentWorks;
-  else list=[...pureUdhari,...partialDue];
+  else list=dueList;
 
   if(ageFilter!=='all') {
     list = list.filter(w=>{
@@ -7121,7 +7120,7 @@ function renderUdhari(){
 
   const makeRow = (w) => {
     const excess = Math.max(0,(w.totalPaid||w.amount||0)-(w.workValue||0));
-    const due = w.remainingBalance || Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0)) || (w.amount||0);
+    const due = w.remainingBalance || Math.max(0,(w.workValue||0)-(w.totalPaid||w.amount||0));
     const expenses = w._expenses || 0;
     const overspent = w._overspent || 0;
     return `<tr>
