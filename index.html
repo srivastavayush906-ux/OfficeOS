@@ -1997,6 +1997,7 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
           <button class="tb active" id="clientBalDueBtn" onclick="setClientBalTab('due',this)">⚠️ Due / Partial</button>
           <button class="tb" id="clientBalExcessBtn" onclick="setClientBalTab('excess',this)">💚 Excess Paid</button>
           <button class="tb" id="clientBalOverspentBtn" onclick="setClientBalTab('overspent',this)">🔴 Overspent (Expenses &gt; Fees)</button>
+          <button class="btn btn-sm" id="recalcPaidBtn" style="display:none;margin-left:auto;background:#7c2d12;color:#fff;" onclick="recalcPaidFromLedger()">🛠️ Recalculate Paid (fix drift)</button>
         </div>
         <input type="hidden" id="clientBalTab" value="due"/>
         <div class="tab-row" style="margin-bottom:14px;">
@@ -4115,6 +4116,45 @@ async function loadAllData() {
   allWorks = wData.map(r=>({...toCamel(r),_key:r.id})).filter(w => w.status !== 'rejected');
   allStaff = (sData.data||[]).map(r=>({...toCamel(r),_key:r.id}));
   allLedger = lData.map(r=>({...toCamel(r),_key:r.id}));
+  // ---- Self-heal cached total_paid against the ledger (source of truth) ----
+  // total_paid is a cached running total that can drift (e.g. legacy add/delete cycles).
+  // A work's real paid can be at most max(Σ its ledger credits, its work value):
+  //   credits can exceed value (overpayment → excess), and excess auto-adjust is capped at value.
+  // Anything above that is corruption, so we clamp it down. In-memory only — no DB write,
+  // so it's non-destructive (a reload simply re-derives) and keeps every page consistent.
+  (function healTotalPaid(){
+    try{
+      const numToKey={}, keySet=new Set();
+      allWorks.forEach(w=>{ numToKey[String(w.workNum)]=w._key; keySet.add(w._key); });
+      const creditByKey={};
+      allLedger.forEach(l=>{
+        if((l.type||'')!=='credit') return;
+        let meta={}; try{meta=JSON.parse(l.receiptUrls||'{}');}catch(e){}
+        const applied=(Number(l.amount)||0)-(Number(meta.payment_bank_charges)||0);
+        if(applied<=0) return;
+        let key='';
+        if(meta.payment_work_key && keySet.has(meta.payment_work_key)) key=meta.payment_work_key;
+        else { const m=String(l.workRef||'').match(/^#(\d+)\b/); if(m && numToKey[m[1]]) key=numToKey[m[1]]; }
+        if(!key) return;
+        creditByKey[key]=(creditByKey[key]||0)+applied;
+      });
+      allWorks.forEach(w=>{
+        const wv=Number(w.workValue)||0;
+        const credits=creditByKey[w._key]||0;
+        const legitMax=Math.max(credits, wv);
+        const stored=Number(w.totalPaid!=null?w.totalPaid:(w.amount||0))||0;
+        w._rawTotalPaid=stored;        // original DB value (for the creator Recalculate tool)
+        w._healLegitMax=legitMax;      // ledger-derived correct value
+        w._healed=false;
+        if(stored > legitMax + 0.5){
+          console.warn(`[heal] Work #${w.workNum}: total_paid ${stored} → ${legitMax} (ledger credits ${credits}, value ${wv})`);
+          w.totalPaid=legitMax; w.amount=legitMax;
+          w.remainingBalance=wv>0?Math.max(0,wv-legitMax):0;
+          w._healed=true;
+        }
+      });
+    }catch(e){ console.warn('healTotalPaid failed', e); }
+  })();
   // Salary records: rows with both employee_name AND salary fields (base_salary or salary_note)
   // This excludes RTO Spend (osp_entry=true) and Employee Ledger (no salary fields)
   allSalary = allLedger.filter(r => r.employeeName && (r.baseSalary || r.salaryNote !== undefined || r.advanceDeduction !== undefined) && !r.ospEntry);
@@ -7049,7 +7089,63 @@ function setUdhariAge(val, btn) {
   renderUdhari();
 }
 
+// ============================================================
+// CREATOR-ONLY: Recalculate Paid — permanently correct cached total_paid
+// drift against the ledger (the source of truth). Preview + confirm before
+// any write; per-row updates addressed by id only; audit-logged; idempotent.
+// Touches ONLY total_paid / amount / remaining_balance on provably-drifted works.
+// Never touches ledger, payments, clients, or any other table/field.
+// ============================================================
+async function recalcPaidFromLedger(){
+  if(!currentUser || !currentUser.isCreator){ toast('This tool is creator-only','error'); return; }
+
+  // Drifted works: original stored value exceeds the ledger-derived legitimate max.
+  // _rawTotalPaid (original DB value) and _healLegitMax (correct value) are set in loadAllData's heal.
+  const affected = allWorks.filter(w =>
+    typeof w._rawTotalPaid === 'number' && typeof w._healLegitMax === 'number' &&
+    w._rawTotalPaid > w._healLegitMax + 0.5
+  );
+  if(!affected.length){ toast('✅ All works already correct — nothing to fix','success'); return; }
+
+  const lines = affected.slice(0,30).map(w =>
+    `#${w.workNum} ${(w.ownerName||w.clientName||'').slice(0,18)}: ${inr(w._rawTotalPaid)} → ${inr(w._healLegitMax)}`
+  ).join('\n');
+  const more = affected.length>30 ? `\n…and ${affected.length-30} more` : '';
+  const warn = affected.length>50 ? `\n\n⚠️ That's ${affected.length} works — a lot. Please double-check.` : '';
+
+  if(!confirm(
+    `🛠️ Recalculate Paid — permanent fix\n\n`+
+    `Corrects stored "paid" for ${affected.length} work(s) that drifted above what the ledger supports.\n`+
+    `ONLY changes total_paid / amount / remaining_balance on these works.\n`+
+    `Does NOT touch ledger, payments, clients, or anything else.${warn}\n\n${lines}${more}\n\nProceed?`
+  )){ toast('Cancelled — nothing changed','warn'); return; }
+
+  let fixed=0, failed=0;
+  for(const w of affected){
+    const corrected = w._healLegitMax;
+    const wv = Number(w.workValue)||0;
+    const newRemaining = wv>0 ? Math.max(0, wv-corrected) : 0;
+    try{
+      const { error } = await _sb.from('works')
+        .update({ total_paid: corrected, amount: corrected, remaining_balance: newRemaining })
+        .eq('id', w._key);   // addressed strictly by id — never a bulk update
+      if(error) throw error;
+      await auditLog('RECALC_PAID', {
+        workNum: w.workNum, ownerName: w.ownerName||w.clientName||'—',
+        oldTotalPaid: w._rawTotalPaid, newTotalPaid: corrected, workValue: wv,
+        reason: 'Creator — corrected cached total_paid drift vs ledger'
+      });
+      fixed++;
+    }catch(e){ failed++; console.warn('Recalc failed for #'+w.workNum, e); }
+  }
+  toast(`✅ Fixed ${fixed} work(s)${failed?` · ${failed} failed`:''}`, failed?'warn':'success');
+  await loadAllData();
+  renderUdhari();
+  if(typeof updateSidebarBadges==='function') updateSidebarBadges();
+}
+
 function renderUdhari(){
+  const _rb=document.getElementById('recalcPaidBtn'); if(_rb) _rb.style.display = currentUser?.isCreator ? 'inline-flex' : 'none';
   const tabFilter = document.getElementById('clientBalTab')?.value||'due';
   const ageFilter = document.getElementById('udhariAgeFilter')?.value||'all';
   const now = Date.now();
