@@ -2225,7 +2225,10 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
         </div>
 
         <div style="margin-top:20px;">
-          <div style="font-weight:800;font-size:.88rem;margin-bottom:10px;">Recent RTO Spends</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+            <div style="font-weight:800;font-size:.88rem;">Recent RTO Spends</div>
+            <input type="text" id="ospSearch" placeholder="🔍 Search vehicle, work #, client, reason, employee, amount…" oninput="renderOspHistory()" style="flex:1;min-width:220px;max-width:420px;padding:7px 11px;border:1px solid var(--grayb);border-radius:8px;font-size:.82rem;"/>
+          </div>
           <div id="ospHistory"><div class="nd">No spends recorded yet</div></div>
         </div>
       </div>
@@ -3454,7 +3457,14 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
     <div class="md-title">✏️ Edit RTO Inside Spend</div>
     <div style="background:var(--yl);border-radius:var(--rads);padding:10px 14px;margin-bottom:14px;font-size:.8rem;">
       <div style="font-weight:800;" id="ospEdit_ref">—</div>
-      <div style="color:var(--gray);font-size:.74rem;margin-top:2px;">Linked work / vehicle is not changed by this edit.</div>
+      <div style="color:var(--gray);font-size:.74rem;margin-top:2px;">Current linked work / vehicle</div>
+    </div>
+    <div class="field"><label>🔍 Search work to link (vehicle, work #, client name)</label>
+      <input type="text" id="ospEdit_workSearch" placeholder="e.g. UP53FT3336 · 1055 · Sajeed" oninput="populateOspEditWorks()"/>
+      <div class="hint" id="ospEdit_workHint">Type at least 2 characters. Leave the dropdown as-is to keep the current link.</div>
+    </div>
+    <div class="field"><label>Linked Work</label>
+      <select id="ospEdit_work" onchange="ospEditWorkChanged()"><option value="">— No linked work (General Spend) —</option></select>
     </div>
     <div class="field"><label>Date *</label><input type="date" id="ospEdit_date"/></div>
     <div class="field"><label>Employee (debited from their ledger) *</label>
@@ -10208,6 +10218,7 @@ function renderOfficeSpend() {
   document.getElementById('ospRows').innerHTML = '';
   addOspRow();
   updateOspTotal();
+  const _os=document.getElementById('ospSearch'); if(_os) _os.value='';  // avoid a stale filter hiding rows
   renderOspHistory();
 }
 
@@ -10509,8 +10520,19 @@ async function renderOspHistory() {
   allOspSpend = ospEntries;
   const el = document.getElementById('ospHistory');
   if(!allOspSpend.length){el.innerHTML='<div class="nd">No spends recorded yet</div>';return;}
+  // Filter for display only — allOspSpend stays complete so edit/delete lookups always resolve
+  const q=(document.getElementById('ospSearch')?.value||'').trim().toLowerCase();
+  const shown = !q ? allOspSpend : allOspSpend.filter(s=>
+    (s.description||'').toLowerCase().includes(q) ||
+    (s.workRef||'').toLowerCase().includes(q) ||
+    (s.spentBy||s.by||'').toLowerCase().includes(q) ||
+    (s.loggedBy||s.by||'').toLowerCase().includes(q) ||
+    (s.date||'').toLowerCase().includes(q) ||
+    String(s.amount||'').includes(q)
+  );
+  if(!shown.length){el.innerHTML=`<div class="nd">No entries match “${esc(q)}”</div>`;return;}
   el.innerHTML=`<div class="ox"><table class="wt"><thead><tr><th>Date</th><th>Work</th><th>Reason</th><th>Amount</th><th>Spent By</th><th>Logged By</th><th>Files</th><th>Action</th></tr></thead><tbody>
-    ${allOspSpend.map(s=>{
+    ${shown.map(s=>{
       let receiptLinks='';
       if(s.receiptUrls){try{const urls=JSON.parse(s.receiptUrls);receiptLinks=urls.map((u,i)=>`<a href="${esc(u)}" target="_blank" style="color:var(--p);font-size:.75rem;display:block;">📎 File ${i+1}</a>`).join('');}catch(e){}}
       return `<tr>
@@ -10533,6 +10555,7 @@ async function renderOspHistory() {
 
 // ---- EDIT RTO INSIDE SPEND (manager and above) ----
 let _ospEditId = null;
+let _ospEditOrigRef = '';
 function ospCanEdit(){ return !!(currentUser && (currentUser.role==='manager'||currentUser.role==='owner'||currentUser.role==='creator')); }
 function ospToInputDate(d){
   if(!d) return '';
@@ -10542,6 +10565,56 @@ function ospToInputDate(d){
   if(p.length===3 && p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
   const t=new Date(s);
   return isNaN(t) ? '' : t.toISOString().split('T')[0];
+}
+
+// Resolve which work a stored work_ref points at ("#1055 — Owner / VEH" -> that work's _key)
+function ospResolveWorkKey(workRef){
+  const m=String(workRef||'').match(/^#(\d+)\b/);
+  if(!m) return '';
+  const w=allWorks.find(x=>String(x.workNum)===m[1]);
+  return w?w._key:'';
+}
+function ospWorkOptionLabel(w){
+  const veh=(w.vehicles||w.vehicle||'—');
+  const nm=(w.ownerName||w.clientName||'—');
+  const st=w.status==='done'?' ✅':w.status==='partial'?' ⏳':'';
+  return `#${w.workNum} — ${nm} / ${veh}${st}`;
+}
+// Search across vehicle, work number, and client name. Unlike the batch form's lookup,
+// this includes completed works — RTO spend is often logged against a finished work.
+function populateOspEditWorks(){
+  const sel=document.getElementById('ospEdit_work');
+  const hint=document.getElementById('ospEdit_workHint');
+  if(!sel) return;
+  const q=(document.getElementById('ospEdit_workSearch').value||'').trim().toUpperCase();
+  const cur=sel.value;
+  let matches=[];
+  if(q.length>=2){
+    const qNum=q.replace(/^#/,'');
+    matches=allWorks.filter(w=>{
+      if(w.status==='rejected') return false;
+      const veh=(w.vehicles||w.vehicle||'').toUpperCase();
+      const nm=(w.ownerName||w.clientName||'').toUpperCase();
+      return veh.includes(q) || nm.includes(q) || String(w.workNum)===qNum;
+    }).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).slice(0,50);
+  }
+  // Always keep the currently-selected work in the list so searching can't silently drop it
+  const curWork = cur ? allWorks.find(w=>w._key===cur) : null;
+  if(curWork && !matches.some(w=>w._key===cur)) matches.unshift(curWork);
+  sel.innerHTML = '<option value="">— No linked work (General Spend) —</option>' +
+    matches.map(w=>`<option value="${w._key}"${w._key===cur?' selected':''}>${esc(ospWorkOptionLabel(w))}</option>`).join('');
+  if(hint){
+    hint.textContent = q.length<2 ? 'Type at least 2 characters. Leave the dropdown as-is to keep the current link.'
+      : matches.length ? `${matches.length} match${matches.length>1?'es':''} found${matches.length===50?' (showing first 50)':''}`
+      : 'No works found for that search';
+  }
+}
+function ospEditWorkChanged(){
+  const sel=document.getElementById('ospEdit_work');
+  const w=allWorks.find(x=>x._key===sel.value);
+  const el=document.getElementById('ospEdit_ref');
+  if(!el) return;
+  el.textContent = w ? ospWorkOptionLabel(w) : (sel.value ? '—' : 'General Spend (no linked work)');
 }
 
 function openOspEdit(id){
@@ -10556,6 +10629,19 @@ function openOspEdit(id){
   sel.innerHTML = '<option value="">— Select Employee —</option>' +
     names.map(n=>`<option value="${esc(n)}"${n===curEmp?' selected':''}>${esc(n)}</option>`).join('');
   document.getElementById('ospEdit_ref').textContent = e.workRef || 'General Spend';
+  // Pre-select the currently linked work (if the ref points at one that still exists)
+  _ospEditOrigRef = e.workRef || '';
+  const curKey = ospResolveWorkKey(e.workRef);
+  const wsel = document.getElementById('ospEdit_work');
+  const curW = curKey ? allWorks.find(w=>w._key===curKey) : null;
+  wsel.innerHTML = '<option value="">— No linked work (General Spend) —</option>' +
+    (curW?`<option value="${curW._key}" selected>${esc(ospWorkOptionLabel(curW))}</option>`:'');
+  document.getElementById('ospEdit_workSearch').value = '';
+  document.getElementById('ospEdit_workHint').textContent = curW
+    ? 'Currently linked. Search above to re-link, or choose "No linked work" to unlink.'
+    : (e.workRef && e.workRef!=='General Spend'
+        ? 'Not linked to a work record. Search above to link one.'
+        : 'Type at least 2 characters to search.');
   document.getElementById('ospEdit_date').value = ospToInputDate(e.date);
   document.getElementById('ospEdit_reason').value = (e.description||'').replace('RTO Inside Spend:','').trim();
   document.getElementById('ospEdit_amount').value = e.amount || 0;
@@ -10580,10 +10666,26 @@ async function saveOspEdit(){
 
   const dateStr = new Date(dateVal).toLocaleDateString('en-IN');
   const oldEmp = e.spentBy || e.employeeName || e.by || '';
+  const oldRef = e.workRef || '';
+
+  // Build the new work_ref. Format MUST match saveOspBatch exactly — Work Details and the
+  // Overspent tab find RTO spends via work_ref.startsWith('#<workNum> ').
+  const selKey = document.getElementById('ospEdit_work').value;
+  let newRef;
+  if(selKey){
+    const lw = allWorks.find(x=>x._key===selKey);
+    newRef = lw ? `#${lw.workNum} — ${lw.ownerName||lw.clientName} / ${lw.vehicles||lw.vehicle||''}` : oldRef;
+  } else {
+    // Unlinking: if it was linked to a work, drop to General Spend;
+    // otherwise keep whatever descriptive ref it already had.
+    newRef = /^#\d+\b/.test(oldRef) ? 'General Spend' : (oldRef || 'General Spend');
+  }
+
   const changes = [];
   if(Math.abs(amount-(e.amount||0))>0.5) changes.push(`Amount: ${inr(e.amount||0)} → ${inr(amount)}`);
   if(employee !== oldEmp) changes.push(`Employee: ${oldEmp||'—'} → ${employee}`);
   if(dateStr !== (e.date||'')) changes.push(`Date: ${e.date||'—'} → ${dateStr}`);
+  if(newRef !== oldRef) changes.push(`Linked work: ${oldRef||'—'} → ${newRef}`);
   const oldReason = (e.description||'').replace('RTO Inside Spend:','').trim();
   if(reason !== oldReason) changes.push(`Reason: "${oldReason}" → "${reason}"`);
   if(!changes.length){ toast('No changes made','warn'); closeModal('ospEditModal'); return; }
@@ -10592,23 +10694,25 @@ async function saveOspEdit(){
   requirePermSlip('Edit RTO Spend — '+(oldReason||'entry').slice(0,40), async (permReason, slipUrl) => {
     try{
       await auditLog('EDIT_RTO', {
-        description: e.description||'—', workRef: e.workRef||'—',
+        description: e.description||'—', workRef: oldRef||'—',
         oldAmount: e.amount||0, newAmount: amount,
         oldEmployee: oldEmp||'—', newEmployee: employee,
         oldDate: e.date||'—', newDate: dateStr,
+        oldWorkRef: oldRef||'—', newWorkRef: newRef,
         changes: changes.join(' | '),
         reason: permReason||'Owner — no slip required', permissionSlipUrl: slipUrl||''
       });
       const full = {
         date: dateStr, amount,
         description: `RTO Inside Spend: ${reason}`,
+        work_ref: newRef,
         spent_by: employee, employee_name: employee
       };
       let res = await _sb.from('ledger').update(full).eq('id', id);   // by id only — never bulk
       if(res.error && res.error.message && res.error.message.includes('schema cache')){
         // Fallback for installs where spent_by/employee_name aren't in the schema cache
         res = await _sb.from('ledger').update({
-          date: dateStr, amount, description: `RTO Inside Spend: ${reason}`
+          date: dateStr, amount, description: `RTO Inside Spend: ${reason}`, work_ref: newRef
         }).eq('id', id);
       }
       if(res.error) throw res.error;
