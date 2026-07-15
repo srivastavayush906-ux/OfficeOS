@@ -756,6 +756,11 @@ input[type="number"], input[type="tel"] {
   padding: 16px;
 }
 .mo.show { display: flex; animation: moIn .2s ease; }
+/* The permission-slip prompt is opened *from* other modals (edit work, edit RTO spend,
+   edit payment…). All .mo share z-index 500, so DOM order decided who paints on top and
+   the slip could open *behind* the modal that triggered it — making Save look dead for
+   managers. Keep it above every other modal. */
+#permSlipModal { z-index: 700; }
 @keyframes moIn { from { opacity: 0; } to { opacity: 1; } }
 .md {
   background: var(--surface);
