@@ -3447,6 +3447,29 @@ hr.dv { border: none; border-top: 1px solid var(--grayb); margin: 14px 0; }
 
 <div id="toast"></div>
 
+<!-- EDIT RTO INSIDE SPEND MODAL (manager and above) -->
+<div class="mo" id="ospEditModal">
+  <div class="md" style="max-width:460px;">
+    <button class="md-close" onclick="closeModal('ospEditModal')">x</button>
+    <div class="md-title">✏️ Edit RTO Inside Spend</div>
+    <div style="background:var(--yl);border-radius:var(--rads);padding:10px 14px;margin-bottom:14px;font-size:.8rem;">
+      <div style="font-weight:800;" id="ospEdit_ref">—</div>
+      <div style="color:var(--gray);font-size:.74rem;margin-top:2px;">Linked work / vehicle is not changed by this edit.</div>
+    </div>
+    <div class="field"><label>Date *</label><input type="date" id="ospEdit_date"/></div>
+    <div class="field"><label>Employee (debited from their ledger) *</label>
+      <select id="ospEdit_employee"><option value="">— Select Employee —</option></select>
+    </div>
+    <div class="field"><label>Reason / Description *</label><input type="text" id="ospEdit_reason" placeholder="e.g. Agent fee, File charges…"/></div>
+    <div class="field"><label>Amount (₹) *</label><input type="number" id="ospEdit_amount" step="0.01" min="0"/></div>
+    <div id="ospEdit_delta" style="font-size:.78rem;color:var(--gray);margin-bottom:10px;"></div>
+    <div class="md-foot">
+      <button class="btn btn-primary" onclick="saveOspEdit()">💾 Save Changes</button>
+      <button class="btn btn-gray" onclick="closeModal('ospEditModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- MARK UDHARI AS PAID MODAL -->
 <div class="mo" id="markPaidModal">
   <div class="md" style="max-width:420px;">
@@ -10477,8 +10500,11 @@ async function saveOspSpend() {
 
 let allOspSpend = [];
 async function renderOspHistory() {
-  const ledData = await fetchAll('ledger');
-  const ospEntries = (ledData||[]).map(r=>({...toCamel(r),_key:r.id}))
+  // Read from the in-memory ledger (already loaded by loadAllData) instead of
+  // re-downloading the entire ledger table on every page visit — big egress saver.
+  // Every caller either runs at page load or does `await loadAllData()` first,
+  // so this data is always as fresh as a re-fetch would be.
+  const ospEntries = (allLedger||[])
     .filter(l => l.ospEntry===true || (l.type==='debit' && (l.description||'').startsWith('RTO Inside Spend:')));
   allOspSpend = ospEntries;
   const el = document.getElementById('ospHistory');
@@ -10495,10 +10521,104 @@ async function renderOspHistory() {
         <td style="font-size:.8rem;font-weight:700;">${esc(s.spentBy||s.by||'—')}</td>
         <td style="font-size:.78rem;color:var(--gray);">${esc(s.loggedBy||s.by||'—')}</td>
         <td>${receiptLinks||'—'}</td>
-        <td>${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deleteOspEntry('${s._key}')">🗑️</button>`:'—'}</td>
+        <td><div style="display:flex;gap:4px;">
+          ${currentUser&&(currentUser.role==='manager'||currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--p);padding:3px 8px;font-size:.75rem;" onclick="openOspEdit('${s._key}')">✏️</button>`:''}
+          ${currentUser&&(currentUser.role==='owner'||currentUser.role==='creator')?`<button class="btn btn-sm btn-outline" style="color:var(--r);padding:3px 8px;font-size:.75rem;" onclick="deleteOspEntry('${s._key}')">🗑️</button>`:''}
+          ${currentUser&&(currentUser.role==='manager'||currentUser.role==='owner'||currentUser.role==='creator')?'':'—'}
+        </div></td>
       </tr>`;
     }).join('')}
   </tbody></table></div>`;
+}
+
+// ---- EDIT RTO INSIDE SPEND (manager and above) ----
+let _ospEditId = null;
+function ospCanEdit(){ return !!(currentUser && (currentUser.role==='manager'||currentUser.role==='owner'||currentUser.role==='creator')); }
+function ospToInputDate(d){
+  if(!d) return '';
+  const s=String(d).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const p=s.split('/');
+  if(p.length===3 && p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  const t=new Date(s);
+  return isNaN(t) ? '' : t.toISOString().split('T')[0];
+}
+
+function openOspEdit(id){
+  if(!ospCanEdit()){ toast('Only manager and above can edit','error'); return; }
+  const e = (allOspSpend||[]).find(s=>s._key===id);
+  if(!e){ toast('Entry not found','error'); return; }
+  _ospEditId = id;
+  const curEmp = e.spentBy || e.employeeName || e.by || '';
+  const sel = document.getElementById('ospEdit_employee');
+  const names = allStaff.map(s=>s.name);
+  if(curEmp && !names.includes(curEmp)) names.unshift(curEmp); // keep original even if staff removed
+  sel.innerHTML = '<option value="">— Select Employee —</option>' +
+    names.map(n=>`<option value="${esc(n)}"${n===curEmp?' selected':''}>${esc(n)}</option>`).join('');
+  document.getElementById('ospEdit_ref').textContent = e.workRef || 'General Spend';
+  document.getElementById('ospEdit_date').value = ospToInputDate(e.date);
+  document.getElementById('ospEdit_reason').value = (e.description||'').replace('RTO Inside Spend:','').trim();
+  document.getElementById('ospEdit_amount').value = e.amount || 0;
+  document.getElementById('ospEdit_delta').textContent = `Original amount: ${inr(e.amount||0)} · debited from ${curEmp||'—'}`;
+  openModal('ospEditModal');
+}
+
+async function saveOspEdit(){
+  if(!ospCanEdit()){ toast('Only manager and above can edit','error'); return; }
+  const id = _ospEditId;
+  const e = (allOspSpend||[]).find(s=>s._key===id);
+  if(!e){ toast('Entry not found','error'); return; }
+
+  const dateVal = document.getElementById('ospEdit_date').value;
+  const employee = document.getElementById('ospEdit_employee').value;
+  const reason = document.getElementById('ospEdit_reason').value.trim();
+  const amount = parseFloat(document.getElementById('ospEdit_amount').value)||0;
+  if(!dateVal){ toast('Select a date','error'); return; }
+  if(!employee){ toast('Select an employee','error'); return; }
+  if(!reason){ toast('Enter a reason','error'); return; }
+  if(!amount || amount<=0){ toast('Enter a valid amount','error'); return; }
+
+  const dateStr = new Date(dateVal).toLocaleDateString('en-IN');
+  const oldEmp = e.spentBy || e.employeeName || e.by || '';
+  const changes = [];
+  if(Math.abs(amount-(e.amount||0))>0.5) changes.push(`Amount: ${inr(e.amount||0)} → ${inr(amount)}`);
+  if(employee !== oldEmp) changes.push(`Employee: ${oldEmp||'—'} → ${employee}`);
+  if(dateStr !== (e.date||'')) changes.push(`Date: ${e.date||'—'} → ${dateStr}`);
+  const oldReason = (e.description||'').replace('RTO Inside Spend:','').trim();
+  if(reason !== oldReason) changes.push(`Reason: "${oldReason}" → "${reason}"`);
+  if(!changes.length){ toast('No changes made','warn'); closeModal('ospEditModal'); return; }
+
+  // Manager must supply reason + permission slip; owner/creator bypass automatically.
+  requirePermSlip('Edit RTO Spend — '+(oldReason||'entry').slice(0,40), async (permReason, slipUrl) => {
+    try{
+      await auditLog('EDIT_RTO', {
+        description: e.description||'—', workRef: e.workRef||'—',
+        oldAmount: e.amount||0, newAmount: amount,
+        oldEmployee: oldEmp||'—', newEmployee: employee,
+        oldDate: e.date||'—', newDate: dateStr,
+        changes: changes.join(' | '),
+        reason: permReason||'Owner — no slip required', permissionSlipUrl: slipUrl||''
+      });
+      const full = {
+        date: dateStr, amount,
+        description: `RTO Inside Spend: ${reason}`,
+        spent_by: employee, employee_name: employee
+      };
+      let res = await _sb.from('ledger').update(full).eq('id', id);   // by id only — never bulk
+      if(res.error && res.error.message && res.error.message.includes('schema cache')){
+        // Fallback for installs where spent_by/employee_name aren't in the schema cache
+        res = await _sb.from('ledger').update({
+          date: dateStr, amount, description: `RTO Inside Spend: ${reason}`
+        }).eq('id', id);
+      }
+      if(res.error) throw res.error;
+      toast('Entry updated ✅','success');
+      closeModal('ospEditModal');
+      _ospEditId = null;
+      await loadAllData();
+      renderOspHistory();
+    }catch(err){ toast('Error: '+err.message,'error'); }
+  });
 }
 
 async function deleteOspEntry(id) {
@@ -10514,6 +10634,7 @@ async function deleteOspEntry(id) {
       });
       await _sb.from('ledger').delete().eq('id', id);
       toast('Entry deleted ✅','success');
+      await loadAllData();   // refresh in-memory ledger so the deleted row disappears
       renderOspHistory();
     } catch(e){ toast('Error: '+e.message,'error'); }
   });
